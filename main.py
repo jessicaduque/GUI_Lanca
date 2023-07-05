@@ -34,7 +34,7 @@ app.title("DashMedidor")
 vid = ConfigurarCamera()
 
 # Criar o label e mostrar no app
-video_widget = CTkLabel(app)
+video_widget = CTkLabel(app, text="")
 video_widget.pack()
   
 # Função de abrir a câmera e mostrar no video_widget do app
