@@ -26,6 +26,19 @@ def ConfigurarCamera():
 
     return vid
 
+app = App()
+app.geometry("960x540")
+app.maxsize(width=960, height=540)
+app.minsize(width=960, height=540)
+app.title("DashMedidor")
+
+# Configurar a câmera para o seu uso
+vid = ConfigurarCamera()
+
+# Criar o label e mostrar no app
+video_widget = CTkLabel(app, text="")
+video_widget.pack()
+  
 # Função de abrir a câmera e mostrar no video_widget do app
 def open_camera():
   
@@ -49,20 +62,7 @@ def open_camera():
   
     # Repeat the same process after every 10 seconds
     video_widget.after(10, open_camera)
-
-app = App()
-app.geometry("960x540") 
-app.title("DashMedidor")
-
-# Configurar a câmera para o seu uso
-vid = ConfigurarCamera()
-
-# Criar o label e mostrar no app
-video_widget = CTkLabel(app, text="")
-video_widget.pack()
   
 # Função para abrir ativar câmera e encaixar ela no app
 open_camera()
-
-# Função para rodar app
 app.mainloop()
