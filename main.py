@@ -27,7 +27,9 @@ def ConfigurarCamera():
     return vid
 
 app = App()
-app.geometry("960x540") 
+app.geometry("960x540")
+app.maxsize(width=960, height=540)
+app.minsize(width=960, height=540)
 app.title("DashMedidor")
 
 # Configurar a câmera para o seu uso
