@@ -18,7 +18,7 @@ def ConfigurarCamera():
     vid = cv2.VideoCapture(0)
   
     # Declare the width and height in variables
-    width, height = 800, 600
+    width, height = 440, 180
   
     # Set the width and height
     vid.set(cv2.CAP_PROP_FRAME_WIDTH, width)
@@ -26,19 +26,6 @@ def ConfigurarCamera():
 
     return vid
 
-app = App()
-app.geometry("960x540")
-app.maxsize(width=960, height=540)
-app.minsize(width=960, height=540)
-app.title("DashMedidor")
-
-# Configurar a câmera para o seu uso
-vid = ConfigurarCamera()
-
-# Criar o label e mostrar no app
-video_widget = CTkLabel(app, text="")
-video_widget.pack()
-  
 # Função de abrir a câmera e mostrar no video_widget do app
 def open_camera():
   
@@ -52,7 +39,7 @@ def open_camera():
     captured_image = Image.fromarray(opencv_image)
 
     # Convert captured image to photoimage
-    photo_image = CTkImage(captured_image, size=(800, 600))
+    photo_image = CTkImage(captured_image, size=(440, 180))
 
     # Displaying photoimage in the label
     video_widget.photo_image = photo_image
@@ -62,6 +49,25 @@ def open_camera():
   
     # Repeat the same process after every 10 seconds
     video_widget.after(10, open_camera)
+  
+### Inicialização
+app = App()
+app.geometry("960x540")
+app.maxsize(width=960, height=540)
+app.minsize(width=960, height=540)
+app.title("DashMedidor")
+# Configurar a câmera para o seu uso
+vid = ConfigurarCamera()
+
+# Montagem do frame do vídeo
+frameVideo = CTkFrame(master = app, width=500, height=250, fg_color="white", border_color="black", border_width=2, corner_radius=30).place(x=140, y=30)
+
+frameAlertGraph = CTkFrame(master = app, width=250, height=250, fg_color="white", border_color="black", border_width=2, corner_radius=30).place(x=650, y=30)
+frameDataGraph = CTkFrame(master = app, width=760, height=220, fg_color="white", border_color="black", border_width=2, corner_radius=30).place(x=140, y=290)
+
+# Criar o label e mostrar no app
+video_widget = CTkLabel(frameVideo, text="")
+video_widget.pack()
   
 # Função para abrir ativar câmera e encaixar ela no app
 open_camera()
