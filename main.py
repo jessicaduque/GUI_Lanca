@@ -42,10 +42,10 @@ frameCentral = CTkFrame(app, fg_color='#f5f3ee')
 frameCentral.place(relx=.5, rely=.5, anchor='center')
 
 # Divisão da tela em duas partes (cima e baixo)
-frameCima = CTkFrame(frameCentral, fg_color='#ebebeb')
+frameCima = CTkFrame(frameCentral, fg_color='#f5f3ee')
 frameCima.grid(row=0, column=0, padx=10,  pady=10)
 
-frameBaixo = CTkFrame(frameCentral, fg_color='#ebebeb')
+frameBaixo = CTkFrame(frameCentral, fg_color='#f5f3ee')
 frameBaixo.grid(row=1, column=0, padx=10,  pady=10)
 
 # Criação dos frames da parte de cima
