@@ -4,7 +4,12 @@ from customtkinter import *
 import cv2
 from PIL import Image, ImageTk
 
-from random import randrange
+import random
+from datetime import datetime, timedelta
+
+import matplotlib.pyplot as plt
+from collections import deque
+from  matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 # Chamando a janela do aplicativo
 class App(CTk):
@@ -78,8 +83,10 @@ def open_camera(frameCount):
   
     frameCount += 1
 
-    if (frameCount == 10):
-        numData = randrange(10, 30)
+    if (frameCount == 30):
+        numData = random.randrange(10, 30)
+        now = datetime.now()
+        current_time = now.strftime("%H:%M:%S")
         frameCount = 0
 
     # Convert image from one color space to other
@@ -100,11 +107,25 @@ def open_camera(frameCount):
     # Repeat the same process after every 10 seconds
     video_widget.after(10, open_camera, frameCount)
 
+def PlotarGraficoData():
+    x = [1, 2, 3, 4, 5]
+    y = [1, 2, 3, 4, 5]
+
+    # generate the figure and plot object which will be linked to the root element
+    fig, ax = plt.subplots()
+    ax.plot(x,y)
+    canvas = FigureCanvasTkAgg(fig, app)
+    canvas.draw()
+    canvas.get_tk_widget().grid(row=0, column=1)
+    canvas.get_tk_widget().after(10, PlotarGraficoData)
+
 # Inicializa variável para aleatorizar dados
 frameCount = int()
 
 #Função para abrir ativar câmera e encaixar ela no app
 open_camera(frameCount)
+
+PlotarGraficoData()
 
 # Função para rodar o app
 app.mainloop()
