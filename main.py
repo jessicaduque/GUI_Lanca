@@ -44,7 +44,7 @@ def open_camera(frameCount):
     if (frameCount == 30):
         numData = random.randrange(10, 30)
         now = datetime.now()
-        current_time = now.strftime("%H:%M:%S")
+        current_time = now.strftime("a%H:%M:%S")
         frameCount = 0
 
 
@@ -73,34 +73,27 @@ def open_camera(frameCount):
 #    return q
 
 # Função para plot do gráfico de acordo com dados recebidos
-def PlotarGraficoData(queueX, queueY, queueDados, queueTempo):
+def PlotarGraficoData(queueDados, queueTempo):
+    x = queueTempo
+    y = queueDados
+    
     numData = random.randrange(10, 30)
     now = datetime.now()
     current_time = now.strftime("%H:%M:%S")
 
-    queueX.append(current_time)
-    print(queueX[0])
-    print(type(current_time))
+    x.append(current_time)
+    y.append(numData)
 
-    queueY.append(numData)
-    print(queueY[0])
-
-
-    x = queueTempo
-    y = queueDados
-
-    y[3] = y[3] + 1
 
     # updating data values
-    linha.set_xdata(x)
-    linha.set_ydata(y)
+    linha.set_xdata(list(x))
+    linha.set_ydata(list(y))
     plt.ylim(0, 31)
-    #for i in y:
-    #   plt.ylim(0, i)
-    # drawing updated values
+    plt.ylim(0, 31)
+
     fig.canvas.draw()
     
-    canvas.get_tk_widget().after(1000, PlotarGraficoData, queueX, queueY, queueDados, queueTempo)
+    canvas.get_tk_widget().after(1000, PlotarGraficoData, y, x)
 
 
 ### Inicialização
@@ -155,22 +148,25 @@ open_camera(frameCount)
 
 
 ### Criação do gráfico
-queueX = deque([], maxlen = 15)
-queueY = deque([], maxlen = 15)
+queueTempo = deque([], maxlen = 15)
+queueDados = deque([], maxlen = 15)
 
-queueDados = [1, 2, 3, 6, 7]
-queueTempo = ["0.1", "0.2", "0.3", "0.4", "0.5"]
+queueDados.append(1) 
+queueTempo.append("12:26:18")
+
+queueDados.append(5) 
+queueTempo.append("12:26:19")
 
 # to run GUI event loop
 fig, ax = plt.subplots()
-linha, = ax.plot(queueTempo, queueDados)
+linha, = ax.plot(list(queueTempo), list(queueDados))
 plt.title("Diâmetro do cascão", fontsize=20)
 plt.xlabel("Horas")
 plt.ylabel("Diâmetro")
 
 canvas = FigureCanvasTkAgg(fig, app)
 canvas.get_tk_widget().grid(row=0, column=1)
-PlotarGraficoData(queueX, queueY, queueDados, queueTempo)
+PlotarGraficoData(queueDados, queueTempo)
 
 # Função para rodar o app
 app.mainloop()
