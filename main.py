@@ -9,6 +9,7 @@ import random
 from datetime import datetime, timedelta
 
 import matplotlib.pyplot as plt
+#plt.style.use("seaborn")
 from collections import deque
 from  matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
@@ -35,48 +36,52 @@ def ConfigurarCamera():
     return vid
   
 # Função de abrir a câmera e mostrar no video_widget do app
-def open_camera(frameCount):
+def Open_Camera(frameCount):
     # Captura do vídeo frame por frame
     _, frame = vid.read()
-  
-    frameCount += 1
 
-    if (frameCount == 30):
-        numData = random.randrange(10, 30)
-        now = datetime.now()
-        current_time = now.strftime("a%H:%M:%S")
-        frameCount = 0
-
-
-    # Convert image from one color space to other
+    # Converção de imagem de uma espaço de cores para o outro
     opencv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
   
-    # Capture the latest frame and transform to image
+    # Captura do frame mais atual e transformação dela para imagem
     captured_image = Image.fromarray(opencv_image)
 
-    # Convert captured image to photoimage
+    # Converção da imagem capturada para photoimage
     photo_image = CTkImage(captured_image, size=(480,200))
 
-    # Displaying photoimage in the label
+    # Definindo o photoimage do label
     video_widget.photo_image = photo_image
   
-    # Configure image in the label
+    # Configurando a imagem no label
     video_widget.configure(image=photo_image)
   
-    # Repeat the same process after every 10 miliseconds
-    video_widget.after(10, open_camera, frameCount)
+    # Repetiçãoo do mesmo processo apóos 10 milisegundos
+    video_widget.after(10, Open_Camera, frameCount)
 
-#def createQueue(data, q):
-#    queue = deque([], maxlen=15)
-#    queue.append(data)
+def CriacaoGrafico():
+    queueTempo = deque([], maxlen = 15)
+    queueDados = deque([], maxlen = 15)
 
-#    return q
+    queueDados.append(0) 
+    queueTempo.append("0")
+
+    # to run GUI event loop
+    fig, ax = plt.subplots()
+    linha, = ax.plot(list(queueTempo), list(queueDados))
+    plt.title("Diâmetro do cascão", fontsize=20)
+    plt.xlabel("Horas")
+    plt.ylabel("Diâmetro")
+
+    return fig, queueDados, queueTempo, linha
 
 # Função para plot do gráfico de acordo com dados recebidos
 def PlotarGraficoData(queueDados, queueTempo):
+
+    # Declaração variáveis
     x = queueTempo
     y = queueDados
     
+    # Gerãção e adição na lista de dados para teste
     numData = random.randrange(10, 30)
     now = datetime.now()
     current_time = now.strftime("%H:%M:%S")
@@ -84,17 +89,19 @@ def PlotarGraficoData(queueDados, queueTempo):
     x.append(current_time)
     y.append(numData)
 
+    # Atualização do range dos eixos x e y
+    plt.ylim(min(list(y)), max(list(y)))
+    plt.xlim(list(x)[0], list(x)[-1])
 
-    # updating data values
+    # Atualização dos dados do eixo x e y
     linha.set_xdata(list(x))
     linha.set_ydata(list(y))
-    plt.ylim(0, 31)
-    plt.ylim(0, 31)
 
+    # Desenhando o novo gráfico
     fig.canvas.draw()
     
+    # Chamando a função recursiva de segundo em segundo para rodar a função novamente e continuar atualizando o gráfico
     canvas.get_tk_widget().after(1000, PlotarGraficoData, y, x)
-
 
 ### Inicialização
 app = App()
@@ -143,27 +150,10 @@ video_widget.grid(row=1, pady=3, padx=10)
 frameCount = int()
 
 #Função para abrir ativar câmera e encaixar ela no app
-open_camera(frameCount)
+Open_Camera(frameCount)
 
-
-
-### Criação do gráfico
-queueTempo = deque([], maxlen = 15)
-queueDados = deque([], maxlen = 15)
-
-queueDados.append(1) 
-queueTempo.append("12:26:18")
-
-queueDados.append(5) 
-queueTempo.append("12:26:19")
-
-# to run GUI event loop
-fig, ax = plt.subplots()
-linha, = ax.plot(list(queueTempo), list(queueDados))
-plt.title("Diâmetro do cascão", fontsize=20)
-plt.xlabel("Horas")
-plt.ylabel("Diâmetro")
-
+# Criação do gráfico e chamada da função para atualizá-la
+fig, queueDados, queueTempo, linha = CriacaoGrafico()
 canvas = FigureCanvasTkAgg(fig, app)
 canvas.get_tk_widget().grid(row=0, column=1)
 PlotarGraficoData(queueDados, queueTempo)
