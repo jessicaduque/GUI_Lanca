@@ -68,7 +68,7 @@ def CriacaoGrafico():
 
     # to run GUI event loop
     fig, ax = plt.subplots()
-    ax.set_yticks([min(queueDados), max(queueDados)], 2)
+    ax.set_yticks(np.arange(min(queueDados), max(queueDados), 2))
     plt.gcf().autofmt_xdate()
     linha, = ax.plot(list(queueTempo), list(queueDados))
     #plt.title("Diâmetro do cascão", fontsize=20)
