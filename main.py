@@ -130,7 +130,7 @@ frameCima = CTkFrame(frameCentral, fg_color='#f5f3ee')
 frameCima.grid(row=0, column=0, padx=10,  pady=10)
 
 #frameBaixo = CTkFrame(frameCentral, fg_color='#f5f3ee')
-frameBaixo = CTkFrame(frameCentral, fg_color='#red')
+frameBaixo = CTkFrame(frameCentral, fg_color='red')
 frameBaixo.grid(row=1, column=0, padx=10,  pady=10)
 
 # Criação dos frames da parte de cima
