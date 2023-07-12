@@ -7,9 +7,10 @@ from PIL import Image, ImageTk
 
 import random
 from datetime import datetime, timedelta
+import numpy as np
 
 import matplotlib.pyplot as plt
-plt.style.use("seaborn")
+plt.style.use("seaborn-whitegrid")
 from collections import deque
 from  matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
@@ -67,6 +68,7 @@ def CriacaoGrafico():
 
     # to run GUI event loop
     fig, ax = plt.subplots()
+    ax.set_yticks([min(queueDados), max(queueDados)], 2)
     plt.gcf().autofmt_xdate()
     linha, = ax.plot(list(queueTempo), list(queueDados))
     #plt.title("Diâmetro do cascão", fontsize=20)
