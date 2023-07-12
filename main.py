@@ -129,7 +129,8 @@ frameCentral.place(relx=.5, rely=.5, anchor='center')
 frameCima = CTkFrame(frameCentral, fg_color='#f5f3ee')
 frameCima.grid(row=0, column=0, padx=10,  pady=10)
 
-frameBaixo = CTkFrame(frameCentral, fg_color='#f5f3ee')
+#frameBaixo = CTkFrame(frameCentral, fg_color='#f5f3ee')
+frameBaixo = CTkFrame(frameCentral, fg_color='#red')
 frameBaixo.grid(row=1, column=0, padx=10,  pady=10)
 
 # Criação dos frames da parte de cima
@@ -143,7 +144,7 @@ frameAlertGraph.grid(row=0, column=1, padx=10,  pady=5)
 frameAlertGraph.grid_propagate(False)
 
 # Criação dos frames da parte de baixo
-frameDataGraph = CTkFrame(frameBaixo, width=1500, height=330, fg_color="white", border_color="gray", border_width=2, corner_radius=15)
+frameDataGraph = CTkFrame(frameBaixo, width=900, height=330, fg_color="white", border_color="gray", border_width=2, corner_radius=15)
 #frameDataGraph = CTkFrame(frameBaixo, fg_color="white", border_color="gray", border_width=2, corner_radius=15)
 frameDataGraph.grid(row=0, column=0, padx=10,  pady=5)
 #frameDataGraph.grid_propagate(False)
