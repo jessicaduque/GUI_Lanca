@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
-plt.style.use("seaborn")
+#plt.style.use("seaborn")
 from collections import deque
 from matplotlib.backends.backend_tkagg import (
     FigureCanvasTkAgg, NavigationToolbar2Tk)
@@ -71,7 +71,13 @@ def CriacaoGrafico():
     fig = Figure(figsize=(11, 4), dpi = 100)
     #fig, ax = plt.subplots()
     ax = fig.add_subplot()
-    plt.gcf().autofmt_xdate()
+
+    print("Dot per inch(DPI) for the figure is: ", fig.dpi)
+    bbox = ax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
+    width, height = bbox.width, bbox.height
+    print("Axis sizes are(in pixels):", width, height)
+
+    fig.autofmt_xdate()
     linha, = ax.plot(list(queueTempo), list(queueDados))
     #plt.title("Diâmetro do cascão", fontsize=20)
     ax.set_xlabel("Horas")
@@ -144,10 +150,10 @@ frameAlertGraph.grid(row=0, column=1, padx=10,  pady=5)
 frameAlertGraph.grid_propagate(False)
 
 # Criação dos frames da parte de baixo
-frameDataGraph = CTkFrame(frameBaixo, width=900, height=330, fg_color="white", border_color="gray", border_width=2, corner_radius=15)
+frameDataGraph = CTkFrame(frameBaixo, width=1000, height=330, fg_color="white", border_color="gray", border_width=2, corner_radius=15)
 #frameDataGraph = CTkFrame(frameBaixo, fg_color="white", border_color="gray", border_width=2, corner_radius=15)
 frameDataGraph.grid(row=0, column=0, padx=10,  pady=5)
-#frameDataGraph.grid_propagate(False)
+frameDataGraph.grid_propagate(False)
 
 # Criar o label do texto do vídeo e colocar em cima dele
 #video_text_label = CTkLabel(frameVideo, text="Imagem Segmentada", font=("Arial", 23))
@@ -171,7 +177,8 @@ canvas.draw()
 toolbar = NavigationToolbar2Tk(canvas, frameDataGraph, pack_toolbar=False)
 toolbar.update()
 
-canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=True)
+#canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=True)
+canvas.get_tk_widget().place(relx=.5, rely=.5, anchor='center')
 
 PlotarGraficoData(queueDados, queueTempo)
 
