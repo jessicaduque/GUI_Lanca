@@ -94,15 +94,19 @@ def PlotarGraficoData(queueDados, queueTempo):
 
     x.append(current_time)
     y.append(numData)
+    fig, ax = plt.subplots()
 
-    Axes.set_yticks(np.arange(min(queueDados), max(queueDados), 2))
     # Atualização do range dos eixos x e y
     plt.ylim(min(list(y)) - 2, max(list(y)) + 2)
     plt.xlim(list(x)[0], list(x)[-1])
 
     # Atualização dos dados do eixo x e y
+    linha, = ax.plot(list(queueTempo), list(queueDados))
+
     linha.set_xdata(list(x))
     linha.set_ydata(list(y))
+
+    ax.set_yticks(np.arange(min(list(y)), max(list(y)), 2))
 
     # Desenhando o novo gráfico
     fig.canvas.draw()
