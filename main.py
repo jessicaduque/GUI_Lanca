@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 import numpy as np
 
 import matplotlib.pyplot as plt
-plt.style.use("seaborn-whitegrid")
+plt.style.use("seaborn-v0_8-whitegrid")
 from collections import deque
 from  matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
@@ -95,6 +95,7 @@ def PlotarGraficoData(queueDados, queueTempo):
     x.append(current_time)
     y.append(numData)
 
+    Axes.set_yticks(np.arange(min(queueDados), max(queueDados), 2))
     # Atualização do range dos eixos x e y
     plt.ylim(min(list(y)) - 2, max(list(y)) + 2)
     plt.xlim(list(x)[0], list(x)[-1])
