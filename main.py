@@ -15,6 +15,9 @@ from collections import deque
 from matplotlib.backends.backend_tkagg import (
     FigureCanvasTkAgg, NavigationToolbar2Tk)
 
+
+import ctypes
+
 # Chamando a janela do aplicativo
 class App(CTk):
     def _init_(self, *args, **kwargs):
@@ -68,7 +71,7 @@ def CriacaoGrafico():
     queueTempo.append("0")
 
     # to run GUI event loop
-    fig = Figure(dpi=get_dpi())
+    fig = Figure(dpi=ORIGINAL_DPI)
     fig.set_size_inches(11, 4)
     #fig, ax = plt.subplots()
     ax = fig.add_subplot()
@@ -135,6 +138,10 @@ def scaled(original_width):
 ORIGINAL_DPI = 96.09458128078816
 SCALE = get_dpi()/ORIGINAL_DPI    
 print(SCALE)
+
+
+
+ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
 ### Inicialização do app
 app = App()
