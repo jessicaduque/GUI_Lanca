@@ -68,7 +68,8 @@ def CriacaoGrafico():
     queueTempo.append("0")
 
     # to run GUI event loop
-    fig = Figure(figsize=(11, 4), dpi = 100)
+    fig = Figure(dpi=100)
+    fig.set_size_inches(11, 4)
     #fig, ax = plt.subplots()
     ax = fig.add_subplot()
 
@@ -76,6 +77,7 @@ def CriacaoGrafico():
     bbox = ax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
     width, height = bbox.width, bbox.height
     print("Axis sizes are(in pixels):", width, height)
+
 
     fig.autofmt_xdate()
     linha, = ax.plot(list(queueTempo), list(queueDados))
@@ -118,9 +120,25 @@ def PlotarGraficoData(queueDados, queueTempo):
     # Chamando a função recursiva de segundo em segundo para rodar a função novamente e continuar atualizando o gráfico
     canvas.get_tk_widget().after(1000, PlotarGraficoData, y, x)
 
-### Inicialização
+# Função para obter DPI da tela do monitor
+def get_dpi():
+    screen = App()
+    current_dpi = screen.winfo_fpixels('1i')
+    screen.destroy()
+    return current_dpi
+
+# Toda vez que for usar dimensão em pixels, substituir por scaled(*dimensão em pixels*)
+def scaled(original_width):
+    return round(original_width * SCALE)
+
+# Padronização de pixels
+ORIGINAL_DPI = 96.09458128078816
+SCALE = get_dpi()/ORIGINAL_DPI    
+print(SCALE)
+
+### Inicialização do app
 app = App()
-app.geometry("1200x720")
+app.geometry(f'{scaled(1200)}x{scaled(720)}') 
 app.resizable(0, 0)
 app.title("DashMedidor")
 app.configure(bg='#ebebeb')
@@ -128,9 +146,11 @@ app.configure(bg='#ebebeb')
 vid = ConfigurarCamera()
 
 
+
+
 screen_width = app.winfo_screenwidth()
 screen_height = app.winfo_screenheight()
-print(screen_width, screen_height)
+#print(screen_width, screen_height)
 
 # Frame central da tela
 frameCentral = CTkFrame(app, fg_color='#f5f3ee')
