@@ -68,7 +68,7 @@ def CriacaoGrafico():
     queueTempo.append("0")
 
     # to run GUI event loop
-    fig = Figure(dpi=100)
+    fig = Figure(dpi=get_dpi())
     fig.set_size_inches(11, 4)
     #fig, ax = plt.subplots()
     ax = fig.add_subplot()
@@ -138,7 +138,8 @@ print(SCALE)
 
 ### Inicialização do app
 app = App()
-app.geometry(f'{scaled(1200)}x{scaled(720)}') 
+#app.geometry(f'{scaled(1200)}x{scaled(720)}') 
+app.geometry('1200x720') 
 app.resizable(0, 0)
 app.title("DashMedidor")
 app.configure(bg='#ebebeb')
