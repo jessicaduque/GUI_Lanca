@@ -131,7 +131,7 @@ def GaugeGraph():
         plt.annotate(val, xy=(loc, 2.5), ha="left" if val<=20 else "right")
 
     plt.annotate("50", xytext=(0,0), xy=(1.1, 2.0),
-                 arrowprops=dict(arrowstyle="wedge", color="black") , bbox(boxstyle="round"), )
+                 arrowprops=dict(arrowstyle="wedge", color="black"), bbox(boxstyle="circle", facecolor="white"), )
 
     fig.show()
 
