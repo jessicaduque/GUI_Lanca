@@ -9,9 +9,11 @@ import random
 from datetime import datetime, timedelta
 
 import matplotlib.pyplot as plt
-plt.style.use("seaborn")
+from matplotlib.figure import Figure
+#plt.style.use("seaborn")
 from collections import deque
-from  matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.backends.backend_tkagg import (
+    FigureCanvasTkAgg, NavigationToolbar2Tk)
 
 # Chamando a janela do aplicativo
 class App(CTk):
@@ -66,17 +68,28 @@ def CriacaoGrafico():
     queueTempo.append("0")
 
     # to run GUI event loop
-    fig, ax = plt.subplots()
-    plt.gcf().autofmt_xdate()
+    fig = Figure(figsize=(11, 4), dpi = 100)
+    #fig, ax = plt.subplots()
+    ax = fig.add_subplot()
+
+    print("Dot per inch(DPI) for the figure is: ", fig.dpi)
+    bbox = ax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
+    width, height = bbox.width, bbox.height
+    print("Axis sizes are(in pixels):", width, height)
+
+    fig.autofmt_xdate()
     linha, = ax.plot(list(queueTempo), list(queueDados))
     #plt.title("Diâmetro do cascão", fontsize=20)
-    plt.xlabel("Horas")
-    plt.ylabel("Diâmetro [mm]")
-    fig.set_figwidth(11)
-    fig.set_figheight(4)
+    ax.set_xlabel("Horas")
+    ax.set_ylabel("Diâmetro [mm]")
+    #plt.xlabel("Horas")
+    #plt.ylabel("Diâmetro [mm]")
+
+    #fig.set_figwidth(11)
+    #fig.set_figheight(4)
     
 
-    return fig, queueDados, queueTempo, linha
+    return fig, ax, queueDados, queueTempo, linha
 
 # Função para plot do gráfico de acordo com dados recebidos
 def PlotarGraficoData(queueDados, queueTempo):
@@ -94,15 +107,13 @@ def PlotarGraficoData(queueDados, queueTempo):
     y.append(numData)
 
     # Atualização do range dos eixos x e y
-    plt.ylim(min(list(y)) - 2, max(list(y)) + 2)
-    plt.xlim(list(x)[0], list(x)[-1])
+    ax.set_ylim(min(list(y)) - 2, max(list(y)) + 2)
+    ax.set_xlim(list(x)[0], list(x)[-1])
 
-    # Atualização dos dados do eixo x e y
-    linha.set_xdata(list(x))
-    linha.set_ydata(list(y))
+    linha.set_data(list(x), list(y))
 
     # Desenhando o novo gráfico
-    fig.canvas.draw()
+    canvas.draw()
     
     # Chamando a função recursiva de segundo em segundo para rodar a função novamente e continuar atualizando o gráfico
     canvas.get_tk_widget().after(1000, PlotarGraficoData, y, x)
@@ -116,6 +127,11 @@ app.configure(bg='#ebebeb')
 # Configurar a câmera para o seu uso
 vid = ConfigurarCamera()
 
+
+screen_width = app.winfo_screenwidth()
+screen_height = app.winfo_screenheight()
+print(screen_width, screen_height)
+
 # Frame central da tela
 frameCentral = CTkFrame(app, fg_color='#f5f3ee')
 frameCentral.place(relx=.5, rely=.5, anchor='center')
@@ -124,7 +140,8 @@ frameCentral.place(relx=.5, rely=.5, anchor='center')
 frameCima = CTkFrame(frameCentral, fg_color='#f5f3ee')
 frameCima.grid(row=0, column=0, padx=10,  pady=10)
 
-frameBaixo = CTkFrame(frameCentral, fg_color='#f5f3ee')
+#frameBaixo = CTkFrame(frameCentral, fg_color='#f5f3ee')
+frameBaixo = CTkFrame(frameCentral, fg_color='red')
 frameBaixo.grid(row=1, column=0, padx=10,  pady=10)
 
 # Criação dos frames da parte de cima
@@ -138,7 +155,8 @@ frameAlertGraph.grid(row=0, column=1, padx=10,  pady=5)
 frameAlertGraph.grid_propagate(False)
 
 # Criação dos frames da parte de baixo
-frameDataGraph = CTkFrame(frameBaixo, width=900, height=330, fg_color="white", border_color="gray", border_width=2, corner_radius=15)
+frameDataGraph = CTkFrame(frameBaixo, width=1000, height=330, fg_color="white", border_color="gray", border_width=2, corner_radius=15)
+#frameDataGraph = CTkFrame(frameBaixo, fg_color="white", border_color="gray", border_width=2, corner_radius=15)
 frameDataGraph.grid(row=0, column=0, padx=10,  pady=5)
 frameDataGraph.grid_propagate(False)
 
@@ -156,9 +174,17 @@ video_widget.place(relx=.5, rely=.5, anchor="center")
 Open_Camera()
 
 # Criação do gráfico e chamada da função para atualizá-la
-fig, queueDados, queueTempo, linha = CriacaoGrafico()
+fig, ax, queueDados, queueTempo, linha = CriacaoGrafico()
 canvas = FigureCanvasTkAgg(fig, frameDataGraph)
-canvas.get_tk_widget().place(relx=.5, rely=.5, anchor="center")
+canvas.draw()
+#canvas.get_tk_widget().grid(pady=5, padx=5)
+
+toolbar = NavigationToolbar2Tk(canvas, frameDataGraph, pack_toolbar=False)
+toolbar.update()
+
+#canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=True)
+canvas.get_tk_widget().place(relx=.5, rely=.5, anchor='center')
+
 PlotarGraficoData(queueDados, queueTempo)
 
 # Criação do gráfico de calibre e chamada da função para atualizá-la
