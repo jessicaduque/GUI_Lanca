@@ -127,6 +127,11 @@ app.configure(bg='#ebebeb')
 # Configurar a câmera para o seu uso
 vid = ConfigurarCamera()
 
+
+screen_width = app.winfo_screenwidth()
+screen_height = app.winfo_screenheight()
+print(screen_width, screen_height)
+
 # Frame central da tela
 frameCentral = CTkFrame(app, fg_color='#f5f3ee')
 frameCentral.place(relx=.5, rely=.5, anchor='center')
