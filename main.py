@@ -1,4 +1,3 @@
-import queue
 import tkinter as tk
 from customtkinter import *
 
@@ -10,13 +9,14 @@ from datetime import datetime, timedelta
 
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
-#plt.style.use("seaborn")
+
 from collections import deque
 from matplotlib.backends.backend_tkagg import (
     FigureCanvasTkAgg, NavigationToolbar2Tk)
 
 
 import ctypes
+plt.style.use("seaborn-v0_8-whitegrid")
 
 # Chamando a janela do aplicativo
 class App(CTk):
@@ -70,30 +70,17 @@ def CriacaoGrafico():
     queueDados.append(2) 
     queueTempo.append("0")
 
-    # to run GUI event loop
+    # To run GUI event loops
     fig = Figure(dpi=ORIGINAL_DPI)
     fig.set_size_inches(11, 4)
-    #fig, ax = plt.subplots()
     ax = fig.add_subplot()
-
-    print("Dot per inch(DPI) for the figure is: ", fig.dpi)
-    bbox = ax.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
-    width, height = bbox.width, bbox.height
-    print("Axis sizes are(in pixels):", width, height)
-
 
     fig.autofmt_xdate()
     linha, = ax.plot(list(queueTempo), list(queueDados))
     #plt.title("Diâmetro do cascão", fontsize=20)
     ax.set_xlabel("Horas")
     ax.set_ylabel("Diâmetro [mm]")
-    #plt.xlabel("Horas")
-    #plt.ylabel("Diâmetro [mm]")
-
-    #fig.set_figwidth(11)
-    #fig.set_figheight(4)
     
-
     return fig, ax, queueDados, queueTempo, linha
 
 # Função para plot do gráfico de acordo com dados recebidos
@@ -123,69 +110,44 @@ def PlotarGraficoData(queueDados, queueTempo):
     # Chamando a função recursiva de segundo em segundo para rodar a função novamente e continuar atualizando o gráfico
     canvas.get_tk_widget().after(1000, PlotarGraficoData, y, x)
 
-# Função para obter DPI da tela do monitor
-def get_dpi():
-    screen = App()
-    current_dpi = screen.winfo_fpixels('1i')
-    screen.destroy()
-    return current_dpi
-
-# Toda vez que for usar dimensão em pixels, substituir por scaled(*dimensão em pixels*)
-def scaled(original_width):
-    return round(original_width * SCALE)
-
-# Padronização de pixels
+# Definição do DPI original utilizado
 ORIGINAL_DPI = 96.09458128078816
-SCALE = get_dpi()/ORIGINAL_DPI    
-print(SCALE)
 
-
-
-ctypes.windll.shcore.SetProcessDpiAwareness(1)
+#ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
 ### Inicialização do app
 app = App()
-#app.geometry(f'{scaled(1200)}x{scaled(720)}') 
 app.geometry('1200x720') 
 app.resizable(0, 0)
 app.title("DashMedidor")
-app.configure(bg='#ebebeb')
+app.configure(bg='#4f7d71')
 # Configurar a câmera para o seu uso
 vid = ConfigurarCamera()
 
-
-
-
-screen_width = app.winfo_screenwidth()
-screen_height = app.winfo_screenheight()
-#print(screen_width, screen_height)
+# Frame header da tela
+frameHeader = CTkFrame(app, fg_color='#a4a8ad')
+#framePrincipal.place(relx=.5, rely=.5, anchor='center')
+frameHeader.pack(side=TOP, fill=X, expand=True)
 
 # Frame central da tela
-frameCentral = CTkFrame(app, fg_color='#f5f3ee')
-frameCentral.place(relx=.5, rely=.5, anchor='center')
-
-# Divisão da tela em duas partes (cima e baixo)
-frameCima = CTkFrame(frameCentral, fg_color='#f5f3ee')
-frameCima.grid(row=0, column=0, padx=10,  pady=10)
-
-#frameBaixo = CTkFrame(frameCentral, fg_color='#f5f3ee')
-frameBaixo = CTkFrame(frameCentral, fg_color='red')
-frameBaixo.grid(row=1, column=0, padx=10,  pady=10)
+framePrincipal = CTkFrame(app, fg_color='#4f7d71')
+#framePrincipal.place(relx=.5, rely=.5, anchor='center')
+framePrincipal.pack(fill=Y, expand=True)
 
 # Criação dos frames da parte de cima
-frameVideo = CTkFrame(frameCima, width=605, height=270, fg_color="white", border_color="gray", border_width=2, corner_radius=15)
-frameVideo.grid(row=0, column=0, padx=10,  pady=5)
+frameVideo = CTkFrame(framePrincipal, width=605, height=270, fg_color="#a4a8ad", border_width=2, corner_radius=30)
+frameVideo.grid(row=0, column=0, padx=(20, 10),  pady=(20, 10))
 # Para frame do vídeo não adaptar tamanho aos componentes dentro
 frameVideo.grid_propagate(False)
 
-frameAlertGraph = CTkFrame(frameCima, width=285, height=270, fg_color="white", border_color="gray", border_width=2, corner_radius=15)
-frameAlertGraph.grid(row=0, column=1, padx=10,  pady=5)
+frameAlertGraph = CTkFrame(framePrincipal, width=285, height=270, fg_color="#a4a8ad", border_width=2, corner_radius=30)
+frameAlertGraph.grid(row=0, column=1, padx=(10, 20), pady=(20, 10))
 frameAlertGraph.grid_propagate(False)
 
 # Criação dos frames da parte de baixo
-frameDataGraph = CTkFrame(frameBaixo, width=1000, height=330, fg_color="white", border_color="gray", border_width=2, corner_radius=15)
+frameDataGraph = CTkFrame(framePrincipal, width=910, height=350, fg_color="#a4a8ad", border_width=2, corner_radius=30)
 #frameDataGraph = CTkFrame(frameBaixo, fg_color="white", border_color="gray", border_width=2, corner_radius=15)
-frameDataGraph.grid(row=0, column=0, padx=10,  pady=5)
+frameDataGraph.grid(row=1, columnspan=2, padx=20,  pady=(10, 20))
 frameDataGraph.grid_propagate(False)
 
 # Criar o label do texto do vídeo e colocar em cima dele
@@ -205,20 +167,12 @@ Open_Camera()
 fig, ax, queueDados, queueTempo, linha = CriacaoGrafico()
 canvas = FigureCanvasTkAgg(fig, frameDataGraph)
 canvas.draw()
-#canvas.get_tk_widget().grid(pady=5, padx=5)
 
 toolbar = NavigationToolbar2Tk(canvas, frameDataGraph, pack_toolbar=False)
 toolbar.update()
-
-#canvas.get_tk_widget().pack(side=TOP, fill=BOTH, expand=True)
 canvas.get_tk_widget().place(relx=.5, rely=.5, anchor='center')
 
 PlotarGraficoData(queueDados, queueTempo)
-
-# Criação do gráfico de calibre e chamada da função para atualizá-la
-coresGrafCal = ['#4dab6d', 'f6ee54', 'ee4d55']
-valores = [0, 8, 15, 30]
-#valor
 
 # Função para rodar o app
 app.mainloop()
