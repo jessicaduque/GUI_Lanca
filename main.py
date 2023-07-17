@@ -132,15 +132,15 @@ frameLogos = CTkFrame(frameHeader, fg_color='#a4a8ad', corner_radius=0)
 frameLogos.pack(anchor="center")
 
 # As imagens das 3 logos sendo encaixadas no header
-photo_image_ifes_logo = CTkImage(Image.open("IFES_horizontal_logo.png"), size=(283.5 * 0.8, 113.4 * 0.8))
+photo_image_ifes_logo = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'IFES_horizontal_logo.png')), size=(283.5 * 0.8, 113.4 * 0.8))
 image_ifes_logo_label = CTkLabel(frameLogos, image=photo_image_ifes_logo, text="")
 image_ifes_logo_label.pack(side = LEFT, padx=(0,60), pady=10)
 
-photo_image_arcelor_logo = CTkImage(Image.open("ArcelorMittal_logo.png"), size=(210 * 0.8, 86.40 * 0.8))
+photo_image_arcelor_logo = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'ArcelorMittal_logo.png')), size=(210 * 0.8, 86.40 * 0.8))
 image_arcelor_logo_label = CTkLabel(frameLogos, image=photo_image_arcelor_logo, text="")
 image_arcelor_logo_label.pack(side = LEFT, padx=0, pady=10)
 
-photo_image_oficinas_logo = CTkImage(Image.open("Oficinas4-0_logo.png"), size=(204.8 * 0.8, 42 * 0.8))
+photo_image_oficinas_logo = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'Oficinas4-0_logo.png')), size=(204.8 * 0.8, 42 * 0.8))
 image_oficinas_logo_label = CTkLabel(frameLogos, image=photo_image_oficinas_logo, text="")
 image_oficinas_logo_label.pack(side = LEFT, padx=(60,0), pady=10)
 
