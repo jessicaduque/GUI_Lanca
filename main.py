@@ -22,7 +22,6 @@ plt.style.use("seaborn-v0_8-whitegrid")
 class App(CTk):
     def _init_(self, *args, **kwargs):
         super()._init_(*args, **kwargs)
-
         self.main_frame = CTkFrame(self)
         self.main_frame.pack(expand=True, fill=tk.BOTH)
 
@@ -32,7 +31,7 @@ def ConfigurarCamera():
     vid = cv2.VideoCapture(0)
   
     # Declare the width and height in variables
-    width, height = 585, 250
+    width, height = 585, 220
   
     # Set the width and height
     vid.set(cv2.CAP_PROP_FRAME_WIDTH, width)
@@ -52,7 +51,7 @@ def Open_Camera():
     captured_image = Image.fromarray(opencv_image)
 
     # Converção da imagem capturada para photoimage
-    photo_image = CTkImage(captured_image, size=(585,250))
+    photo_image = CTkImage(captured_image, size=(585,220))
 
     # Definindo o photoimage do label
     video_widget.photo_image = photo_image
@@ -72,7 +71,7 @@ def CriacaoGrafico():
 
     # To run GUI event loops
     fig = Figure(dpi=ORIGINAL_DPI)
-    fig.set_size_inches(11, 4)
+    fig.set_size_inches(9.2, 3)
     ax = fig.add_subplot()
 
     fig.autofmt_xdate()
@@ -80,6 +79,8 @@ def CriacaoGrafico():
     #plt.title("Diâmetro do cascão", fontsize=20)
     ax.set_xlabel("Horas")
     ax.set_ylabel("Diâmetro [mm]")
+
+    fig.tight_layout()
     
     return fig, ax, queueDados, queueTempo, linha
 
@@ -113,40 +114,56 @@ def PlotarGraficoData(queueDados, queueTempo):
 # Definição do DPI original utilizado
 ORIGINAL_DPI = 96.09458128078816
 
-#ctypes.windll.shcore.SetProcessDpiAwareness(1)
+ctypes.windll.shcore.SetProcessDpiAwareness(2)
 
 ### Inicialização do app
 app = App()
-app.geometry('1200x720') 
+app.geometry('1000x720')
 app.resizable(0, 0)
 app.title("DashMedidor")
-app.configure(bg='#4f7d71')
 # Configurar a câmera para o seu uso
 vid = ConfigurarCamera()
 
-# Frame header da tela
-frameHeader = CTkFrame(app, fg_color='#a4a8ad')
-#framePrincipal.place(relx=.5, rely=.5, anchor='center')
-frameHeader.pack(side=TOP, fill=X, expand=True)
+### Frame header da tela
+frameHeader = CTkFrame(app, fg_color='#a4a8ad', corner_radius=0)
+frameHeader.pack(fill=BOTH, expand=True)
 
-# Frame central da tela
-framePrincipal = CTkFrame(app, fg_color='#4f7d71')
-#framePrincipal.place(relx=.5, rely=.5, anchor='center')
-framePrincipal.pack(fill=Y, expand=True)
+frameLogos = CTkFrame(frameHeader, fg_color='#a4a8ad', corner_radius=0)
+frameLogos.pack(anchor="center")
+
+# As imagens das 3 logos sendo encaixadas no header
+photo_image_ifes_logo = CTkImage(Image.open("IFES_horizontal_logo.png"), size=(283.5 * 0.8, 113.4 * 0.8))
+image_ifes_logo_label = CTkLabel(frameLogos, image=photo_image_ifes_logo, text="")
+image_ifes_logo_label.pack(side = LEFT, padx=(0,60), pady=10)
+
+photo_image_arcelor_logo = CTkImage(Image.open("ArcelorMittal_logo.png"), size=(210 * 0.8, 86.40 * 0.8))
+image_arcelor_logo_label = CTkLabel(frameLogos, image=photo_image_arcelor_logo, text="")
+image_arcelor_logo_label.pack(side = LEFT, padx=0, pady=10)
+
+photo_image_oficinas_logo = CTkImage(Image.open("Oficinas4-0_logo.png"), size=(204.8 * 0.8, 42 * 0.8))
+image_oficinas_logo_label = CTkLabel(frameLogos, image=photo_image_oficinas_logo, text="")
+image_oficinas_logo_label.pack(side = LEFT, padx=(60,0), pady=10)
+
+### Frame principal da tela
+framePrincipal = CTkFrame(app, fg_color='#4f7d71', corner_radius=0)
+framePrincipal.pack(fill=BOTH, expand=True)
+
+# Frame com widgets do frame principal da tela
+frameCentral = CTkFrame(framePrincipal, fg_color='#4f7d71')
+frameCentral.pack(fill=Y, expand=True)
 
 # Criação dos frames da parte de cima
-frameVideo = CTkFrame(framePrincipal, width=605, height=270, fg_color="#a4a8ad", border_width=2, corner_radius=30)
+frameVideo = CTkFrame(frameCentral, width=605, height=240, fg_color="#a4a8ad", border_width=2, corner_radius=15)
 frameVideo.grid(row=0, column=0, padx=(20, 10),  pady=(20, 10))
 # Para frame do vídeo não adaptar tamanho aos componentes dentro
 frameVideo.grid_propagate(False)
 
-frameAlertGraph = CTkFrame(framePrincipal, width=285, height=270, fg_color="#a4a8ad", border_width=2, corner_radius=30)
+frameAlertGraph = CTkFrame(frameCentral, width=285, height=240, fg_color="#a4a8ad", border_width=2, corner_radius=15)
 frameAlertGraph.grid(row=0, column=1, padx=(10, 20), pady=(20, 10))
 frameAlertGraph.grid_propagate(False)
 
 # Criação dos frames da parte de baixo
-frameDataGraph = CTkFrame(framePrincipal, width=910, height=350, fg_color="#a4a8ad", border_width=2, corner_radius=30)
-#frameDataGraph = CTkFrame(frameBaixo, fg_color="white", border_color="gray", border_width=2, corner_radius=15)
+frameDataGraph = CTkFrame(frameCentral, width=910, height=300, fg_color="#a4a8ad", border_width=2, corner_radius=15)
 frameDataGraph.grid(row=1, columnspan=2, padx=20,  pady=(10, 20))
 frameDataGraph.grid_propagate(False)
 
