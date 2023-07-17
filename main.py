@@ -118,21 +118,28 @@ def PlotarGraficoData(queueDados, queueTempo):
     canvas.get_tk_widget().after(1000, PlotarGraficoData, y, x)
 
 def GaugeGraph():
-    color = ["#ee3d55", "#f36d54", "#fabd57", "#f6ee54", "#clda64", "72c66e", "#4dab6d"]
-    values = [-40, -20, 0, 20, 40, 60, 80, 100]
-    x_axis_vals = [0, 0.44, 0.88, 1.32, 1.76, 2.2, 2.64]
+    color = ["#ee3d55", "#f6ee54", "#c1da64", "#72c66e", "#4dab6d"]
+    #values = [-40, -20, 0, 20, 40, 60, 80, 100]
+    #color = ["#4dab6d", "#72c66e",  "#c1da64", "#f6ee54", "#fabd57", "#f36d54", "#ee3d55"]
+    values = [80, 70, 40, 20]
+    x_axis_vals = [0.88, 1.76, 2.64]
 
     fig = plt.figure(figsize=(18, 18))
 
     ax = fig.add_subplot(projection="polar")
-    ax.bar(x = [0, 0.44, 0.88, 1.32, 1.76, 2.2, 2.64], width=0.5, height=0.5, bottom=2, 
+    ax.bar(x = [0.88, 1.76, 2.64], width=1, height=0.5, bottom=2, 
            linewidth=3, edgecolor="white", color=color, align="edge")
-    for loc, val in zip([0, 0.44, 0.88, 1.32, 1.76, 2.2, 2.64, 3.18], values):
-        plt.annotate(val, xy=(loc, 2.5), ha="left" if val<=20 else "right")
+    for loc, val in zip([0.88, 1.76, 2.64, 3.18], values):
+        plt.annotate(val, xy=(loc, 2.5), ha="right" if val<=20 else "left")
 
-    plt.annotate("50", xytext=(0,0), xy=(1.1, 2.0),
-                 arrowprops=dict(arrowstyle="wedge", color="black"), bbox(boxstyle="circle", facecolor="white"), )
+    plt.annotate("0", xytext=(0,0), xy=(0, 2.0),
+                 arrowprops=dict(arrowstyle="wedge, tail_width= 0.5", color="black", shrinkA=0), 
+                 bbox = dict(boxstyle="circle", facecolor="black", linewidth=2.0),
+                 fontsize=45, color ="white", ha="center"
+                )
+    plt.title("Grafico Lanca", loc = "center", pad=20, fontsize=35, fontweight="bold")
 
+    ax.set_axis_off()
     fig.show()
 
 ### Inicialização
