@@ -80,7 +80,8 @@ def CriacaoGrafico():
     ax.set_xlabel("Horas")
     ax.set_ylabel("Diâmetro [mm]")
 
-    fig.tight_layout()
+    #fig.tight_layout()
+    fig.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
     
     return fig, ax, queueDados, queueTempo, linha
 
