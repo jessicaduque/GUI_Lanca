@@ -43,7 +43,6 @@ def ConfigurarCamera():
 def Open_Camera():
     # Captura do vídeo frame por frame
     _, frame = vid.read()
-
     # Converção de imagem de uma espaço de cores para o outro
     opencv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
   
@@ -71,7 +70,7 @@ def CriacaoGrafico():
 
     # To run GUI event loops
     fig = Figure(dpi=ORIGINAL_DPI)
-    fig.set_size_inches(9.2, 3)
+    fig.set_size_inches(9.2, 3.2)
     ax = fig.add_subplot()
 
     fig.autofmt_xdate()
@@ -80,8 +79,6 @@ def CriacaoGrafico():
     ax.set_xlabel("Horas")
     ax.set_ylabel("Diâmetro [mm]")
 
-    #fig.tight_layout()
-    fig.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
     
     return fig, ax, queueDados, queueTempo, linha
 
@@ -120,14 +117,19 @@ ctypes.windll.shcore.SetProcessDpiAwareness(2)
 ### Inicialização do app
 app = App()
 app.geometry('1000x720')
-app.resizable(0, 0)
+app.minsize(1000, 720)
+app.resizable(1, 1)
 app.title("DashMedidor")
 # Configurar a câmera para o seu uso
 vid = ConfigurarCamera()
 
+app.columnconfigure(0, weight=1)
+app.rowconfigure(1, weight=1)
+
 ### Frame header da tela
-frameHeader = CTkFrame(app, fg_color='#a4a8ad', corner_radius=0)
-frameHeader.pack(fill=BOTH, expand=True)
+frameHeader = CTkFrame(app, height=100, fg_color='#a4a8ad', corner_radius=0)
+frameHeader.grid(row=0, sticky='ewn')
+
 
 frameLogos = CTkFrame(frameHeader, fg_color='#a4a8ad', corner_radius=0)
 frameLogos.pack(anchor="center")
@@ -147,24 +149,24 @@ image_oficinas_logo_label.pack(side = LEFT, padx=(60,0), pady=10)
 
 ### Frame principal da tela
 framePrincipal = CTkFrame(app, fg_color='#4f7d71', corner_radius=0)
-framePrincipal.pack(fill=BOTH, expand=True)
+framePrincipal.grid(row=1, sticky='nsew')
 
 # Frame com widgets do frame principal da tela
 frameCentral = CTkFrame(framePrincipal, fg_color='#4f7d71')
-frameCentral.pack(fill=Y, expand=True)
+frameCentral.pack(fill=BOTH, expand=True)
 
 # Criação dos frames da parte de cima
-frameVideo = CTkFrame(frameCentral, width=605, height=240, fg_color="#a4a8ad", border_width=2, corner_radius=15)
+frameVideo = CTkFrame(frameCentral, width=605, height=220, fg_color="#a4a8ad", border_width=2, corner_radius=15)
 frameVideo.grid(row=0, column=0, padx=(20, 10),  pady=(20, 10))
 # Para frame do vídeo não adaptar tamanho aos componentes dentro
 frameVideo.grid_propagate(False)
 
-frameAlertGraph = CTkFrame(frameCentral, width=285, height=240, fg_color="#a4a8ad", border_width=2, corner_radius=15)
+frameAlertGraph = CTkFrame(frameCentral, width=285, height=220, fg_color="#a4a8ad", border_width=2, corner_radius=15)
 frameAlertGraph.grid(row=0, column=1, padx=(10, 20), pady=(20, 10))
 frameAlertGraph.grid_propagate(False)
 
 # Criação dos frames da parte de baixo
-frameDataGraph = CTkFrame(frameCentral, width=910, height=300, fg_color="#a4a8ad", border_width=2, corner_radius=15)
+frameDataGraph = CTkFrame(frameCentral, width=910, height=320, fg_color="#a4a8ad", border_width=2, corner_radius=15)
 frameDataGraph.grid(row=1, columnspan=2, padx=20,  pady=(10, 20))
 frameDataGraph.grid_propagate(False)
 
