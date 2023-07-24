@@ -1,4 +1,5 @@
 import tkinter as tk
+import sqlite3
 from customtkinter import *
 
 import cv2
@@ -12,6 +13,8 @@ from matplotlib.figure import Figure
 from collections import deque
 from matplotlib.backends.backend_tkagg import (
     FigureCanvasTkAgg, NavigationToolbar2Tk)
+from database import dbAdd, dbShow
+
 plt.style.use("seaborn-v0_8-whitegrid")
 
 # Chamando a janela do aplicativo
@@ -97,10 +100,13 @@ def PlotarGraficoData(queueDados, queueTempo):
     x = queueTempo
     y = queueDados
     
-    # Gerãção e adição na lista de dados para teste
+    # Geração e adição na lista de dados para teste
     numData = random.randrange(40, 80)
     now = datetime.now()
     current_time = now.strftime("%H:%M:%S")
+
+    dbAdd(numData, current_time)
+    #dbShow()
 
     x.append(current_time)
     y.append(numData)
@@ -155,18 +161,34 @@ def GaugeGraph():
     ax.set_axis_off()
     fig.show()
 
+    return fig
+
 ### Inicialização
 app = App()
-app.geometry("1200x720")
+
+app_width = 1000
+app_height = 720
+
+screen_width = app.winfo_screenwidth()
+screen_height = app.winfo_screenheight()
+
+x = (screen_width - app_width ) / 2
+y = (screen_height - app_height ) / 2
+
+print(x)
+print(y)
+
+print(app.winfo_screenwidth())
+print(app.winfo_screenheight())
+
+app.geometry(f"{app_width}x{app_height}+{int(x)}+{int(y)}")
 app.resizable(0, 0)
 app.title("DashMedidor")
 app.configure(bg='#ebebeb')
 # Configurar a câmera para o seu uso
 vid = ConfigurarCamera()
-GaugeGraph()
+#GaugeGraph()
 
-screen_width = app.winfo_screenwidth()
-screen_height = app.winfo_screenheight()
 print(screen_width, screen_height)
 
 # Frame central da tela
