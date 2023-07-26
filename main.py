@@ -85,6 +85,44 @@ def CriacaoGrafico():
     
     return fig, ax, queueDados, queueTempo, linha
 
+def GaugeGraph():
+    color = ["#ee3d55", "#ee3d55", "#fabd57" , "#fabd57", "#4dab6d", "#4dab6d", "#4dab6d", "#4dab6d", "#4dab6d"]
+    #values = [-40, -20, 0, 20, 40, 60, 80, 100]
+    #color = ["#4dab6d", "#72c66e",  "#c1da64", "#f6ee54", "#fabd57", "#f36d54", "#ee3d55"]
+    values = [80, 75, 70, 65, 60, 55, 50, 45, 40]
+
+    fig = plt.figure(figsize=(4, 4))
+
+    ax = fig.add_subplot(projection="polar")
+    ax.bar(x = [0, 0.385, 0.77, 1.155, 1.54, 1.925, 2.31, 2.695], width=0.42, height=0.5, bottom=2, 
+          color=color, align="edge")
+
+    for loc, val in zip([0, 0.385, 0.77, 1.155, 1.54, 1.925, 2.31, 2.695, 3.08, 3,465], values):
+        plt.annotate(val, xy=(loc, 2.525), ha="right" if val<=55 else "left")
+
+    ax.set_axis_off()
+
+    numData = random.randrange(40, 80)
+    xvalue = 3.465 - ((numData - 35) * 0.077)
+    print(f"n = {numData} v = {xvalue}")
+
+    if numData <= 60:
+        colorLevel = "#4dab6d"
+    elif numData >= 70:
+        colorLevel = "#ee3d55"
+    else:
+        colorLevel = "#fabd57"
+
+    plt.annotate(f"{numData}", xytext=(0,0), xy=(xvalue, 2.0),
+                 arrowprops=dict(arrowstyle="wedge, tail_width= 0.5", color="black", shrinkA=0), 
+                 bbox = dict(boxstyle="circle", facecolor="black", linewidth=2),
+                 fontsize=25, color =f"{colorLevel}", ha = "center"
+                )
+
+    #plt.title("Diâmetro da Lança", loc = "center", pad=20, fontsize=35, fontweight="bold")
+
+    return fig
+
 # Função para plot do gráfico de acordo com dados recebidos
 def PlotarGraficoData(queueDados, queueTempo):
 
@@ -107,15 +145,15 @@ def PlotarGraficoData(queueDados, queueTempo):
     linha.set_data(list(x), list(y))
 
     # Desenhando o novo gráfico
-    canvas.draw()
-    
+    canvasLineGraph.draw()
+    canvasGaugeGraph.draw()
+
     # Chamando a função recursiva de segundo em segundo para rodar a função novamente e continuar atualizando o gráfico
-    canvas.get_tk_widget().after(1000, PlotarGraficoData, y, x)
+    canvasLineGraph.get_tk_widget().after(1000, PlotarGraficoData, y, x)
+
 
 # Definição do DPI original utilizado
 ORIGINAL_DPI = 96.09458128078816
-
-
 
 ### Inicialização do app
 app = App()
@@ -209,13 +247,18 @@ video_widget.place(relx=.5, rely=.5, anchor="center")
 Open_Camera()
 
 # Criação do gráfico e chamada da função para atualizá-la
-fig, ax, queueDados, queueTempo, linha = CriacaoGrafico()
-canvas = FigureCanvasTkAgg(fig, frameDataGraph)
-canvas.draw()
+figLineGraph, ax, queueDados, queueTempo, linha = CriacaoGrafico()
+canvasLineGraph = FigureCanvasTkAgg(figLineGraph, frameDataGraph)
+canvasLineGraph.draw()
 
-toolbar = NavigationToolbar2Tk(canvas, frameDataGraph, pack_toolbar=False)
+toolbar = NavigationToolbar2Tk(canvasLineGraph, frameDataGraph, pack_toolbar=False)
 toolbar.update()
-canvas.get_tk_widget().place(relx=.5, rely=.5, anchor='center')
+canvasLineGraph.get_tk_widget().place(relx=.5, rely=.5, anchor='center')
+
+figGaugeGraph = GaugeGraph()
+canvasGaugeGraph = FigureCanvasTkAgg(figGaugeGraph, frameAlertGraph)
+canvasGaugeGraph.draw()
+canvasGaugeGraph.get_tk_widget().place(relx=.5, rely=.8, anchor='center')
 
 PlotarGraficoData(queueDados, queueTempo)
 
