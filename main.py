@@ -115,30 +115,26 @@ def PlotarGraficoData(queueDados, queueTempo):
 # Definição do DPI original utilizado
 ORIGINAL_DPI = 96.09458128078816
 
-ctypes.windll.shcore.SetProcessDpiAwareness(2)
 
-app_width = 1000
-app_height = 720
 
 ### Inicialização do app
 app = App()
+app_width = 1000
+app_height = 720
 
 screen_width = app.winfo_screenwidth()
 screen_height = app.winfo_screenheight()
 
-start_app_x = (screen_width - app_width) / 2
-start_app_y = (screen_height - app_height ) / 2
+x = (screen_width - app_width ) / 2
+y = (screen_height - app_height ) / 2
 
-print(start_app_x)
-print(start_app_y)
+app.geometry(f"{app_width}x{app_height}+{int(x)}+{int(y)}")
 
-print(app.winfo_screenwidth())
-print(app.winfo_screenheight())
-
-app.geometry(f"{app_width}x{app_height}+{int(start_app_x)}+{int(start_app_y)}")
 app.minsize(1000, 720)
 app.resizable(1, 1)
 app.title("DashMedidor")
+
+ctypes.windll.shcore.SetProcessDpiAwareness(2)
 
 # Configurar a câmera para o seu uso
 vid = ConfigurarCamera()
@@ -207,10 +203,10 @@ frameDataGraph.grid(row=1, columnspan=2, padx=(20, 20), pady=(10, 0), sticky='ew
 # Criar o label do vídeo e mostrar no app
 video_widget = CTkLabel(frameVideo, text="")
 #video_widget.grid(row=1, pady=3, padx=20)
-#video_widget.place(relx=.5, rely=.5, anchor="center")
+video_widget.place(relx=.5, rely=.5, anchor="center")
 
 #Função para abrir ativar câmera e encaixar ela no app
-#Open_Camera()
+Open_Camera()
 
 # Criação do gráfico e chamada da função para atualizá-la
 fig, ax, queueDados, queueTempo, linha = CriacaoGrafico()
@@ -221,7 +217,7 @@ toolbar = NavigationToolbar2Tk(canvas, frameDataGraph, pack_toolbar=False)
 toolbar.update()
 canvas.get_tk_widget().place(relx=.5, rely=.5, anchor='center')
 
-#PlotarGraficoData(queueDados, queueTempo)
+PlotarGraficoData(queueDados, queueTempo)
 
 # Função para rodar o app
 app.mainloop()
