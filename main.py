@@ -77,13 +77,13 @@ def CriacaoGrafico():
     ax = fig.add_subplot()
 
     fig.autofmt_xdate()
-    linha, = ax.plot(list(queueTempo), list(queueDados))
+    linhaLineGraph, = ax.plot(list(queueTempo), list(queueDados))
     #plt.title("Diâmetro do cascão", fontsize=20)
     ax.set_xlabel("Horas")
     ax.set_ylabel("Diâmetro [mm]")
 
     
-    return fig, ax, queueDados, queueTempo, linha
+    return fig, ax, queueDados, queueTempo, linhaLineGraph
 
 def GaugeGraph():
     color = ["#ee3d55", "#ee3d55", "#fabd57" , "#fabd57", "#4dab6d", "#4dab6d", "#4dab6d", "#4dab6d", "#4dab6d"]
@@ -102,26 +102,19 @@ def GaugeGraph():
 
     ax.set_axis_off()
 
-    numData = random.randrange(40, 80)
-    xvalue = 3.465 - ((numData - 35) * 0.077)
-    print(f"n = {numData} v = {xvalue}")
+    #numData = random.randrange(40, 80)
+    
 
-    if numData <= 60:
-        colorLevel = "#4dab6d"
-    elif numData >= 70:
-        colorLevel = "#ee3d55"
-    else:
-        colorLevel = "#fabd57"
 
-    plt.annotate(f"{numData}", xytext=(0,0), xy=(xvalue, 2.0),
+    linhaGaugeGraph = ax.annotate("0", xytext=(0,0), xy=(0, 2.0),
                  arrowprops=dict(arrowstyle="wedge, tail_width= 0.5", color="black", shrinkA=0), 
                  bbox = dict(boxstyle="circle", facecolor="black", linewidth=2),
-                 fontsize=25, color =f"{colorLevel}", ha = "center"
+                 fontsize=25, color ="red", ha = "center"
                 )
 
     #plt.title("Diâmetro da Lança", loc = "center", pad=20, fontsize=35, fontweight="bold")
 
-    return fig
+    return fig, linhaGaugeGraph, ax
 
 # Função para plot do gráfico de acordo com dados recebidos
 def PlotarGraficoData(queueDados, queueTempo):
@@ -131,9 +124,19 @@ def PlotarGraficoData(queueDados, queueTempo):
     y = queueDados
     
     # Gerãção e adição na lista de dados para teste
-    numData = random.randrange(10, 30)
+    numData = random.randrange(40, 80)
     now = datetime.now()
     current_time = now.strftime("%H:%M:%S")
+
+    colorLevel = ""
+    if numData <= 60:
+        colorLevel = "#4dab6d"
+    elif numData >= 70:
+        colorLevel = "#ee3d55"
+    else:
+        colorLevel = "#fabd57"
+
+    xvalue = 3.465 - ((numData - 35) * 0.077)
 
     x.append(current_time)
     y.append(numData)
@@ -142,7 +145,13 @@ def PlotarGraficoData(queueDados, queueTempo):
     ax.set_ylim(min(list(y)) - 2, max(list(y)) + 2)
     ax.set_xlim(list(x)[0], list(x)[-1])
 
-    linha.set_data(list(x), list(y))
+    linhaLineGraph.set_data(list(x), list(y))
+    #linhaGaugeGraph.set(text=numData, color=colorLevel, arrowprops=dict(arrowstyle="wedge, tail_width= 0.5", color="black", shrinkA=0), x=xvalue)
+    axTESTE.annotate("0", xytext=(0,0), xy=(numData, 2.0),
+                 arrowprops=dict(arrowstyle="wedge, tail_width= 0.5", color="black", shrinkA=0), 
+                 bbox = dict(boxstyle="circle", facecolor="black", linewidth=2),
+                 fontsize=25, color =f"{colorLevel}", ha = "center"
+                )
 
     # Desenhando o novo gráfico
     canvasLineGraph.draw()
@@ -152,21 +161,23 @@ def PlotarGraficoData(queueDados, queueTempo):
     canvasLineGraph.get_tk_widget().after(1000, PlotarGraficoData, y, x)
 
 
+# Variáveis
 # Definição do DPI original utilizado
 ORIGINAL_DPI = 96.09458128078816
+APP_WIDTH = 1000
+APP_HEIGHT = 720
+
 
 ### Inicialização do app
 app = App()
-app_width = 1000
-app_height = 720
 
 screen_width = app.winfo_screenwidth()
 screen_height = app.winfo_screenheight()
 
-x = (screen_width - app_width ) / 2
-y = (screen_height - app_height ) / 2
+x = (screen_width - APP_WIDTH ) / 2
+y = (screen_height - APP_HEIGHT ) / 2
 
-app.geometry(f"{app_width}x{app_height}+{int(x)}+{int(y)}")
+app.geometry(f"{APP_WIDTH}x{APP_HEIGHT}+{int(x)}+{int(y)}")
 
 app.minsize(1000, 720)
 app.resizable(1, 1)
@@ -180,7 +191,7 @@ vid = ConfigurarCamera()
 app.columnconfigure(0, weight=1)
 app.rowconfigure(1, weight=1)
 
-### Frame header da tela
+### FRAME HEADER DA TELA
 frameHeader = CTkFrame(app, height=100, fg_color='#a4a8ad', corner_radius=0)
 frameHeader.grid(row=0, sticky='ewn')
 
@@ -205,7 +216,7 @@ image_oficinas_logo_label = CTkLabel(frameLogos, image=photo_image_oficinas_logo
 image_oficinas_logo_label.grid(row=0, column=2)
 
 
-### Frame principal da tela
+### FRAME PRINCIPAL DA TELA
 framePrincipal = CTkFrame(app, fg_color='#4f7d71', corner_radius=0)
 framePrincipal.grid(row=1, sticky='nsew')
 
@@ -220,18 +231,14 @@ frameCentral.columnconfigure(1, weight=1)
 
 # Criação dos frames da parte de cima
 frameVideo = CTkFrame(frameCentral, fg_color="#a4a8ad", border_width=2, corner_radius=15)
-frameVideo.grid(row=0, column=0, padx=(20, 20), pady=(0, 10), sticky='ew')
-# Para frame do vídeo não adaptar tamanho aos componentes dentro
-#frameVideo.grid_propagate(False)
+frameVideo.grid(row=0, column=0, padx=(20, 20), pady=(10, 10), sticky='nsew')
 
 frameAlertGraph = CTkFrame(frameCentral, fg_color="#a4a8ad", border_width=2, corner_radius=15)
-frameAlertGraph.grid(row=0, column=1, padx=(0, 20), pady=(0, 10), sticky='ew')
-#frameAlertGraph.grid_propagate(False)
+frameAlertGraph.grid(row=0, column=1, padx=(0, 20), pady=(10, 10), sticky='nsew')
 
 # Criação dos frames da parte de baixo
 frameDataGraph = CTkFrame(frameCentral, fg_color="#a4a8ad", border_width=2, corner_radius=15)
-frameDataGraph.grid(row=1, columnspan=2, padx=(20, 20), pady=(10, 0), sticky='ew')
-#frameDataGraph.grid_propagate(False)
+frameDataGraph.grid(row=1, columnspan=2, padx=(20, 20), pady=(10, 10), sticky='nsew')
 
 # Criar o label do texto do vídeo e colocar em cima dele
 #video_text_label = CTkLabel(frameVideo, text="Imagem Segmentada", font=("Arial", 23))
@@ -247,7 +254,7 @@ video_widget.place(relx=.5, rely=.5, anchor="center")
 Open_Camera()
 
 # Criação do gráfico e chamada da função para atualizá-la
-figLineGraph, ax, queueDados, queueTempo, linha = CriacaoGrafico()
+figLineGraph, ax, queueDados, queueTempo, linhaLineGraph = CriacaoGrafico()
 canvasLineGraph = FigureCanvasTkAgg(figLineGraph, frameDataGraph)
 canvasLineGraph.draw()
 
@@ -255,10 +262,10 @@ toolbar = NavigationToolbar2Tk(canvasLineGraph, frameDataGraph, pack_toolbar=Fal
 toolbar.update()
 canvasLineGraph.get_tk_widget().place(relx=.5, rely=.5, anchor='center')
 
-figGaugeGraph = GaugeGraph()
+figGaugeGraph, linhaGaugeGraph, axTESTE = GaugeGraph()
 canvasGaugeGraph = FigureCanvasTkAgg(figGaugeGraph, frameAlertGraph)
 canvasGaugeGraph.draw()
-canvasGaugeGraph.get_tk_widget().place(relx=.5, rely=.8, anchor='center')
+canvasGaugeGraph.get_tk_widget().place(relx=.5, rely=.5, anchor='center')
 
 PlotarGraficoData(queueDados, queueTempo)
 
