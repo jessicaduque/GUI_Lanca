@@ -14,6 +14,8 @@ from collections import deque
 from matplotlib.backends.backend_tkagg import (
     FigureCanvasTkAgg, NavigationToolbar2Tk)
 
+
+from threading import *
 from detect import segmentar_imagem
 
 import ctypes
@@ -24,15 +26,15 @@ class App(CTk):
     def _init_(self, *args, **kwargs):
         super()._init_(*args, **kwargs)
         self.main_frame = CTkFrame(self)
-        self.main_frame.pack(expand=True, fill=tk.BOTH)
+        self.main_frame.pack(expand=True, fill=BOTH)
 
 # Função que configura a câmera a ser usada
 def ConfigurarCamera():
     # Define a video capture object
-    vid = cv2.VideoCapture(0)
+    vid = cv2.VideoCapture(0, cv2.CAP_DSHOW)
   
     # Declare the width and height in variables
-    width, height = 640,640
+    width, height = 1079, 365
   
     # Set the width and height
     vid.set(cv2.CAP_PROP_FRAME_WIDTH, width)
@@ -46,7 +48,7 @@ def Open_Camera():
 
     # Captura do vídeo frame por frame
     _, frame = vid.read()
-    # Converção de imagem de uma espaço de cores para o outro
+    # Conversão de imagem de uma espaço de cores para o outro
     opencv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
   
     # Captura do frame mais atual e transformação dela para imagem
@@ -54,40 +56,30 @@ def Open_Camera():
 
     imagem_segmentada = Image.fromarray(cv2.cvtColor(segmentar_imagem(captured_image), cv2.COLOR_BGR2RGBA))
 
-    # Converção da imagem capturada para photoimage
-    photo_image = CTkImage(imagem_segmentada)
+    imagem_segmentada_resized = imagem_segmentada.resize((w_img, h_img), Image.LANCZOS)
+
+    # Conversão da imagem capturada para photoimage
+    photo_image = CTkImage(imagem_segmentada_resized, size = (w_img, h_img))
 
     video_widget.configure(image=photo_image)
 
     # Repetição do mesmo processo apóos 10 milisegundos
     video_widget.after(10, Open_Camera)
 
-# Função para redimensionar imagem de acordo com canvas
-def Resize_Image(e, updated_background_image):
-    print(e.width)
-    print(e.height)
-    resized_background_image = updated_background_image.resize(
-        (e.width, e.height), Image.LANCZOS)
-    return resized_background_image
-
 def Imagem_Video(e):
-    print("ANTES IMSEG:", imagem_segmentada.width)
-    print("ANTES IMSEG:", imagem_segmentada.height)
+    global w_img, h_img 
 
-    print("E:", e.width)
-    print("E:", e.height)
+    w_img = e.width - 50
+    h_img = e.height - 50
 
-    resized_background_image = imagem_segmentada.resize(
-        (e.width, e.height), Image.LANCZOS)
+    vid.set(cv2.CAP_PROP_FRAME_WIDTH, w_img)
+    vid.set(cv2.CAP_PROP_FRAME_HEIGHT, h_img)
 
-    print("DEPOIS IMSEG:", resized_background_image.width)
-    print("DEPOIS IMSEG:", resized_background_image.height)
+    imagem_segmentada_resized = imagem_segmentada.resize((w_img, h_img), Image.LANCZOS)
 
-    photo_image = CTkImage(resized_background_image, size=(resized_background_image.width, resized_background_image.height))
-    
-    print("BRO:", photo_image.cget("size"))
-
+    photo_image = CTkImage(imagem_segmentada_resized, size = (w_img, h_img))
     video_widget.configure(image=photo_image)
+
 
 def CriacaoGrafico():
     queueTempo = deque([], maxlen = 15)
@@ -188,6 +180,7 @@ def PlotarGraficoData(queueDados, queueTempo):
 ORIGINAL_DPI = 96.09458128078816
 APP_WIDTH = 1000
 APP_HEIGHT = 720
+w_img, h_img = 30, 30
 
 
 ### Inicialização do app
@@ -214,18 +207,18 @@ app.columnconfigure(0, weight=1)
 app.rowconfigure(1, weight=1)
 
 ### FRAME HEADER DA TELA
-frameHeader = CTkFrame(app, height=100, fg_color='#a4a8ad', corner_radius=0)
-frameHeader.grid(row=0, sticky='nsew')
+frameHeader = CTkFrame(app, height=100, fg_color='#a4a8ad', corner_radius=0, border_width=0)
+frameHeader.grid(row=0, column=0, sticky='nsew', padx=0, pady=0)
 
-frameLogos = CTkFrame(frameHeader, fg_color='#a4a8ad', corner_radius=0)
-frameLogos.pack(fill=X, expand=True, padx=100)
+frameLogos = CTkFrame(frameHeader, fg_color='#a4a8ad', corner_radius=0, border_width=0)
+frameLogos.pack(fill=X, expand=True, padx=100, pady=0)
 
 frameLogos.columnconfigure(0, weight=1)
 frameLogos.columnconfigure(1, weight=1)
 frameLogos.columnconfigure(2, weight=1)
 
 # As imagens das 3 logos sendo encaixadas no header
-photo_image_ifes_logo = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'IFES_horizontal_logo.png')), size=(226.8, 90.72))
+photo_image_ifes_logo = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'IFES_horizontal_logo.png')), size=(215.46, 86.184))
 image_ifes_logo_label = CTkLabel(frameLogos, image=photo_image_ifes_logo, text="")
 image_ifes_logo_label.grid(row=0, column=0)
 
@@ -239,12 +232,12 @@ image_oficinas_logo_label.grid(row=0, column=2)
 
 
 ### FRAME PRINCIPAL DA TELA
-framePrincipal = CTkFrame(app, fg_color='#4f7d71', corner_radius=0)
-framePrincipal.grid(row=1, sticky='nsew')
+framePrincipal = CTkFrame(app, fg_color='#4f7d71', corner_radius=0, border_width=0)
+framePrincipal.grid(row=1, column=0, sticky='nsew', padx=0, pady=0)
 
 # Frame com widgets do frame principal da tela
 frameCentral = CTkFrame(framePrincipal, fg_color='#4f7d71')
-frameCentral.pack(fill=BOTH, expand=True, padx=20, pady=20)
+frameCentral.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
 frameCentral.rowconfigure(0, weight=1)
 frameCentral.rowconfigure(1, weight=1)
@@ -252,14 +245,16 @@ frameCentral.columnconfigure(0, weight=2)
 frameCentral.columnconfigure(1, weight=1)
 
 # Criação dos frames da parte de cima
-frameVideo = CTkFrame(frameCentral, fg_color="#a4a8ad", border_width=2, corner_radius=15)
+frameVideo = CTkFrame(frameCentral, fg_color="#a4a8ad", border_width=0, corner_radius=15)
 frameVideo.grid(row=0, column=0, padx=(20, 20), pady=(0, 10), sticky='nsew')
+frameVideo.pack_propagate(False)
+frameVideo.bind('<Configure>', Imagem_Video)
 
-frameAlertGraph = CTkFrame(frameCentral, fg_color="#a4a8ad", border_width=2, corner_radius=15)
+frameAlertGraph = CTkFrame(frameCentral, fg_color="#a4a8ad", border_width=0, corner_radius=15)
 frameAlertGraph.grid(row=0, column=1, padx=(0, 20), pady=(0, 10), sticky='nsew')
 
 # Criação dos frames da parte de baixo
-frameDataGraph = CTkFrame(frameCentral, fg_color="#a4a8ad", border_width=2, corner_radius=15)
+frameDataGraph = CTkFrame(frameCentral, fg_color="#a4a8ad", border_width=0, corner_radius=15)
 frameDataGraph.grid(row=1, columnspan=2, padx=(20, 20), pady=(10, 0), sticky='nsew')
 
 # Criar o label do texto do vídeo e colocar em cima dele
@@ -269,9 +264,7 @@ frameDataGraph.grid(row=1, columnspan=2, padx=(20, 20), pady=(10, 0), sticky='ns
 
 # Criar o label do vídeo e mostrar no app
 video_widget = CTkLabel(frameVideo, text="")
-video_widget.pack(fill="both", expand=True, padx=10, pady=10)
-video_widget.bind('<Configure>', Imagem_Video)
-
+video_widget.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
 #Função para abrir ativar câmera e encaixar ela no app
 Open_Camera()
@@ -288,7 +281,7 @@ canvasLineGraph.get_tk_widget().place(relx=.5, rely=.5, anchor='center')
 figGaugeGraph, linhaGaugeGraph, axTESTE = GaugeGraph()
 canvasGaugeGraph = FigureCanvasTkAgg(figGaugeGraph, frameAlertGraph)
 canvasGaugeGraph.draw()
-canvasGaugeGraph.get_tk_widget().place(relx=.5, rely=.7, anchor='center')
+canvasGaugeGraph.get_tk_widget().place(relx=.5, rely=.5, anchor='center')
 
 PlotarGraficoData(queueDados, queueTempo)
 
