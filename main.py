@@ -14,9 +14,8 @@ from collections import deque
 from matplotlib.backends.backend_tkagg import (
     FigureCanvasTkAgg, NavigationToolbar2Tk)
 
-
-from threading import *
-from detect import segmentar_imagem
+from threading import Thread
+from ultralytics import YOLO
 
 import ctypes
 plt.style.use("seaborn-v0_8-whitegrid")
@@ -44,7 +43,7 @@ def ConfigurarCamera():
   
 # Função de abrir a câmera e mostrar no video_widget do app
 def Open_Camera():
-    global imagem_segmentada
+    global segmentou_imagem
 
     # Captura do vídeo frame por frame
     _, frame = vid.read()
@@ -54,16 +53,17 @@ def Open_Camera():
     # Captura do frame mais atual e transformação dela para imagem
     captured_image = Image.fromarray(opencv_image)
 
-    imagem_segmentada = Image.fromarray(cv2.cvtColor(segmentar_imagem(captured_image), cv2.COLOR_BGR2RGBA))
+    
+    if(segmentou_imagem == 2):
+        # Conversão da imagem capturada para photoimage
+        photo_image = CTkImage(imagem_segmentada, size = (w_img, h_img))
+        video_widget.configure(image=photo_image)
+        segmentou_imagem = 0
+    elif(segmentou_imagem == 0):
+        thread_segmentar = Thread(target=segmentar_imagem, args=[captured_image])
+        thread_segmentar.start()
 
-    imagem_segmentada_resized = imagem_segmentada.resize((w_img, h_img), Image.LANCZOS)
-
-    # Conversão da imagem capturada para photoimage
-    photo_image = CTkImage(imagem_segmentada_resized, size = (w_img, h_img))
-
-    video_widget.configure(image=photo_image)
-
-    # Repetição do mesmo processo apóos 10 milisegundos
+    # Repetição do mesmo processo após 10 milisegundos
     video_widget.after(10, Open_Camera)
 
 def Imagem_Video(e):
@@ -80,6 +80,16 @@ def Imagem_Video(e):
     photo_image = CTkImage(imagem_segmentada_resized, size = (w_img, h_img))
     video_widget.configure(image=photo_image)
 
+# Thread
+def segmentar_imagem(imagem):
+    global segmentou_imagem, imagem_segmentada
+    segmentou_imagem = 1
+    print("haha")
+    results = model(imagem, verbose=False)
+    print("bro")
+    imagem_segmentada_plot = results[0].plot()
+    imagem_segmentada = Image.fromarray(cv2.cvtColor(imagem_segmentada_plot, cv2.COLOR_BGR2RGBA))
+    segmentou_imagem = 2
 
 def CriacaoGrafico():
     queueTempo = deque([], maxlen = 15)
@@ -181,7 +191,8 @@ ORIGINAL_DPI = 96.09458128078816
 APP_WIDTH = 1000
 APP_HEIGHT = 720
 w_img, h_img = 30, 30
-
+model = YOLO("yolov8m-seg.pt")
+segmentou_imagem = 0
 
 ### Inicialização do app
 app = App()
@@ -248,7 +259,7 @@ frameCentral.columnconfigure(1, weight=1)
 frameVideo = CTkFrame(frameCentral, fg_color="#a4a8ad", border_width=0, corner_radius=15)
 frameVideo.grid(row=0, column=0, padx=(20, 20), pady=(0, 10), sticky='nsew')
 frameVideo.pack_propagate(False)
-frameVideo.bind('<Configure>', Imagem_Video)
+#frameVideo.bind('<Configure>', Imagem_Video)
 
 frameAlertGraph = CTkFrame(frameCentral, fg_color="#a4a8ad", border_width=0, corner_radius=15)
 frameAlertGraph.grid(row=0, column=1, padx=(0, 20), pady=(0, 10), sticky='nsew')
@@ -267,7 +278,7 @@ video_widget = CTkLabel(frameVideo, text="")
 video_widget.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
 #Função para abrir ativar câmera e encaixar ela no app
-Open_Camera()
+#Open_Camera()
 
 # Criação do gráfico e chamada da função para atualizá-la
 figLineGraph, ax, queueDados, queueTempo, linhaLineGraph = CriacaoGrafico()
