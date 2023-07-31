@@ -14,6 +14,8 @@ from collections import deque
 from matplotlib.backends.backend_tkagg import (
     FigureCanvasTkAgg, NavigationToolbar2Tk)
 
+
+from threading import *
 from detect import segmentar_imagem
 
 import ctypes
@@ -24,15 +26,15 @@ class App(CTk):
     def _init_(self, *args, **kwargs):
         super()._init_(*args, **kwargs)
         self.main_frame = CTkFrame(self)
-        self.main_frame.pack(expand=True, fill=tk.BOTH)
+        self.main_frame.pack(expand=True, fill=BOTH)
 
 # Função que configura a câmera a ser usada
 def ConfigurarCamera():
     # Define a video capture object
-    vid = cv2.VideoCapture(0)
+    vid = cv2.VideoCapture(0, cv2.CAP_DSHOW)
   
     # Declare the width and height in variables
-    width, height = 585, 220
+    width, height = 1079, 365
   
     # Set the width and height
     vid.set(cv2.CAP_PROP_FRAME_WIDTH, width)
@@ -42,9 +44,11 @@ def ConfigurarCamera():
   
 # Função de abrir a câmera e mostrar no video_widget do app
 def Open_Camera():
+    global imagem_segmentada
+
     # Captura do vídeo frame por frame
     _, frame = vid.read()
-    # Converção de imagem de uma espaço de cores para o outro
+    # Conversão de imagem de uma espaço de cores para o outro
     opencv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
   
     # Captura do frame mais atual e transformação dela para imagem
@@ -52,17 +56,30 @@ def Open_Camera():
 
     imagem_segmentada = Image.fromarray(cv2.cvtColor(segmentar_imagem(captured_image), cv2.COLOR_BGR2RGBA))
 
-    # Converção da imagem capturada para photoimage
-    photo_image = CTkImage(imagem_segmentada, size=(585,220))
+    imagem_segmentada_resized = imagem_segmentada.resize((w_img, h_img), Image.LANCZOS)
 
-    # Definindo o photoimage do label
-    video_widget.photo_image = photo_image
-  
-    # Configurando a imagem no label
+    # Conversão da imagem capturada para photoimage
+    photo_image = CTkImage(imagem_segmentada_resized, size = (w_img, h_img))
+
     video_widget.configure(image=photo_image)
-  
-    # Repetiçãoo do mesmo processo apóos 10 milisegundos
+
+    # Repetição do mesmo processo apóos 10 milisegundos
     video_widget.after(10, Open_Camera)
+
+def Imagem_Video(e):
+    global w_img, h_img 
+
+    w_img = e.width - 50
+    h_img = e.height - 50
+
+    vid.set(cv2.CAP_PROP_FRAME_WIDTH, w_img)
+    vid.set(cv2.CAP_PROP_FRAME_HEIGHT, h_img)
+
+    imagem_segmentada_resized = imagem_segmentada.resize((w_img, h_img), Image.LANCZOS)
+
+    photo_image = CTkImage(imagem_segmentada_resized, size = (w_img, h_img))
+    video_widget.configure(image=photo_image)
+
 
 def CriacaoGrafico():
     queueTempo = deque([], maxlen = 15)
@@ -101,10 +118,6 @@ def GaugeGraph():
         plt.annotate(val, xy=(loc, 2.525), ha="right" if val<=55 else "left")
 
     ax.set_axis_off()
-
-    #numData = random.randrange(40, 80)
-    
-
 
     linhaGaugeGraph = ax.annotate("0", xytext=(0,0), xy=(0, 2.0),
                  arrowprops=dict(arrowstyle="wedge, tail_width= 0.5", color="black", shrinkA=0), 
@@ -147,11 +160,13 @@ def PlotarGraficoData(queueDados, queueTempo):
 
     linhaLineGraph.set_data(list(x), list(y))
     #linhaGaugeGraph.set(text=numData, color=colorLevel, arrowprops=dict(arrowstyle="wedge, tail_width= 0.5", color="black", shrinkA=0), x=xvalue)
-    axTESTE.annotate("0", xytext=(0,0), xy=(numData, 2.0),
-                 arrowprops=dict(arrowstyle="wedge, tail_width= 0.5", color="black", shrinkA=0), 
-                 bbox = dict(boxstyle="circle", facecolor="black", linewidth=2),
-                 fontsize=25, color =f"{colorLevel}", ha = "center"
-                )
+    #axTESTE.annotate("0", xytext=(0,0), xy=(numData, 2.0),
+    #             arrowprops=dict(arrowstyle="wedge, tail_width= 0.5", color="black", shrinkA=0), 
+    #             bbox = dict(boxstyle="circle", facecolor="black", linewidth=2),
+    #             fontsize=25, color =f"{colorLevel}", ha = "center"
+    #            )
+
+    #linhaGaugeGraph.set_position((xvalue, 2.0))
 
     # Desenhando o novo gráfico
     canvasLineGraph.draw()
@@ -160,12 +175,12 @@ def PlotarGraficoData(queueDados, queueTempo):
     # Chamando a função recursiva de segundo em segundo para rodar a função novamente e continuar atualizando o gráfico
     canvasLineGraph.get_tk_widget().after(1000, PlotarGraficoData, y, x)
 
-
 # Variáveis
 # Definição do DPI original utilizado
 ORIGINAL_DPI = 96.09458128078816
 APP_WIDTH = 1000
 APP_HEIGHT = 720
+w_img, h_img = 30, 30
 
 
 ### Inicialização do app
@@ -192,37 +207,37 @@ app.columnconfigure(0, weight=1)
 app.rowconfigure(1, weight=1)
 
 ### FRAME HEADER DA TELA
-frameHeader = CTkFrame(app, height=100, fg_color='#a4a8ad', corner_radius=0)
-frameHeader.grid(row=0, sticky='ewn')
+frameHeader = CTkFrame(app, height=100, fg_color='#a4a8ad', corner_radius=0, border_width=0)
+frameHeader.grid(row=0, column=0, sticky='nsew', padx=0, pady=0)
 
-frameLogos = CTkFrame(frameHeader, fg_color='#a4a8ad', corner_radius=0)
-frameLogos.pack(fill=X, expand=True, padx=100)
+frameLogos = CTkFrame(frameHeader, fg_color='#a4a8ad', corner_radius=0, border_width=0)
+frameLogos.pack(fill=X, expand=True, padx=100, pady=0)
 
 frameLogos.columnconfigure(0, weight=1)
 frameLogos.columnconfigure(1, weight=1)
 frameLogos.columnconfigure(2, weight=1)
 
 # As imagens das 3 logos sendo encaixadas no header
-photo_image_ifes_logo = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'IFES_horizontal_logo.png')), size=(283.5 * 0.8, 113.4 * 0.8))
+photo_image_ifes_logo = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'IFES_horizontal_logo.png')), size=(215.46, 86.184))
 image_ifes_logo_label = CTkLabel(frameLogos, image=photo_image_ifes_logo, text="")
 image_ifes_logo_label.grid(row=0, column=0)
 
-photo_image_arcelor_logo = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'ArcelorMittal_logo.png')), size=(210 * 0.8, 86.40 * 0.8))
+photo_image_arcelor_logo = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'ArcelorMittal_logo.png')), size=(168, 69.12))
 image_arcelor_logo_label = CTkLabel(frameLogos, image=photo_image_arcelor_logo, text="")
 image_arcelor_logo_label.grid(row=0, column=1)
 
-photo_image_oficinas_logo = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'Oficinas4-0_logo.png')), size=(204.8 * 0.8, 42 * 0.8))
+photo_image_oficinas_logo = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'Oficinas4-0_logo.png')), size=(163.84, 33.6))
 image_oficinas_logo_label = CTkLabel(frameLogos, image=photo_image_oficinas_logo, text="")
 image_oficinas_logo_label.grid(row=0, column=2)
 
 
 ### FRAME PRINCIPAL DA TELA
-framePrincipal = CTkFrame(app, fg_color='#4f7d71', corner_radius=0)
-framePrincipal.grid(row=1, sticky='nsew')
+framePrincipal = CTkFrame(app, fg_color='#4f7d71', corner_radius=0, border_width=0)
+framePrincipal.grid(row=1, column=0, sticky='nsew', padx=0, pady=0)
 
 # Frame com widgets do frame principal da tela
-frameCentral = CTkFrame(framePrincipal, fg_color='red')
-frameCentral.pack(fill=BOTH, expand=True, padx=20, pady=20)
+frameCentral = CTkFrame(framePrincipal, fg_color='#4f7d71')
+frameCentral.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
 frameCentral.rowconfigure(0, weight=1)
 frameCentral.rowconfigure(1, weight=1)
@@ -230,15 +245,17 @@ frameCentral.columnconfigure(0, weight=2)
 frameCentral.columnconfigure(1, weight=1)
 
 # Criação dos frames da parte de cima
-frameVideo = CTkFrame(frameCentral, fg_color="#a4a8ad", border_width=2, corner_radius=15)
-frameVideo.grid(row=0, column=0, padx=(20, 20), pady=(10, 10), sticky='nsew')
+frameVideo = CTkFrame(frameCentral, fg_color="#a4a8ad", border_width=0, corner_radius=15)
+frameVideo.grid(row=0, column=0, padx=(20, 20), pady=(0, 10), sticky='nsew')
+frameVideo.pack_propagate(False)
+frameVideo.bind('<Configure>', Imagem_Video)
 
-frameAlertGraph = CTkFrame(frameCentral, fg_color="#a4a8ad", border_width=2, corner_radius=15)
-frameAlertGraph.grid(row=0, column=1, padx=(0, 20), pady=(10, 10), sticky='nsew')
+frameAlertGraph = CTkFrame(frameCentral, fg_color="#a4a8ad", border_width=0, corner_radius=15)
+frameAlertGraph.grid(row=0, column=1, padx=(0, 20), pady=(0, 10), sticky='nsew')
 
 # Criação dos frames da parte de baixo
-frameDataGraph = CTkFrame(frameCentral, fg_color="#a4a8ad", border_width=2, corner_radius=15)
-frameDataGraph.grid(row=1, columnspan=2, padx=(20, 20), pady=(10, 10), sticky='nsew')
+frameDataGraph = CTkFrame(frameCentral, fg_color="#a4a8ad", border_width=0, corner_radius=15)
+frameDataGraph.grid(row=1, columnspan=2, padx=(20, 20), pady=(10, 0), sticky='nsew')
 
 # Criar o label do texto do vídeo e colocar em cima dele
 #video_text_label = CTkLabel(frameVideo, text="Imagem Segmentada", font=("Arial", 23))
@@ -247,8 +264,7 @@ frameDataGraph.grid(row=1, columnspan=2, padx=(20, 20), pady=(10, 10), sticky='n
 
 # Criar o label do vídeo e mostrar no app
 video_widget = CTkLabel(frameVideo, text="")
-#video_widget.grid(row=1, pady=3, padx=20)
-video_widget.place(relx=.5, rely=.5, anchor="center")
+video_widget.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
 #Função para abrir ativar câmera e encaixar ela no app
 Open_Camera()
