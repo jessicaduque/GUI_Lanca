@@ -16,6 +16,7 @@ from matplotlib.backends.backend_tkagg import (
 
 from threading import Thread
 from ultralytics import YOLO
+from database import dbCreate, dbAdd, dbShow
 
 import ctypes
 plt.style.use("seaborn-v0_8-whitegrid")
@@ -43,25 +44,14 @@ def ConfigurarCamera():
   
 # Função de abrir a câmera e mostrar no video_widget do app
 def Open_Camera():
-    global segmentou_imagem
-
-    # Captura do vídeo frame por frame
-    _, frame = vid.read()
-    # Conversão de imagem de uma espaço de cores para o outro
-    opencv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
-  
-    # Captura do frame mais atual e transformação dela para imagem
-    captured_image = Image.fromarray(opencv_image)
-
     
-    if(segmentou_imagem == 2):
-        # Conversão da imagem capturada para photoimage
-        photo_image = CTkImage(imagem_segmentada, size = (w_img, h_img))
-        video_widget.configure(image=photo_image)
-        segmentou_imagem = 0
-    elif(segmentou_imagem == 0):
-        thread_segmentar = Thread(target=segmentar_imagem, args=[captured_image])
-        thread_segmentar.start()
+    thread_segmentar = Thread(target=segmentar_imagem)
+    thread_segmentar.daemon
+    thread_segmentar.start()
+    # Esperar finalização da thread
+    thread_segmentar.join()
+    photo_image = CTkImage(imagem_segmentada, size = (w_img, h_img))
+    video_widget.configure(image=photo_image)
 
     # Repetição do mesmo processo após 10 milisegundos
     video_widget.after(10, Open_Camera)
@@ -72,72 +62,106 @@ def Imagem_Video(e):
     w_img = e.width - 50
     h_img = e.height - 50
 
-    vid.set(cv2.CAP_PROP_FRAME_WIDTH, w_img)
-    vid.set(cv2.CAP_PROP_FRAME_HEIGHT, h_img)
-
     imagem_segmentada_resized = imagem_segmentada.resize((w_img, h_img), Image.LANCZOS)
 
     photo_image = CTkImage(imagem_segmentada_resized, size = (w_img, h_img))
     video_widget.configure(image=photo_image)
 
-# Thread
-def segmentar_imagem(imagem):
-    global segmentou_imagem, imagem_segmentada
-    segmentou_imagem = 1
-    print("haha")
-    results = model(imagem, verbose=False)
-    print("bro")
-    imagem_segmentada_plot = results[0].plot()
-    imagem_segmentada = Image.fromarray(cv2.cvtColor(imagem_segmentada_plot, cv2.COLOR_BGR2RGBA))
-    segmentou_imagem = 2
 
-def CriacaoGrafico():
-    queueTempo = deque([], maxlen = 15)
-    queueDados = deque([], maxlen = 15)
+    thread_res_cam = Thread(target=redefinir_res_cam)
+    thread_res_cam.daemon
+    thread_res_cam.start()
 
-    queueDados.append(2) 
-    queueTempo.append("0")
+def CriacaoGrafico(queueTempo, queueDados):
 
-    # To run GUI event loops
-    fig = Figure(dpi=ORIGINAL_DPI)
-    fig.set_size_inches(9.2, 3.2)
-    ax = fig.add_subplot()
+    numData = random.randrange(40, 80)
+    now = datetime.now()
+    current_time = now.strftime("%H:%M:%S")
 
-    fig.autofmt_xdate()
-    linhaLineGraph, = ax.plot(list(queueTempo), list(queueDados))
-    #plt.title("Diâmetro do cascão", fontsize=20)
-    ax.set_xlabel("Horas")
-    ax.set_ylabel("Diâmetro [mm]")
+    dbAdd(numData, current_time)
+    #dbShow()
 
-    
-    return fig, ax, queueDados, queueTempo, linhaLineGraph
+    LineGraph(numData, current_time, queueTempo, queueDados)
 
-def GaugeGraph():
+    DataGraphImage = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'graphDiametro.png')), size=(400 * 0.7, 250 * 0.7))
+    DataGraphLabel.configure(image=DataGraphImage)
+
+    GaugeGraph(numData)
+
+    AlertGraphImage = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'gaugeDiametro.png')), size=(400 * 0.7, 250 * 0.7))
+    AlertGraphLabel.configure(image=AlertGraphImage)
+
+    # Chamando a função recursiva de segundo em segundo para rodar a função novamente e continuar atualizando o gráfico
+    AlertGraphLabel.after(1000, CriacaoGrafico, queueTempo, queueDados)
+
+def GaugeGraph(numData):
+    os.remove("gaugeDiametro.png")
     color = ["#ee3d55", "#ee3d55", "#fabd57" , "#fabd57", "#4dab6d", "#4dab6d", "#4dab6d", "#4dab6d", "#4dab6d"]
     #values = [-40, -20, 0, 20, 40, 60, 80, 100]
     #color = ["#4dab6d", "#72c66e",  "#c1da64", "#f6ee54", "#fabd57", "#f36d54", "#ee3d55"]
     values = [80, 75, 70, 65, 60, 55, 50, 45, 40]
 
+    colorLevel = ""
+
+    if numData < 60:
+        colorLevel = "#4dab6d"
+    elif numData >= 70:
+        colorLevel = "#ee3d55"
+    else:
+        colorLevel = "#fabd57"
+
+    xvalue = 3.465 - ((numData - 35) * 0.077)
+
     fig = plt.figure(figsize=(4, 4))
 
-    ax = fig.add_subplot(projection="polar")
-    ax.bar(x = [0, 0.385, 0.77, 1.155, 1.54, 1.925, 2.31, 2.695], width=0.42, height=0.5, bottom=2, 
+    axGauge = fig.add_subplot(projection="polar")
+    axGauge.bar(x = [0, 0.385, 0.77, 1.155, 1.54, 1.925, 2.31, 2.695], width=0.42, height=0.5, bottom=2, 
           color=color, align="edge")
 
     for loc, val in zip([0, 0.385, 0.77, 1.155, 1.54, 1.925, 2.31, 2.695, 3.08, 3,465], values):
         plt.annotate(val, xy=(loc, 2.525), ha="right" if val<=55 else "left")
 
-    ax.set_axis_off()
+    axGauge.set_axis_off()
 
-    linhaGaugeGraph = ax.annotate("0", xytext=(0,0), xy=(0, 2.0),
+    linhaGaugeGraph = axGauge.annotate(f"{numData}", xytext=(0,0), xy=(xvalue,2.0),
                  arrowprops=dict(arrowstyle="wedge, tail_width= 0.5", color="black", shrinkA=0), 
-                 bbox = dict(boxstyle="circle", facecolor="black", linewidth=2),
-                 fontsize=25, color ="red", ha = "center"
+                 bbox = dict(boxstyle="circle", facecolor="black", linewidth=2,),
+                 fontsize=25, color =f"{colorLevel}", ha = "center"
                 )
+    print(linhaGaugeGraph.xy)
 
-    #plt.title("Diâmetro da Lança", loc = "center", pad=20, fontsize=35, fontweight="bold")
+    plt.savefig("gaugeDiametro.png")
 
-    return fig, linhaGaugeGraph, ax
+    img = cv2.imread('gaugeDiametro.png')
+ 
+    # Cropping an image
+    cropped_image = img[0:250, 0:400]
+ 
+    # Save the cropped image
+    cv2.imwrite("gaugeDiametro.png", cropped_image)
+    plt.close()
+
+def LineGraph(numData, current_time, queueTempo, queueDados):
+    os.remove("graphDiametro.png")
+
+    queueDados.append(numData) 
+    queueTempo.append(current_time)
+
+    # To run GUI event loops
+    figLineGraph = plt.figure(dpi=ORIGINAL_DPI)
+    figLineGraph.set_size_inches(9.2, 3.2)
+    ax = figLineGraph.add_subplot()
+    figLineGraph.autofmt_xdate()
+
+    ax.plot(list(queueTempo), list(queueDados))
+    ax.set_ylim(min(list(queueDados)) - 2, max(list(queueDados)) + 2)
+    ax.set_xlim(list(queueTempo)[0], list(queueTempo)[-1])
+    ax.set_xlabel("Horas")
+    ax.set_ylabel("Diâmetro [mm]")
+
+    #linhaLineGraph.set_data(list(queueTempo), list(queueDados))
+    plt.savefig("graphDiametro.png")
+    plt.close()
 
 # Função para plot do gráfico de acordo com dados recebidos
 def PlotarGraficoData(queueDados, queueTempo):
@@ -185,6 +209,25 @@ def PlotarGraficoData(queueDados, queueTempo):
     # Chamando a função recursiva de segundo em segundo para rodar a função novamente e continuar atualizando o gráfico
     canvasLineGraph.get_tk_widget().after(1000, PlotarGraficoData, y, x)
 
+### THREADS
+def segmentar_imagem():
+    global imagem_segmentada
+
+    # Captura do vídeo frame por frame
+    _, frame = vid.read()
+    # Conversão de imagem de uma espaço de cores para o outro
+    opencv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
+    # Captura do frame mais atual e transformação dela para imagem
+    captured_image = Image.fromarray(opencv_image)
+
+    results = model(captured_image, verbose=False)
+    imagem_segmentada_plot = results[0].plot()
+    imagem_segmentada = Image.fromarray(cv2.cvtColor(imagem_segmentada_plot, cv2.COLOR_BGR2RGBA))
+
+def redefinir_res_cam():
+    vid.set(cv2.CAP_PROP_FRAME_WIDTH, w_img)
+    vid.set(cv2.CAP_PROP_FRAME_HEIGHT, h_img)
+
 # Variáveis
 # Definição do DPI original utilizado
 ORIGINAL_DPI = 96.09458128078816
@@ -192,7 +235,6 @@ APP_WIDTH = 1000
 APP_HEIGHT = 720
 w_img, h_img = 30, 30
 model = YOLO("yolov8m-seg.pt")
-segmentou_imagem = 0
 
 ### Inicialização do app
 app = App()
@@ -259,14 +301,23 @@ frameCentral.columnconfigure(1, weight=1)
 frameVideo = CTkFrame(frameCentral, fg_color="#a4a8ad", border_width=0, corner_radius=15)
 frameVideo.grid(row=0, column=0, padx=(20, 20), pady=(0, 10), sticky='nsew')
 frameVideo.pack_propagate(False)
-#frameVideo.bind('<Configure>', Imagem_Video)
+frameVideo.bind('<Configure>', Imagem_Video)
 
-frameAlertGraph = CTkFrame(frameCentral, fg_color="#a4a8ad", border_width=0, corner_radius=15)
-frameAlertGraph.grid(row=0, column=1, padx=(0, 20), pady=(0, 10), sticky='nsew')
+frameAlertGraph = CTkFrame(frameCentral, fg_color="#a4a8ad", border_width=2, corner_radius=15)
+frameAlertGraph.grid(row=0, column=1, padx=(0, 20), pady=(10, 10), sticky='nsew')
 
-# Criação dos frames da parte de baixo
-frameDataGraph = CTkFrame(frameCentral, fg_color="#a4a8ad", border_width=0, corner_radius=15)
-frameDataGraph.grid(row=1, columnspan=2, padx=(20, 20), pady=(10, 0), sticky='nsew')
+AlertGraphImage = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'gaugeDiametro.png')), size=(400 * 0.7, 250 * 0.7))
+AlertGraphLabel = CTkLabel(frameAlertGraph, image=AlertGraphImage, text="")
+AlertGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
+
+#Criação dos frames da parte de baixo
+frameDataGraph = CTkFrame(frameCentral, fg_color="#a4a8ad", border_width=2, corner_radius=15)
+frameDataGraph.grid(row=1, columnspan=2, padx=(20, 20), pady=(10, 10), sticky='nsew')
+
+DataGraphImage = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'graphDiametro.png')), size=(400 * 0.7, 250 * 0.7))
+DataGraphLabel = CTkLabel(frameDataGraph, image=DataGraphImage, text="")
+DataGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
+
 
 # Criar o label do texto do vídeo e colocar em cima dele
 #video_text_label = CTkLabel(frameVideo, text="Imagem Segmentada", font=("Arial", 23))
@@ -278,23 +329,15 @@ video_widget = CTkLabel(frameVideo, text="")
 video_widget.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
 #Função para abrir ativar câmera e encaixar ela no app
-#Open_Camera()
+Open_Camera()
 
-# Criação do gráfico e chamada da função para atualizá-la
-figLineGraph, ax, queueDados, queueTempo, linhaLineGraph = CriacaoGrafico()
-canvasLineGraph = FigureCanvasTkAgg(figLineGraph, frameDataGraph)
-canvasLineGraph.draw()
+#Inicializacao das variaveis dos dados
+queueTempo = deque([], maxlen = 15)
+queueDados = deque([], maxlen = 15)
+dbCreate()
 
-toolbar = NavigationToolbar2Tk(canvasLineGraph, frameDataGraph, pack_toolbar=False)
-toolbar.update()
-canvasLineGraph.get_tk_widget().place(relx=.5, rely=.5, anchor='center')
-
-figGaugeGraph, linhaGaugeGraph, axTESTE = GaugeGraph()
-canvasGaugeGraph = FigureCanvasTkAgg(figGaugeGraph, frameAlertGraph)
-canvasGaugeGraph.draw()
-canvasGaugeGraph.get_tk_widget().place(relx=.5, rely=.5, anchor='center')
-
-PlotarGraficoData(queueDados, queueTempo)
+#Chamada da função para atualzar as imagems dos graficos
+CriacaoGrafico(queueTempo, queueDados)
 
 # Função para rodar o app
 app.mainloop()
