@@ -83,19 +83,19 @@ def CriacaoGrafico(queueTempo, queueDados):
 
     LineGraph(numData, current_time, queueTempo, queueDados)
 
-    DataGraphImage = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'graphDiametro.png')), size=(400 * 0.7, 250 * 0.7))
+    DataGraphImage = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'imagens/graphDiametro.png')), size=(400 * 0.7, 250 * 0.7))
     DataGraphLabel.configure(image=DataGraphImage)
 
     GaugeGraph(numData)
 
-    AlertGraphImage = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'gaugeDiametro.png')), size=(400 * 0.7, 250 * 0.7))
+    AlertGraphImage = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'imagens/gaugeDiametro.png')), size=(400 * 0.7, 250 * 0.7))
     AlertGraphLabel.configure(image=AlertGraphImage)
 
     # Chamando a função recursiva de segundo em segundo para rodar a função novamente e continuar atualizando o gráfico
     AlertGraphLabel.after(1000, CriacaoGrafico, queueTempo, queueDados)
 
 def GaugeGraph(numData):
-    os.remove("gaugeDiametro.png")
+    os.remove("imagens\gaugeDiametro.png")
     color = ["#ee3d55", "#ee3d55", "#fabd57" , "#fabd57", "#4dab6d", "#4dab6d", "#4dab6d", "#4dab6d", "#4dab6d"]
     #values = [-40, -20, 0, 20, 40, 60, 80, 100]
     #color = ["#4dab6d", "#72c66e",  "#c1da64", "#f6ee54", "#fabd57", "#f36d54", "#ee3d55"]
@@ -128,21 +128,20 @@ def GaugeGraph(numData):
                  bbox = dict(boxstyle="circle", facecolor="black", linewidth=2,),
                  fontsize=25, color =f"{colorLevel}", ha = "center"
                 )
-    print(linhaGaugeGraph.xy)
 
-    plt.savefig("gaugeDiametro.png")
+    plt.savefig("imagens\gaugeDiametro.png")
 
-    img = cv2.imread('gaugeDiametro.png')
+    img = cv2.imread('imagens\gaugeDiametro.png')
  
     # Cropping an image
     cropped_image = img[0:250, 0:400]
  
     # Save the cropped image
-    cv2.imwrite("gaugeDiametro.png", cropped_image)
+    cv2.imwrite("imagens\gaugeDiametro.png", cropped_image)
     plt.close()
 
 def LineGraph(numData, current_time, queueTempo, queueDados):
-    os.remove("graphDiametro.png")
+    os.remove("imagens\graphDiametro.png")
 
     queueDados.append(numData) 
     queueTempo.append(current_time)
@@ -160,54 +159,8 @@ def LineGraph(numData, current_time, queueTempo, queueDados):
     ax.set_ylabel("Diâmetro [mm]")
 
     #linhaLineGraph.set_data(list(queueTempo), list(queueDados))
-    plt.savefig("graphDiametro.png")
+    plt.savefig("imagens\graphDiametro.png")
     plt.close()
-
-# Função para plot do gráfico de acordo com dados recebidos
-def PlotarGraficoData(queueDados, queueTempo):
-
-    # Declaração variáveis
-    x = queueTempo
-    y = queueDados
-    
-    # Gerãção e adição na lista de dados para teste
-    numData = random.randrange(40, 80)
-    now = datetime.now()
-    current_time = now.strftime("%H:%M:%S")
-
-    colorLevel = ""
-    if numData <= 60:
-        colorLevel = "#4dab6d"
-    elif numData >= 70:
-        colorLevel = "#ee3d55"
-    else:
-        colorLevel = "#fabd57"
-
-    xvalue = 3.465 - ((numData - 35) * 0.077)
-
-    x.append(current_time)
-    y.append(numData)
-
-    # Atualização do range dos eixos x e y
-    ax.set_ylim(min(list(y)) - 2, max(list(y)) + 2)
-    ax.set_xlim(list(x)[0], list(x)[-1])
-
-    linhaLineGraph.set_data(list(x), list(y))
-    #linhaGaugeGraph.set(text=numData, color=colorLevel, arrowprops=dict(arrowstyle="wedge, tail_width= 0.5", color="black", shrinkA=0), x=xvalue)
-    #axTESTE.annotate("0", xytext=(0,0), xy=(numData, 2.0),
-    #             arrowprops=dict(arrowstyle="wedge, tail_width= 0.5", color="black", shrinkA=0), 
-    #             bbox = dict(boxstyle="circle", facecolor="black", linewidth=2),
-    #             fontsize=25, color =f"{colorLevel}", ha = "center"
-    #            )
-
-    #linhaGaugeGraph.set_position((xvalue, 2.0))
-
-    # Desenhando o novo gráfico
-    canvasLineGraph.draw()
-    canvasGaugeGraph.draw()
-
-    # Chamando a função recursiva de segundo em segundo para rodar a função novamente e continuar atualizando o gráfico
-    canvasLineGraph.get_tk_widget().after(1000, PlotarGraficoData, y, x)
 
 ### THREADS
 def segmentar_imagem():
@@ -271,15 +224,15 @@ frameLogos.columnconfigure(1, weight=1)
 frameLogos.columnconfigure(2, weight=1)
 
 # As imagens das 3 logos sendo encaixadas no header
-photo_image_ifes_logo = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'IFES_horizontal_logo.png')), size=(215.46, 86.184))
+photo_image_ifes_logo = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'imagens/IFES_horizontal_logo.png')), size=(215.46, 86.184))
 image_ifes_logo_label = CTkLabel(frameLogos, image=photo_image_ifes_logo, text="")
 image_ifes_logo_label.grid(row=0, column=0)
 
-photo_image_arcelor_logo = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'ArcelorMittal_logo.png')), size=(168, 69.12))
+photo_image_arcelor_logo = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'imagens/ArcelorMittal_logo.png')), size=(168, 69.12))
 image_arcelor_logo_label = CTkLabel(frameLogos, image=photo_image_arcelor_logo, text="")
 image_arcelor_logo_label.grid(row=0, column=1)
 
-photo_image_oficinas_logo = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'Oficinas4-0_logo.png')), size=(163.84, 33.6))
+photo_image_oficinas_logo = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'imagens/Oficinas4-0_logo.png')), size=(163.84, 33.6))
 image_oficinas_logo_label = CTkLabel(frameLogos, image=photo_image_oficinas_logo, text="")
 image_oficinas_logo_label.grid(row=0, column=2)
 
@@ -306,7 +259,7 @@ frameVideo.bind('<Configure>', Imagem_Video)
 frameAlertGraph = CTkFrame(frameCentral, fg_color="#a4a8ad", border_width=2, corner_radius=15)
 frameAlertGraph.grid(row=0, column=1, padx=(0, 20), pady=(10, 10), sticky='nsew')
 
-AlertGraphImage = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'gaugeDiametro.png')), size=(400 * 0.7, 250 * 0.7))
+AlertGraphImage = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'imagens/gaugeDiametro.png')), size=(400 * 0.7, 250 * 0.7))
 AlertGraphLabel = CTkLabel(frameAlertGraph, image=AlertGraphImage, text="")
 AlertGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
@@ -314,7 +267,7 @@ AlertGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
 frameDataGraph = CTkFrame(frameCentral, fg_color="#a4a8ad", border_width=2, corner_radius=15)
 frameDataGraph.grid(row=1, columnspan=2, padx=(20, 20), pady=(10, 10), sticky='nsew')
 
-DataGraphImage = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'graphDiametro.png')), size=(400 * 0.7, 250 * 0.7))
+DataGraphImage = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'imagens/graphDiametro.png')), size=(400 * 0.7, 250 * 0.7))
 DataGraphLabel = CTkLabel(frameDataGraph, image=DataGraphImage, text="")
 DataGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
