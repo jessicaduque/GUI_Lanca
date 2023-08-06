@@ -44,17 +44,31 @@ def ConfigurarCamera():
   
 # Função de abrir a câmera e mostrar no video_widget do app
 def Open_Camera():
-    
-    thread_segmentar = Thread(target=segmentar_imagem)
-    thread_segmentar.daemon
-    thread_segmentar.start()
+
+    #thread_segmentar = Thread(target=segmentar_imagem)
+    #thread_segmentar.daemon
+    #thread_segmentar.start()
     # Esperar finalização da thread
-    thread_segmentar.join()
-    photo_image = CTkImage(imagem_segmentada, size = (w_img, h_img))
-    video_widget.configure(image=photo_image)
+    #thread_segmentar.join()
+
+    print("aa")
+
+
+    try:
+        #imagem_segmentada = Image.open(os.path.join(os.path.dirname(__file__), 'imagens/imagemSegmentada.png'))
+        photo_image = CTkImage(imagem_segmentada, size = (w_img, h_img))
+        video_widget.configure(image=photo_image)
+    except Exception as e:
+        print("yikes")
+    
+        
+        
+    #imagem_segmentada = Image.open(os.path.join(os.path.dirname(__file__), 'imagens/imagemSegmentada.png'))
+    #photo_image = CTkImage(imagem_segmentada, size = (w_img, h_img))
+    #video_widget.configure(image=photo_image)
 
     # Repetição do mesmo processo após 10 milisegundos
-    video_widget.after(10, Open_Camera)
+    video_widget.after(15, Open_Camera)
 
 def Imagem_Video(e):
     global w_img, h_img 
@@ -62,15 +76,11 @@ def Imagem_Video(e):
     w_img = e.width - 50
     h_img = e.height - 50
 
-    imagem_segmentada_resized = imagem_segmentada.resize((w_img, h_img), Image.LANCZOS)
+    imagem_segmentada = Image.open(os.path.join(os.path.dirname(__file__), 'imagens/imagemSegmentada.png'))
+    #imagem_segmentada_resized = imagem_segmentada.resize((w_img, h_img), Image.LANCZOS)
 
-    photo_image = CTkImage(imagem_segmentada_resized, size = (w_img, h_img))
+    photo_image = CTkImage(imagem_segmentada, size = (w_img, h_img))
     video_widget.configure(image=photo_image)
-
-
-    thread_res_cam = Thread(target=redefinir_res_cam)
-    thread_res_cam.daemon
-    thread_res_cam.start()
 
 def CriacaoGrafico(queueTempo, queueDados):
 
@@ -166,21 +176,22 @@ def LineGraph(numData, current_time, queueTempo, queueDados):
 def segmentar_imagem():
     global imagem_segmentada
 
-    # Captura do vídeo frame por frame
-    _, frame = vid.read()
-    # Conversão de imagem de uma espaço de cores para o outro
-    opencv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
-    # Captura do frame mais atual e transformação dela para imagem
-    captured_image = Image.fromarray(opencv_image)
+    while True:
+        # Captura do vídeo frame por frame
+        _, frame = vid.read()
+        # Conversão de imagem de uma espaço de cores para o outro
+        opencv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
+        # Captura do frame mais atual e transformação dela para imagem
+        captured_image = Image.fromarray(opencv_image)
+        results = model(captured_image, verbose=False)
+        imagem_segmentada_plot = results[0].plot()
+        imagem_segmentada = Image.fromarray(cv2.cvtColor(imagem_segmentada_plot, cv2.COLOR_BGR2RGBA))
 
-    results = model(captured_image, verbose=False)
-    imagem_segmentada_plot = results[0].plot()
-    imagem_segmentada = Image.fromarray(cv2.cvtColor(imagem_segmentada_plot, cv2.COLOR_BGR2RGBA))
 
 def redefinir_res_cam():
     vid.set(cv2.CAP_PROP_FRAME_WIDTH, w_img)
     vid.set(cv2.CAP_PROP_FRAME_HEIGHT, h_img)
-
+ 
 # Variáveis
 # Definição do DPI original utilizado
 ORIGINAL_DPI = 96.09458128078816
@@ -281,13 +292,18 @@ DataGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
 video_widget = CTkLabel(frameVideo, text="")
 video_widget.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
+thread_segmentar = Thread(target=segmentar_imagem)
+thread_segmentar.daemon
+thread_segmentar.start()
+
+
 #Função para abrir ativar câmera e encaixar ela no app
 Open_Camera()
 
 #Inicializacao das variaveis dos dados
 queueTempo = deque([], maxlen = 15)
 queueDados = deque([], maxlen = 15)
-dbCreate()
+#dbCreate()
 
 #Chamada da função para atualzar as imagems dos graficos
 CriacaoGrafico(queueTempo, queueDados)
