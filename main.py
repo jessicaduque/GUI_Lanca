@@ -43,8 +43,8 @@ def ConfigurarCamera():
     cap = cv2.VideoCapture(video_path)
 
 
-    return cap
-    #return vid
+    #return cap
+    return vid
   
 # Função de abrir a câmera e mostrar no video_widget do app
 def Open_Camera():
@@ -71,9 +71,9 @@ def Imagem_Video(e):
     video_widget.configure(image=photo_image)
 
 
-    #thread_res_cam = Thread(target=redefinir_res_cam)
-    #thread_res_cam.daemon
-    #thread_res_cam.start()
+    thread_res_cam = Thread(target=redefinir_res_cam)
+    thread_res_cam.daemon
+    thread_res_cam.start()
 
 def CriacaoGrafico(queueTempo, queueDados):
 
@@ -171,9 +171,9 @@ def segmentar_imagem():
 
     # Captura do vídeo frame por frame
     ### TIRAR COMENTÁRIO A SEGUIR QUANDO USANDO CAMERA
-    #_, frame = vid.read()
+    _, frame = vid.read()
     ### PARA VIDEO
-    success, frame = cap.read()
+    #success, frame = cap.read()
     # Conversão de imagem de uma espaço de cores para o outro
     opencv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
     # Captura do frame mais atual e transformação dela para imagem
@@ -184,8 +184,10 @@ def segmentar_imagem():
     imagem_segmentada = Image.fromarray(cv2.cvtColor(imagem_segmentada_plot, cv2.COLOR_BGR2RGBA))
 
 def redefinir_res_cam():
-    vid.set(cv2.CAP_PROP_FRAME_WIDTH, w_img)
-    vid.set(cv2.CAP_PROP_FRAME_HEIGHT, h_img)
+    print("w", w_img)
+    print("h", h_img)
+    vid.set(cv2.CAP_PROP_FRAME_WIDTH, w_img * 2)
+    vid.set(cv2.CAP_PROP_FRAME_HEIGHT, h_img * 2)
 
 # Variáveis
 # Definição do DPI original utilizado
@@ -213,8 +215,8 @@ app.title("DashMedidor")
 ctypes.windll.shcore.SetProcessDpiAwareness(2)
 
 # Configurar a câmera para o seu uso
-#vid = ConfigurarCamera()
-cap = ConfigurarCamera()
+vid = ConfigurarCamera()
+#cap = ConfigurarCamera()
 
 app.columnconfigure(0, weight=1)
 app.rowconfigure(1, weight=1)
