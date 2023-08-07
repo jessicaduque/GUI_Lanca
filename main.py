@@ -40,7 +40,12 @@ def ConfigurarCamera():
     vid.set(cv2.CAP_PROP_FRAME_WIDTH, width)
     vid.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
-    return vid
+    video_path = 'video_sample.mp4'
+    cap = cv2.VideoCapture(video_path)
+
+
+    return cap
+    #return vid
   
 # Função de abrir a câmera e mostrar no video_widget do app
 def Open_Camera():
@@ -48,11 +53,10 @@ def Open_Camera():
     thread_segmentar = Thread(target=segmentar_imagem)
     thread_segmentar.daemon
     thread_segmentar.start()
-    # Esperar finalização da thread
+    # Espera thread terminar
     thread_segmentar.join()
     photo_image = CTkImage(imagem_segmentada, size = (w_img, h_img))
     video_widget.configure(image=photo_image)
-
     # Repetição do mesmo processo após 10 milisegundos
     video_widget.after(10, Open_Camera)
 
@@ -68,9 +72,9 @@ def Imagem_Video(e):
     video_widget.configure(image=photo_image)
 
 
-    thread_res_cam = Thread(target=redefinir_res_cam)
-    thread_res_cam.daemon
-    thread_res_cam.start()
+    #thread_res_cam = Thread(target=redefinir_res_cam)
+    #thread_res_cam.daemon
+    #thread_res_cam.start()
 
 def CriacaoGrafico(queueTempo, queueDados):
 
@@ -167,13 +171,16 @@ def segmentar_imagem():
     global imagem_segmentada
 
     # Captura do vídeo frame por frame
-    _, frame = vid.read()
+    ### TIRAR COMENTÁRIO A SEGUIR QUANDO USANDO CAMERA
+    #_, frame = vid.read()
+    ### PARA VIDEO
+    success, frame = cap.read()
     # Conversão de imagem de uma espaço de cores para o outro
     opencv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
     # Captura do frame mais atual e transformação dela para imagem
     captured_image = Image.fromarray(opencv_image)
+    results = model(captured_image, verbose=False, max_det=10)
 
-    results = model(captured_image, verbose=False)
     imagem_segmentada_plot = results[0].plot()
     imagem_segmentada = Image.fromarray(cv2.cvtColor(imagem_segmentada_plot, cv2.COLOR_BGR2RGBA))
 
@@ -207,7 +214,8 @@ app.title("DashMedidor")
 ctypes.windll.shcore.SetProcessDpiAwareness(2)
 
 # Configurar a câmera para o seu uso
-vid = ConfigurarCamera()
+#vid = ConfigurarCamera()
+cap = ConfigurarCamera()
 
 app.columnconfigure(0, weight=1)
 app.rowconfigure(1, weight=1)
