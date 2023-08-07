@@ -16,8 +16,7 @@ from matplotlib.backends.backend_tkagg import (
 
 from threading import Thread
 from ultralytics import YOLO
-from database import dbCreate, dbAdd, dbShow
-
+from database import dbAdd, dbShow
 import ctypes
 plt.style.use("seaborn-v0_8-whitegrid")
 
@@ -87,7 +86,7 @@ def CriacaoGrafico(queueTempo, queueDados):
 
     LineGraph(numData, current_time, queueTempo, queueDados)
 
-    DataGraphImage = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'imagens/graphDiametro.png')), size=(400 * 0.7, 250 * 0.7))
+    DataGraphImage = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'imagens/graphDiametro.png')), size=(1300 * 0.7, 450 * 0.7))
     DataGraphLabel.configure(image=DataGraphImage)
 
     GaugeGraph(numData)
@@ -295,7 +294,7 @@ Open_Camera()
 #Inicializacao das variaveis dos dados
 queueTempo = deque([], maxlen = 15)
 queueDados = deque([], maxlen = 15)
-dbCreate()
+#dbCreate()
 
 #Chamada da função para atualzar as imagems dos graficos
 CriacaoGrafico(queueTempo, queueDados)
