@@ -1,17 +1,18 @@
 import sqlite3
+import random
+from datetime import datetime
 
 # Definindo conexao
 connection =  sqlite3.connect('diametro_cascao.db')
 
 cursor = connection.cursor()
 
-def dbCreate():
-    # Criando tabela do Cascao 
-    create_table = """CREATE TABLE IF NOT EXISTS cascao(
-    diametro FLOAT,
-    horario TIME)"""
+# Criando tabela do Cascao 
+create_table = """CREATE TABLE IF NOT EXISTS cascao(
+diametro FLOAT,
+horario TIME)"""
 
-    cursor.execute(create_table)
+cursor.execute(create_table)
 
 #adicionando valores na tabela cascao
 def dbAdd(numData, current_time):
