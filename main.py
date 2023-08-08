@@ -184,8 +184,6 @@ def segmentar_imagem():
     imagem_segmentada = Image.fromarray(cv2.cvtColor(imagem_segmentada_plot, cv2.COLOR_BGR2RGBA))
 
 def redefinir_res_cam():
-    print("w", w_img)
-    print("h", h_img)
     vid.set(cv2.CAP_PROP_FRAME_WIDTH, w_img * 2)
     vid.set(cv2.CAP_PROP_FRAME_HEIGHT, h_img * 2)
 
