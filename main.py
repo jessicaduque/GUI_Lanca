@@ -98,7 +98,6 @@ def CriacaoGrafico(queueTempo, queueDados):
     AlertGraphLabel.after(1000, CriacaoGrafico, queueTempo, queueDados)
 
 def GaugeGraph(numData):
-    os.remove("imagens\gaugeDiametro.png")
     color = ["#ee3d55", "#ee3d55", "#fabd57" , "#fabd57", "#4dab6d", "#4dab6d", "#4dab6d", "#4dab6d", "#4dab6d"]
     #values = [-40, -20, 0, 20, 40, 60, 80, 100]
     #color = ["#4dab6d", "#72c66e",  "#c1da64", "#f6ee54", "#fabd57", "#f36d54", "#ee3d55"]
@@ -144,7 +143,6 @@ def GaugeGraph(numData):
     plt.close()
 
 def LineGraph(numData, current_time, queueTempo, queueDados):
-    os.remove("imagens\graphDiametro.png")
 
     queueDados.append(numData) 
     queueTempo.append(current_time)
@@ -163,6 +161,15 @@ def LineGraph(numData, current_time, queueTempo, queueDados):
 
     #linhaLineGraph.set_data(list(queueTempo), list(queueDados))
     plt.savefig("imagens\graphDiametro.png")
+
+    img = cv2.imread('imagens\graphDiametro.png')
+ 
+    # Cropping an image
+    cropped_image = img[17:307, 0:815]
+    cropped_image = cropped_image[0:290, 60:815]
+ 
+    # Save the cropped image
+    cv2.imwrite("imagens\graphDiametro.png", cropped_image)
     plt.close()
 
 ### THREADS
@@ -259,7 +266,7 @@ frameCentral.columnconfigure(1, weight=1)
 
 # Criação dos frames da parte de cima
 frameVideo = CTkFrame(frameCentral, fg_color="#a4a8ad", border_width=0, corner_radius=15)
-frameVideo.grid(row=0, column=0, padx=(20, 20), pady=(0, 10), sticky='nsew')
+frameVideo.grid(row=0, column=0, padx=(20, 20), pady=(10, 10), sticky='nsew')
 frameVideo.pack_propagate(False)
 frameVideo.bind('<Configure>', Imagem_Video)
 
