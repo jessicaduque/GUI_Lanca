@@ -228,57 +228,60 @@ app.rowconfigure(1, weight=1)
 
 ### FRAME HEADER DA TELA
 frameHeader = CTkFrame(app, height=100, fg_color='#a4a8ad', corner_radius=0, border_width=0)
-frameHeader.grid(row=0, column=0, sticky='nsew')
+frameHeader.grid(row=0, column=0, sticky='nsew', padx=0, pady=0)
 
-frameHeader.columnconfigure(0, weight=1)
-frameHeader.columnconfigure(1, weight=1)
-frameHeader.columnconfigure(2, weight=1)
+frameLogos = CTkFrame(frameHeader, fg_color='#a4a8ad', corner_radius=0, border_width=0)
+frameLogos.pack(fill=X, expand=True, padx=100, pady=0)
+
+frameLogos.columnconfigure(0, weight=1)
+frameLogos.columnconfigure(1, weight=1)
+frameLogos.columnconfigure(2, weight=1)
 
 # As imagens das 3 logos sendo encaixadas no header
-photo_image_ifes_logo = CTkImage(Image.open('./imagens/IFES_horizontal_logo.png'), size=(215.46, 86.184))
-image_ifes_logo_label = CTkLabel(frameHeader, image=photo_image_ifes_logo, text="")
-image_ifes_logo_label.grid(row=0, column=0, padx=(20, 0))
+photo_image_ifes_logo = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'imagens/IFES_horizontal_logo.png')), size=(215.46, 86.184))
+image_ifes_logo_label = CTkLabel(frameLogos, image=photo_image_ifes_logo, text="")
+image_ifes_logo_label.grid(row=0, column=0)
 
-photo_image_arcelor_logo = CTkImage(Image.open('./imagens/ArcelorMittal_logo.png'), size=(168, 69.12))
-image_arcelor_logo_label = CTkLabel(frameHeader, image=photo_image_arcelor_logo, text="")
+photo_image_arcelor_logo = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'imagens/ArcelorMittal_logo.png')), size=(168, 69.12))
+image_arcelor_logo_label = CTkLabel(frameLogos, image=photo_image_arcelor_logo, text="")
 image_arcelor_logo_label.grid(row=0, column=1)
 
-photo_image_oficinas_logo = CTkImage(Image.open('./imagens/Oficinas4-0_logo.png'), size=(163.84, 33.6))
-image_oficinas_logo_label = CTkLabel(frameHeader, image=photo_image_oficinas_logo, text="")
-image_oficinas_logo_label.grid(row=0, column=2, padx=(0, 20))
+photo_image_oficinas_logo = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'imagens/Oficinas4-0_logo.png')), size=(163.84, 33.6))
+image_oficinas_logo_label = CTkLabel(frameLogos, image=photo_image_oficinas_logo, text="")
+image_oficinas_logo_label.grid(row=0, column=2)
 
 
 ### FRAME PRINCIPAL DA TELA
 framePrincipal = CTkFrame(app, fg_color='#4f7d71', corner_radius=0, border_width=0)
-framePrincipal.grid(row=1, column=0, sticky='nsew')
+framePrincipal.grid(row=1, column=0, sticky='nsew', padx=0, pady=0)
 
-framePrincipal.rowconfigure(0, weight=1)
-framePrincipal.rowconfigure(1, weight=1)
-framePrincipal.columnconfigure(0, weight=2)
-framePrincipal.columnconfigure(1, weight=1)
+# Frame com widgets do frame principal da tela
+frameCentral = CTkFrame(framePrincipal, fg_color='#4f7d71')
+frameCentral.pack(fill=BOTH, expand=True, padx=10, pady=10)
+
+frameCentral.rowconfigure(0, weight=1)
+frameCentral.rowconfigure(1, weight=1)
+frameCentral.columnconfigure(0, weight=2)
+frameCentral.columnconfigure(1, weight=1)
 
 # Criação dos frames da parte de cima
-frameVideo = CTkFrame(framePrincipal, fg_color="#a4a8ad", border_width=0, corner_radius=15)
-frameVideo.grid(row=0, column=0, padx=(30, 20), pady=(10, 10), sticky='nsew')
+frameVideo = CTkFrame(frameCentral, fg_color="#a4a8ad", border_width=0, corner_radius=15)
+frameVideo.grid(row=0, column=0, padx=(20, 20), pady=(10, 10), sticky='nsew')
 frameVideo.pack_propagate(False)
 frameVideo.bind('<Configure>', Imagem_Video)
 
-frameAlertGraph = CTkFrame(framePrincipal, fg_color="#a4a8ad", border_width=2, corner_radius=15)
-frameAlertGraph.grid(row=0, column=1, padx=(0, 30), pady=(10, 10), sticky='nsew')
+frameAlertGraph = CTkFrame(frameCentral, fg_color="#a4a8ad", border_width=2, corner_radius=15)
+frameAlertGraph.grid(row=0, column=1, padx=(0, 20), pady=(10, 10), sticky='nsew')
 
-AlertGraphImage = CTkImage(Image.open('./imagens/gaugeDiametro.png'),
-                          size=(400 * 0.7, 250 * 0.7)
-                           )
+AlertGraphImage = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'imagens/gaugeDiametro.png')), size=(400 * 0.7, 250 * 0.7))
 AlertGraphLabel = CTkLabel(frameAlertGraph, image=AlertGraphImage, text="")
 AlertGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
 #Criação dos frames da parte de baixo
-frameDataGraph = CTkFrame(framePrincipal, fg_color="#a4a8ad", border_width=2, corner_radius=15)
-frameDataGraph.grid(row=1, columnspan=2, padx=30, pady=(0, 10), sticky='nsew')
+frameDataGraph = CTkFrame(frameCentral, fg_color="#a4a8ad", border_width=2, corner_radius=15)
+frameDataGraph.grid(row=1, columnspan=2, padx=(20, 20), pady=(10, 10), sticky='nsew')
 
-DataGraphImage = CTkImage(Image.open('./imagens/graphDiametro.png'),
-                         size=(400 * 0.7, 250 * 0.7)
-                         )
+DataGraphImage = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'imagens/graphDiametro.png')), size=(400 * 0.7, 250 * 0.7))
 DataGraphLabel = CTkLabel(frameDataGraph, image=DataGraphImage, text="")
 DataGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
