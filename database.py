@@ -16,7 +16,8 @@ cursor.execute(create_table)
 
 #adicionando valores na tabela cascao
 def dbAdd(numData, current_time):
-    cursor.execute(f"INSERT INTO cascao (diametro, horario) VALUES({numData}, '{current_time}')")
+    cursor.execute(f"INSERT INTO cascao (diametro, horario) VALUES({numData}, '{current_time}')")   
+    connection.commit()
 
 '''
 for i in range(1, 6):

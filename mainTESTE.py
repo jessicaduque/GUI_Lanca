@@ -20,12 +20,93 @@ from database import dbAdd, dbShow
 import ctypes
 plt.style.use("seaborn-v0_8-whitegrid")
 
-# Chamando a janela do aplicativo
+
 class App(CTk):
-    def _init_(self, *args, **kwargs):
-        super()._init_(*args, **kwargs)
-        self.main_frame = CTkFrame(self)
-        self.main_frame.pack(expand=True, fill=BOTH)
+    def __init__(self):
+        super().__init__()
+
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+
+        x = (screen_width - APP_WIDTH ) / 2
+        y = (screen_height - APP_HEIGHT ) / 2
+
+        ##### Configure window
+        self.title("DashMedidor")
+        self.geometry(f"{APP_WIDTH}x{APP_HEIGHT}+{int(x)}+{int(y)}")
+        self.minsize(1000, 720)
+        self.resizable(1, 1)
+
+        ##### Interface creation
+
+        ### Configure grid layout 
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(1, weight=1)
+
+        ### Configure header
+        self.frameHeader = CTkFrame(self, height=100, fg_color='#a4a8ad', corner_radius=0)
+        self.frameHeader.grid(row=0, column=0, sticky='nsew')
+
+        self.frameHeader.columnconfigure(0, weight=1)
+        self.frameHeader.columnconfigure(1, weight=1)
+        self.frameHeader.columnconfigure(2, weight=1)
+
+        ### Configure logo images into header
+        # Defining image variables and sizes
+        photo_image_ifes_logo = CTkImage(light_image=Image.open('./imagens/IFES_horizontal_logo.png'),
+                                        size=(215.46, 86.184)
+                                        )
+        photo_image_arcelor_logo = CTkImage(light_image=Image.open('./imagens/ArcelorMittal_logo.png'),
+                                           size=(168, 69.12)
+                                           )
+        photo_image_oficinas_logo = CTkImage(light_image=Image.open('./imagens/Oficinas4-0_logo.png'),
+                                            size=(163.84, 33.6)
+                                             )
+
+        # Configuring images
+        self.image_ifes_logo_label = CTkLabel(self.frameHeader, image=photo_image_ifes_logo, text="")
+        self.image_ifes_logo_label.grid(row=0, column=0, padx=(20, 0))
+        
+        self.image_arcelor_logo_label = CTkLabel(self.frameHeader, image=photo_image_arcelor_logo, text="")
+        self.image_arcelor_logo_label.grid(row=0, column=1)
+        
+        self.image_oficinas_logo_label = CTkLabel(self.frameHeader, image=photo_image_oficinas_logo, text="")
+        self.image_oficinas_logo_label.grid(row=0, column=2, padx=(0, 20))
+
+        ### Configure main frame
+        self.framePrincipal = CTkFrame(self, fg_color='#4f7d71', corner_radius=0)
+        self.framePrincipal.grid(row=1, column=0, sticky='nsew')
+
+        self.framePrincipal.rowconfigure(0, weight=1)
+        self.framePrincipal.rowconfigure(1, weight=1)
+        self.framePrincipal.columnconfigure(0, weight=1)
+        self.framePrincipal.columnconfigure(1, weight=0)
+
+        # Configure top widgets
+        self.frameVideo = CTkFrame(self.framePrincipal, fg_color="#a4a8ad", corner_radius=15)
+        self.frameVideo.grid(row=0, column=0, padx=(30, 10), pady=(10, 10), sticky='nsew')
+        
+        self.video_widget = CTkLabel(self.frameVideo, text="")
+        self.video_widget.pack(padx=10, pady=10)
+
+        self.frameAlertGraph = CTkFrame(self.framePrincipal, fg_color="#a4a8ad", corner_radius=15)
+        self.frameAlertGraph.grid(row=0, column=1, padx=(0, 30), pady=(10, 10), sticky='nsew')
+
+        AlertGraphImage = CTkImage(Image.open('./imagens/gaugeDiametro.png'),
+                                  size=(400 * 0.7, 250 * 0.7)
+                                   )
+        self.AlertGraphLabel = CTkLabel(self.frameAlertGraph, image=AlertGraphImage, text="")
+        self.AlertGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
+
+        # Configure bottom widgets
+        self.frameDataGraph = CTkFrame(self.framePrincipal, fg_color="#a4a8ad", corner_radius=15)
+        self.frameDataGraph.grid(row=1, columnspan=2, padx=30, pady=(0, 10), sticky='nsew')
+
+        DataGraphImage = CTkImage(Image.open('./imagens/graphDiametro.png'),
+                                 size=(400 * 0.7, 250 * 0.7)
+                                 )
+        self.DataGraphLabel = CTkLabel(self.frameDataGraph, image=DataGraphImage, text="")
+        self.DataGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
 # Função que configura a câmera a ser usada
 def ConfigurarCamera():
@@ -194,114 +275,41 @@ def redefinir_res_cam():
     vid.set(cv2.CAP_PROP_FRAME_WIDTH, w_img * 2)
     vid.set(cv2.CAP_PROP_FRAME_HEIGHT, h_img * 2)
 
-# Variáveis
-# Definição do DPI original utilizado
-ORIGINAL_DPI = 96.09458128078816
-APP_WIDTH = 1000
-APP_HEIGHT = 720
-w_img, h_img = 30, 30
-model = YOLO("yolov8m-seg.pt")
-
-### Inicialização do app
-app = App()
-
-screen_width = app.winfo_screenwidth()
-screen_height = app.winfo_screenheight()
-
-x = (screen_width - APP_WIDTH ) / 2
-y = (screen_height - APP_HEIGHT ) / 2
-
-app.geometry(f"{APP_WIDTH}x{APP_HEIGHT}+{int(x)}+{int(y)}")
-
-app.minsize(1000, 720)
-app.resizable(1, 1)
-app.title("DashMedidor")
-
-ctypes.windll.shcore.SetProcessDpiAwareness(2)
-
-# Configurar a câmera para o seu uso
-vid = ConfigurarCamera()
-#cap = ConfigurarCamera()
-
-app.columnconfigure(0, weight=1)
-app.rowconfigure(1, weight=1)
-
-### FRAME HEADER DA TELA
-frameHeader = CTkFrame(app, height=100, fg_color='#a4a8ad', corner_radius=0, border_width=0)
-frameHeader.grid(row=0, column=0, sticky='nsew')
-
-frameHeader.columnconfigure(0, weight=1)
-frameHeader.columnconfigure(1, weight=1)
-frameHeader.columnconfigure(2, weight=1)
-
-# As imagens das 3 logos sendo encaixadas no header
-photo_image_ifes_logo = CTkImage(Image.open('./imagens/IFES_horizontal_logo.png'), size=(215.46, 86.184))
-image_ifes_logo_label = CTkLabel(frameHeader, image=photo_image_ifes_logo, text="")
-image_ifes_logo_label.grid(row=0, column=0, padx=(20, 0))
-
-photo_image_arcelor_logo = CTkImage(Image.open('./imagens/ArcelorMittal_logo.png'), size=(168, 69.12))
-image_arcelor_logo_label = CTkLabel(frameHeader, image=photo_image_arcelor_logo, text="")
-image_arcelor_logo_label.grid(row=0, column=1)
-
-photo_image_oficinas_logo = CTkImage(Image.open('./imagens/Oficinas4-0_logo.png'), size=(163.84, 33.6))
-image_oficinas_logo_label = CTkLabel(frameHeader, image=photo_image_oficinas_logo, text="")
-image_oficinas_logo_label.grid(row=0, column=2, padx=(0, 20))
 
 
-### FRAME PRINCIPAL DA TELA
-framePrincipal = CTkFrame(app, fg_color='#4f7d71', corner_radius=0, border_width=0)
-framePrincipal.grid(row=1, column=0, sticky='nsew')
+if __name__ == "__main__":
+    ### Variables
+    # Defining original DPI being used
+    ORIGINAL_DPI = 96.09458128078816
+    APP_WIDTH = 1000
+    APP_HEIGHT = 720
+    w_img, h_img = 30, 30
+    model = YOLO("yolov8m-seg.pt")
 
-framePrincipal.rowconfigure(0, weight=1)
-framePrincipal.rowconfigure(1, weight=1)
-framePrincipal.columnconfigure(0, weight=2)
-framePrincipal.columnconfigure(1, weight=1)
-
-# Criação dos frames da parte de cima
-frameVideo = CTkFrame(framePrincipal, fg_color="#a4a8ad", border_width=0, corner_radius=15)
-frameVideo.grid(row=0, column=0, padx=(30, 20), pady=(10, 10), sticky='nsew')
-frameVideo.pack_propagate(False)
-frameVideo.bind('<Configure>', Imagem_Video)
-
-frameAlertGraph = CTkFrame(framePrincipal, fg_color="#a4a8ad", border_width=2, corner_radius=15)
-frameAlertGraph.grid(row=0, column=1, padx=(0, 30), pady=(10, 10), sticky='nsew')
-
-AlertGraphImage = CTkImage(Image.open('./imagens/gaugeDiametro.png'),
-                          size=(400 * 0.7, 250 * 0.7)
-                           )
-AlertGraphLabel = CTkLabel(frameAlertGraph, image=AlertGraphImage, text="")
-AlertGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
-
-#Criação dos frames da parte de baixo
-frameDataGraph = CTkFrame(framePrincipal, fg_color="#a4a8ad", border_width=2, corner_radius=15)
-frameDataGraph.grid(row=1, columnspan=2, padx=30, pady=(0, 10), sticky='nsew')
-
-DataGraphImage = CTkImage(Image.open('./imagens/graphDiametro.png'),
-                         size=(400 * 0.7, 250 * 0.7)
-                         )
-DataGraphLabel = CTkLabel(frameDataGraph, image=DataGraphImage, text="")
-DataGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
+    app = App()
+    ctypes.windll.shcore.SetProcessDpiAwareness(2)
+    #process2 = subprocess.Popen(['python', 'dashBt.py'], stdout=None, stderr=None)
+    #process = subprocess.Popen(['python', 'saveimage.py'], stdout=None, stderr=None)
+    #process3 = subprocess.Popen(['python', 'db.py'], stdout=None, stderr=None)
+    app.mainloop()
 
 
-# Criar o label do texto do vídeo e colocar em cima dele
-#video_text_label = CTkLabel(frameVideo, text="Imagem Segmentada", font=("Arial", 23))
-#video_text_label.grid(row=0, pady=3, padx=20, sticky='W')
-#video_text_label.place(relx=.5, rely=.5, anchor="w", x=10)
 
-# Criar o label do vídeo e mostrar no app
-video_widget = CTkLabel(frameVideo, text="")
-video_widget.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
-#Função para abrir ativar câmera e encaixar ela no app
-Open_Camera()
 
-#Inicializacao das variaveis dos dados
-queueTempo = deque([], maxlen = 15)
-queueDados = deque([], maxlen = 15)
+
+
+############### Configurar a câmera para o seu uso
+#vid = ConfigurarCamera()
+###cap = ConfigurarCamera()
+
+############### Função para abrir ativar câmera e encaixar ela no app
+#Open_Camera()
+
+############### Inicializacao das variaveis dos dados
+#queueTempo = deque([], maxlen = 15)
+#queueDados = deque([], maxlen = 15)
 #dbCreate()
 
-#Chamada da função para atualzar as imagems dos graficos
-CriacaoGrafico(queueTempo, queueDados)
-
-# Função para rodar o app
-app.mainloop()
+################ Chamada da função para atualzar as imagems dos graficos
+#CriacaoGrafico(queueTempo, queueDados)
