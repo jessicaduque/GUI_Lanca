@@ -108,6 +108,94 @@ class App(CTk):
         self.DataGraphLabel = CTkLabel(self.frameDataGraph, image=DataGraphImage, text="")
         self.DataGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
+        # Rodar métodos continuamente de atualização de imagem, segmentação e dos plots de gráficos
+        self.update_image()
+        #self.update_plots()
+
+    # PARA MEXER AINDA
+    def update_image(self):
+        try:
+            # Load pickled PIL image
+            #with open('./assets/images/framePickle1.pkl', 'rb') as f:
+            f = open('./assets/images/framePickle1.pkl', 'rb')
+            img_data = pickle.load(f)
+            f.close()
+            del f
+            # Convert RGB image to BGR image
+            #img_data = cv2.cvtColor(img_data, cv2.COLOR_RGB2BGR)
+            # Convert numpy array to PIL image
+            frame = Image.fromarray(img_data)
+            #img_data = None
+            del img_data
+            self.d_image = customtkinter.CTkImage(light_image=frame, size=(960, 540))
+            #self.detec_image = customtkinter.CTkLabel(master=self.d_image_frame, image=self.d_image, text="")
+            self.detec_image.configure(image=self.d_image)
+            self.detec_image.grid(row=0, column=0, sticky="nsew")
+
+        except Exception as e:
+            print(e)
+        self.after(15, self.update_image)
+
+    def update_plots(self):
+        try:
+            # Load pickled data
+            with open('./assets/dados/dadosPickle1.pkl', 'rb') as f:
+                dados = pickle.load(f)
+            distancia = dados[0]
+            dados = dados[1:]
+            tam_med = np.mean(dados)
+            self.deque_med.append(tam_med)
+            self.deque_time.append(datetime.now().strftime("%H:%M:%S"))
+            # Clear the plot
+            self.ax1.clear()
+            self.ax2.clear()
+            # Plot the data
+            self.ax1.plot(self.deque_time, self.deque_med)
+            self.ax1.set_ylim(0, 1000)
+            self.ax1.tick_params(axis='x', rotation=45, labelsize=6)
+            # Calcula a média e o desvio padrão dos dados
+            mu, std = norm.fit(dados)
+            x = np.linspace(4, 24, 100)
+            p = norm.pdf(x, mu, std)
+            # Define os parâmetros do histograma
+            bins = 10
+            range = (0, 1000)
+            density = False
+            color = 'blue'
+            alpha = 1
+            self.ax2.hist(dados, bins=bins, range=range, density=density, color=color, alpha=alpha)
+            #self.ax2.hist(dados, bins=bins, range=range, density=True, color='red', alpha=0.5)
+            #self.ax2.plot(x, p*dados.size, 'k', linewidth=2)
+            self.ax2.plot(x, p, 'k', linewidth=2)
+            self.ax2.set_ylim(0, 15)
+            # Update the plot
+            self.canvas1.draw()
+            self.canvas2.draw()
+            # Update label text
+            self.tamMed.configure(text='Tamanho médio: '+ str(round(tam_med,1))+'mm')
+            self.dist.configure(text='Distância: '+ str(round(distancia, 2))+'m')
+        except Exception as e:
+            print(e)
+        # Schedule the next update
+        self.after(200, self.update_plots)
+
+
+if __name__ == "__main__":
+    ### Variables
+    # Defining original DPI being used
+    ORIGINAL_DPI = 96.09458128078816
+    APP_WIDTH = 1000
+    APP_HEIGHT = 720
+    w_img, h_img = 30, 30
+    #model = YOLO("yolov8m-seg.pt")
+
+    app = App()
+    ctypes.windll.shcore.SetProcessDpiAwareness(2)
+    #process2 = subprocess.Popen(['python', 'dashBt.py'], stdout=None, stderr=None)
+    processSalvarImagem = subprocess.Popen(['python', 'saveimage.py'], stdout=None, stderr=None)
+    #process3 = subprocess.Popen(['python', 'db.py'], stdout=None, stderr=None)
+    app.mainloop()
+
 # Função que configura a câmera a ser usada
 def ConfigurarCamera():
     # Define a video capture object
@@ -274,28 +362,6 @@ def segmentar_imagem():
 def redefinir_res_cam():
     vid.set(cv2.CAP_PROP_FRAME_WIDTH, w_img * 2)
     vid.set(cv2.CAP_PROP_FRAME_HEIGHT, h_img * 2)
-
-
-
-if __name__ == "__main__":
-    ### Variables
-    # Defining original DPI being used
-    ORIGINAL_DPI = 96.09458128078816
-    APP_WIDTH = 1000
-    APP_HEIGHT = 720
-    w_img, h_img = 30, 30
-    model = YOLO("yolov8m-seg.pt")
-
-    app = App()
-    ctypes.windll.shcore.SetProcessDpiAwareness(2)
-    #process2 = subprocess.Popen(['python', 'dashBt.py'], stdout=None, stderr=None)
-    #process = subprocess.Popen(['python', 'saveimage.py'], stdout=None, stderr=None)
-    #process3 = subprocess.Popen(['python', 'db.py'], stdout=None, stderr=None)
-    app.mainloop()
-
-
-
-
 
 
 

@@ -187,6 +187,8 @@ def segmentar_imagem():
     captured_image = Image.fromarray(opencv_image)
     results = model(captured_image, verbose=False, max_det=10)
 
+    print(results)
+
     imagem_segmentada_plot = results[0].plot()
     imagem_segmentada = Image.fromarray(cv2.cvtColor(imagem_segmentada_plot, cv2.COLOR_BGR2RGBA))
 
