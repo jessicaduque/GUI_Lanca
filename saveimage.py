@@ -12,10 +12,10 @@ import platform
 import numpy as np
 import torch
 from ultralytics import YOLO
-from PIL import Image as im
+from PIL import Image
 from numpy import asarray
+import random
 
-from pypylon import pylon
 import cv2
 import time
 
@@ -38,7 +38,7 @@ def storeData(data, path):
     # Its important to use binary mode 
     dbfile = open(path, 'wb') 
     # source, destination 
-    pickle.dump(db, dbfile)                   
+    pickle.dump(db, dbfile)         
     dbfile.close()
    
 #STORE OUTPUT DATA IN CSV FILE.
@@ -76,9 +76,7 @@ def ImageProcess():
     model.iou = 0.65  # NMS IoU threshold
     model.agnostic = True  # NMS class-agnostic
     model.max_det = 10  # maximum number of detections per image
-    model.nosave = True
-    model.boxes = True
-    model.verbose = False
+    
 
     # Configure camera
     # Define a video capture object
@@ -99,7 +97,7 @@ def ImageProcess():
             opencv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
             # Captura do frame mais atual e transformação dela para imagem
             captured_image = Image.fromarray(opencv_image)
-            results = model(captured_image)
+            results = model(captured_image, verbose=False)
 
             imagem_segmentada_plot = results[0].plot()
             imagem_segmentada = Image.fromarray(cv2.cvtColor(imagem_segmentada_plot, cv2.COLOR_BGR2RGBA))
@@ -137,11 +135,15 @@ def ImageProcess():
             current_time = now.strftime("%H:%M:%S")
             queueTempo.append(current_time)
 
-            storeData(imagem_segmentada, './assets/images/framePickle1.pkl')
-            storeData(outputArray, './assets/dados/dadosPickle'+str(auxiliar)+'.pkl')
+            outputArray = np.array([])
+            outputArray = np.append(outputArray, [queueTempo, queueDados])
+
+            storeData(img_array, './dados_pickle/framePickle1.pkl')
+            storeData(outputArray, './dados_pickle/dadosPickle'+str(auxiliar)+'.pkl')
         except Exception as e:
             print(e)
             time.sleep(0.015)
 
 if __name__ == '__main__':
+    print("SUBPROCESS RODANDO")
     ImageProcess()

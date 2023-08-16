@@ -5,6 +5,8 @@ import cv2
 from PIL import Image, ImageTk
 
 import random
+import subprocess
+import _pickle as pickle
 from datetime import datetime, timedelta
 
 import matplotlib.pyplot as plt
@@ -86,7 +88,8 @@ class App(CTk):
         self.frameVideo = CTkFrame(self.framePrincipal, fg_color="#a4a8ad", corner_radius=15)
         self.frameVideo.grid(row=0, column=0, padx=(30, 10), pady=(10, 10), sticky='nsew')
         
-        self.video_widget = CTkLabel(self.frameVideo, text="")
+        imagem_video = CTkImage(light_image=Image.open('./imagens/Oficinas4-0_logo.png'))
+        self.video_widget = CTkLabel(self.frameVideo, image=imagem_video, text="")
         self.video_widget.pack(padx=10, pady=10)
 
         self.frameAlertGraph = CTkFrame(self.framePrincipal, fg_color="#a4a8ad", corner_radius=15)
@@ -116,30 +119,28 @@ class App(CTk):
     def update_image(self):
         try:
             # Load pickled PIL image
-            #with open('./assets/images/framePickle1.pkl', 'rb') as f:
-            f = open('./assets/images/framePickle1.pkl', 'rb')
+            f = open('./dados_pickle/framePickle1.pkl', 'rb')
             img_data = pickle.load(f)
             f.close()
             del f
             # Convert RGB image to BGR image
-            #img_data = cv2.cvtColor(img_data, cv2.COLOR_RGB2BGR)
+            img_data = cv2.cvtColor(img_data, cv2.COLOR_RGB2BGR)
             # Convert numpy array to PIL image
             frame = Image.fromarray(img_data)
             #img_data = None
             del img_data
-            self.d_image = customtkinter.CTkImage(light_image=frame, size=(960, 540))
-            #self.detec_image = customtkinter.CTkLabel(master=self.d_image_frame, image=self.d_image, text="")
-            self.detec_image.configure(image=self.d_image)
-            self.detec_image.grid(row=0, column=0, sticky="nsew")
+            self.imagem_video = CTkImage(light_image=frame, size=(960, 540))
+            self.video_widget.configure(image=self.imagem_video)
+            self.video_widget.pack(padx=10, pady=10)
 
         except Exception as e:
             print(e)
-        self.after(15, self.update_image)
+        self.after(30, self.update_image)
 
     def update_plots(self):
         try:
             # Load pickled data
-            with open('./assets/dados/dadosPickle1.pkl', 'rb') as f:
+            with open('./dados_pickle/dados/dadosPickle1.pkl', 'rb') as f:
                 dados = pickle.load(f)
             distancia = dados[0]
             dados = dados[1:]
@@ -187,8 +188,8 @@ if __name__ == "__main__":
     APP_WIDTH = 1000
     APP_HEIGHT = 720
     w_img, h_img = 30, 30
-    #model = YOLO("yolov8m-seg.pt")
 
+    
     app = App()
     ctypes.windll.shcore.SetProcessDpiAwareness(2)
     #process2 = subprocess.Popen(['python', 'dashBt.py'], stdout=None, stderr=None)
