@@ -145,5 +145,4 @@ def ImageProcess():
             time.sleep(0.015)
 
 if __name__ == '__main__':
-    print("SUBPROCESS RODANDO")
     ImageProcess()

@@ -179,7 +179,13 @@ class App(CTk):
             print(e)
         # Schedule the next update
         self.after(200, self.update_plots)
-
+    
+    #def stop_process(self):
+    #    if self.process is not None and self.process.poll() is None:
+    #        self.process.terminate()
+    #        # kill process in a couple of seconds if it is not terminated
+    #        self.after(2000, kill_process, self.process)
+    #    self.process = None
 
 if __name__ == "__main__":
     ### Variables
@@ -189,8 +195,12 @@ if __name__ == "__main__":
     APP_HEIGHT = 720
     w_img, h_img = 30, 30
 
-    
+    #def shutdown():
+    #    app.stop_process()
+    #    app.destroy()
+
     app = App()
+    #app.protocol("WM_DELETE_WINDOW", shutdown)
     ctypes.windll.shcore.SetProcessDpiAwareness(2)
     #process2 = subprocess.Popen(['python', 'dashBt.py'], stdout=None, stderr=None)
     processSalvarImagem = subprocess.Popen(['python', 'saveimage.py'], stdout=None, stderr=None)
@@ -247,34 +257,41 @@ def Imagem_Video(e):
 
 def CriacaoGrafico(queueTempo, queueDados):
 
+    # Generating test values for the diameter and current time
     numData = random.randrange(40, 80)
     now = datetime.now()
     current_time = now.strftime("%H:%M:%S")
 
+    # Manipulating the database
     dbAdd(numData, current_time)
     #dbShow()
 
+    # Calling the Line graph function to add onto the queues and generate the line graph image
     LineGraph(numData, current_time, queueTempo, queueDados)
 
-    DataGraphImage = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'imagens/graphDiametro.png')), size=(1300 * 0.7, 450 * 0.7))
+    # Updating the line graph label every loop
+    DataGraphImage = CTkImage(Image.open('./imagens/graphDiametro.png'), size=(1300 * 0.7, 450 * 0.7))
     DataGraphLabel.configure(image=DataGraphImage)
 
+    # Calling the gauge graph function to generate the gauge graph image
     GaugeGraph(numData)
 
-    AlertGraphImage = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'imagens/gaugeDiametro.png')), size=(400 * 0.7, 250 * 0.7))
+    # Updating the gauge graph label every loop
+    AlertGraphImage = CTkImage(Image.open('./imagens/gaugeDiametro.png'), size=(400 * 0.7, 250 * 0.7))
     AlertGraphLabel.configure(image=AlertGraphImage)
 
     # Chamando a função recursiva de segundo em segundo para rodar a função novamente e continuar atualizando o gráfico
     AlertGraphLabel.after(1000, CriacaoGrafico, queueTempo, queueDados)
 
 def GaugeGraph(numData):
+
+    # Colors for each of the zones in the graph
     color = ["#ee3d55", "#ee3d55", "#fabd57" , "#fabd57", "#4dab6d", "#4dab6d", "#4dab6d", "#4dab6d", "#4dab6d"]
-    #values = [-40, -20, 0, 20, 40, 60, 80, 100]
-    #color = ["#4dab6d", "#72c66e",  "#c1da64", "#f6ee54", "#fabd57", "#f36d54", "#ee3d55"]
+
+    # Values displayed around the gauge graph from highest to lowest
     values = [80, 75, 70, 65, 60, 55, 50, 45, 40]
 
-    colorLevel = ""
-
+    # ALtering the color of the arrow pointer text depending on the diameter displayed
     if numData < 60:
         colorLevel = "#4dab6d"
     elif numData >= 70:
@@ -282,38 +299,55 @@ def GaugeGraph(numData):
     else:
         colorLevel = "#fabd57"
 
+    # Calculating the angle of the arrow pointer to accurately display the value on the graph
     xvalue = 3.465 - ((numData - 35) * 0.077)
 
+    # Setting plot size
     fig = plt.figure(figsize=(4, 4))
 
+    # layout of the plot
     axGauge = fig.add_subplot(projection="polar")
     axGauge.bar(x = [0, 0.385, 0.77, 1.155, 1.54, 1.925, 2.31, 2.695], width=0.42, height=0.5, bottom=2, 
           color=color, align="edge")
 
+    # Positioning the values in the graph
     for loc, val in zip([0, 0.385, 0.77, 1.155, 1.54, 1.925, 2.31, 2.695, 3.08, 3,465], values):
-        plt.annotate(val, xy=(loc, 2.525), ha="right" if val<=55 else "left")
 
+        # Aligning values depending on their angle
+        if val <= 55:
+            align = "right"
+        elif val == 60:
+            align = "center"
+        else:
+            align = "left"
+
+        plt.annotate(val, xy=(loc, 2.525), fontsize=15,  ha=f"{align}")
+
+    # Hiding the polar projection in the background
     axGauge.set_axis_off()
 
-    linhaGaugeGraph = axGauge.annotate(f"{numData}", xytext=(0,0), xy=(xvalue,2.0),
+    # Creating the arrow pointer
+    axGauge.annotate(f"{numData}", xytext=(0,0), xy=(xvalue,2.0),
                  arrowprops=dict(arrowstyle="wedge, tail_width= 0.5", color="black", shrinkA=0), 
                  bbox = dict(boxstyle="circle", facecolor="black", linewidth=2,),
                  fontsize=25, color =f"{colorLevel}", ha = "center"
                 )
 
+    # Saving the plot as an image
     plt.savefig("imagens\gaugeDiametro.png")
-
+    # Getting the saved image into a variable to crop
     img = cv2.imread('imagens\gaugeDiametro.png')
- 
-    # Cropping an image
+    # Cropping the image
     cropped_image = img[0:250, 0:400]
- 
-    # Save the cropped image
+    # Saving the cropped image
     cv2.imwrite("imagens\gaugeDiametro.png", cropped_image)
+
+    # Closing the plot to avoid conflict
     plt.close()
 
 def LineGraph(numData, current_time, queueTempo, queueDados):
 
+    # Adding the new data to the queues every loop
     queueDados.append(numData) 
     queueTempo.append(current_time)
 
@@ -323,23 +357,26 @@ def LineGraph(numData, current_time, queueTempo, queueDados):
     ax = figLineGraph.add_subplot()
     figLineGraph.autofmt_xdate()
 
+    # Making the plot with the data and setting the vertical(diameter) limit on the graph
     ax.plot(list(queueTempo), list(queueDados))
     ax.set_ylim(min(list(queueDados)) - 2, max(list(queueDados)) + 2)
-    ax.set_xlim(list(queueTempo)[0], list(queueTempo)[-1])
     ax.set_xlabel("Horas")
     ax.set_ylabel("Diâmetro [mm]")
 
-    #linhaLineGraph.set_data(list(queueTempo), list(queueDados))
-    plt.savefig("imagens\graphDiametro.png")
+    # Setting general fontsyle for pyplot
+    plt.rcParams['font.family'] = 'Eras Medium ITC'
 
+    # Saving the plot as an image
+    plt.savefig("imagens\graphDiametro.png")
+    # Getting the saved image into a variable to crop
     img = cv2.imread('imagens\graphDiametro.png')
- 
-    # Cropping an image
+    # Cropping the image
     cropped_image = img[17:307, 0:815]
     cropped_image = cropped_image[0:290, 60:815]
- 
-    # Save the cropped image
+    # Saving the cropped image
     cv2.imwrite("imagens\graphDiametro.png", cropped_image)
+
+    # closing the plot to avoid conflict
     plt.close()
 
 ### THREADS
@@ -363,7 +400,6 @@ def segmentar_imagem():
 def redefinir_res_cam():
     vid.set(cv2.CAP_PROP_FRAME_WIDTH, w_img * 2)
     vid.set(cv2.CAP_PROP_FRAME_HEIGHT, h_img * 2)
-
 
 
 ############### Configurar a câmera para o seu uso
