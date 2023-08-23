@@ -77,34 +77,41 @@ def Imagem_Video(e):
 
 def CriacaoGrafico(queueTempo, queueDados):
 
+    # Generating test values for the diameter and current time
     numData = random.randrange(40, 80)
     now = datetime.now()
     current_time = now.strftime("%H:%M:%S")
 
+    # Manipulating the database
     dbAdd(numData, current_time)
     #dbShow()
 
+    # Calling the Line graph function to add onto the queues and generate the line graph image
     LineGraph(numData, current_time, queueTempo, queueDados)
 
-    DataGraphImage = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'imagens/graphDiametro.png')), size=(1300 * 0.7, 450 * 0.7))
-    DataGraphLabel.configure(image=DataGraphImage)
+    # Updating the line graph label every loop
+    LineGraphImage = CTkImage(Image.open('./imagens/graphDiametro.png'), size=(1300 * 0.7, 450 * 0.7))
+    LineGraphLabel.configure(image=LineGraphImage)
 
+    # Calling the gauge graph function to generate the gauge graph image
     GaugeGraph(numData)
 
-    AlertGraphImage = CTkImage(Image.open(os.path.join(os.path.dirname(__file__), 'imagens/gaugeDiametro.png')), size=(400 * 0.7, 250 * 0.7))
-    AlertGraphLabel.configure(image=AlertGraphImage)
+    # Updating the gauge graph label every loop
+    GaugeGraphImage = CTkImage(Image.open('./imagens/gaugeDiametro.png'), size=(400 * 0.7, 250 * 0.7))
+    GaugeGraphLabel.configure(image=GaugeGraphImage)
 
     # Chamando a função recursiva de segundo em segundo para rodar a função novamente e continuar atualizando o gráfico
-    AlertGraphLabel.after(1000, CriacaoGrafico, queueTempo, queueDados)
+    GaugeGraphLabel.after(1000, CriacaoGrafico, queueTempo, queueDados)
 
 def GaugeGraph(numData):
+
+    # Colors for each of the zones in the graph
     color = ["#ee3d55", "#ee3d55", "#fabd57" , "#fabd57", "#4dab6d", "#4dab6d", "#4dab6d", "#4dab6d", "#4dab6d"]
-    #values = [-40, -20, 0, 20, 40, 60, 80, 100]
-    #color = ["#4dab6d", "#72c66e",  "#c1da64", "#f6ee54", "#fabd57", "#f36d54", "#ee3d55"]
+
+    # Values displayed around the gauge graph from highest to lowest
     values = [80, 75, 70, 65, 60, 55, 50, 45, 40]
 
-    colorLevel = ""
-
+    # ALtering the color of the arrow pointer text depending on the diameter displayed
     if numData < 60:
         colorLevel = "#4dab6d"
     elif numData >= 70:
@@ -112,38 +119,55 @@ def GaugeGraph(numData):
     else:
         colorLevel = "#fabd57"
 
+    # Calculating the angle of the arrow pointer to accurately display the value on the graph
     xvalue = 3.465 - ((numData - 35) * 0.077)
 
+    # Setting plot size
     fig = plt.figure(figsize=(4, 4))
 
+    # layout of the plot
     axGauge = fig.add_subplot(projection="polar")
     axGauge.bar(x = [0, 0.385, 0.77, 1.155, 1.54, 1.925, 2.31, 2.695], width=0.42, height=0.5, bottom=2, 
           color=color, align="edge")
 
+    # Positioning the values in the graph
     for loc, val in zip([0, 0.385, 0.77, 1.155, 1.54, 1.925, 2.31, 2.695, 3.08, 3,465], values):
-        plt.annotate(val, xy=(loc, 2.525), ha="right" if val<=55 else "left")
 
+        # Aligning values depending on their angle
+        if val <= 55:
+            align = "right"
+        elif val == 60:
+            align = "center"
+        else:
+            align = "left"
+
+        plt.annotate(val, xy=(loc, 2.525), fontsize=15,  ha=f"{align}")
+
+    # Hiding the polar projection in the background
     axGauge.set_axis_off()
 
-    linhaGaugeGraph = axGauge.annotate(f"{numData}", xytext=(0,0), xy=(xvalue,2.0),
+    # Creating the arrow pointer
+    axGauge.annotate(f"{numData}", xytext=(0,0), xy=(xvalue,2.0),
                  arrowprops=dict(arrowstyle="wedge, tail_width= 0.5", color="black", shrinkA=0), 
                  bbox = dict(boxstyle="circle", facecolor="black", linewidth=2,),
                  fontsize=25, color =f"{colorLevel}", ha = "center"
                 )
 
+    # Saving the plot as an image
     plt.savefig("imagens\gaugeDiametro.png")
-
+    # Getting the saved image into a variable to crop
     img = cv2.imread('imagens\gaugeDiametro.png')
- 
-    # Cropping an image
+    # Cropping the image
     cropped_image = img[0:250, 0:400]
- 
-    # Save the cropped image
+    # Saving the cropped image
     cv2.imwrite("imagens\gaugeDiametro.png", cropped_image)
+
+    # Closing the plot to avoid conflict
     plt.close()
 
 def LineGraph(numData, current_time, queueTempo, queueDados):
 
+    # Adding the new data to the queues every loop
     queueDados.append(numData) 
     queueTempo.append(current_time)
 
@@ -153,23 +177,26 @@ def LineGraph(numData, current_time, queueTempo, queueDados):
     ax = figLineGraph.add_subplot()
     figLineGraph.autofmt_xdate()
 
+    # Making the plot with the data and setting the vertical(diameter) limit on the graph
     ax.plot(list(queueTempo), list(queueDados))
     ax.set_ylim(min(list(queueDados)) - 2, max(list(queueDados)) + 2)
-    ax.set_xlim(list(queueTempo)[0], list(queueTempo)[-1])
     ax.set_xlabel("Horas")
     ax.set_ylabel("Diâmetro [mm]")
 
-    #linhaLineGraph.set_data(list(queueTempo), list(queueDados))
-    plt.savefig("imagens\graphDiametro.png")
+    # Setting general fontsyle for pyplot
+    plt.rcParams['font.family'] = 'Eras Medium ITC'
 
+    # Saving the plot as an image
+    plt.savefig("imagens\graphDiametro.png")
+    # Getting the saved image into a variable to crop
     img = cv2.imread('imagens\graphDiametro.png')
- 
-    # Cropping an image
+    # Cropping the image
     cropped_image = img[17:307, 0:815]
     cropped_image = cropped_image[0:290, 60:815]
- 
-    # Save the cropped image
+    # Saving the cropped image
     cv2.imwrite("imagens\graphDiametro.png", cropped_image)
+
+    # closing the plot to avoid conflict
     plt.close()
 
 ### THREADS
@@ -182,13 +209,15 @@ def segmentar_imagem():
     ### PARA VIDEO
     #success, frame = cap.read()
     # Conversão de imagem de uma espaço de cores para o outro
-    opencv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
+    opencv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     # Captura do frame mais atual e transformação dela para imagem
     captured_image = Image.fromarray(opencv_image)
     results = model(captured_image, verbose=False, max_det=10)
 
+    print(results)
+
     imagem_segmentada_plot = results[0].plot()
-    imagem_segmentada = Image.fromarray(cv2.cvtColor(imagem_segmentada_plot, cv2.COLOR_BGR2RGBA))
+    imagem_segmentada = Image.fromarray(cv2.cvtColor(imagem_segmentada_plot, cv2.COLOR_BGR2RGB))
 
 def redefinir_res_cam():
     vid.set(cv2.CAP_PROP_FRAME_WIDTH, w_img * 2)
@@ -239,9 +268,10 @@ photo_image_ifes_logo = CTkImage(Image.open('./imagens/IFES_horizontal_logo.png'
 image_ifes_logo_label = CTkLabel(frameHeader, image=photo_image_ifes_logo, text="")
 image_ifes_logo_label.grid(row=0, column=0, padx=(20, 0))
 
-photo_image_arcelor_logo = CTkImage(Image.open('./imagens/ArcelorMittal_logo.png'), size=(168, 69.12))
-image_arcelor_logo_label = CTkLabel(frameHeader, image=photo_image_arcelor_logo, text="")
-image_arcelor_logo_label.grid(row=0, column=1)
+#photo_image_empresa_logo = CTkImage(Image.open('./imagens/ArcelorMittal_logo.png'), size=(168, 69.12))
+photo_image_empresa_logo = CTkImage(Image.open('./imagens/LumarMetals_Logo.jpg'), size=(265, 56))
+image_empresa_logo_label = CTkLabel(frameHeader, image=photo_image_empresa_logo, text="")
+image_empresa_logo_label.grid(row=0, column=1)
 
 photo_image_oficinas_logo = CTkImage(Image.open('./imagens/Oficinas4-0_logo.png'), size=(163.84, 33.6))
 image_oficinas_logo_label = CTkLabel(frameHeader, image=photo_image_oficinas_logo, text="")
@@ -263,24 +293,24 @@ frameVideo.grid(row=0, column=0, padx=(30, 20), pady=(10, 10), sticky='nsew')
 frameVideo.pack_propagate(False)
 frameVideo.bind('<Configure>', Imagem_Video)
 
-frameAlertGraph = CTkFrame(framePrincipal, fg_color="#a4a8ad", border_width=2, corner_radius=15)
-frameAlertGraph.grid(row=0, column=1, padx=(0, 30), pady=(10, 10), sticky='nsew')
+frameGaugeGraph = CTkFrame(framePrincipal, fg_color="#a4a8ad", border_width=0, corner_radius=15)
+frameGaugeGraph.grid(row=0, column=1, padx=(0, 30), pady=(10, 10), sticky='nsew')
 
-AlertGraphImage = CTkImage(Image.open('./imagens/gaugeDiametro.png'),
+GaugeGraphImage = CTkImage(Image.open('./imagens/gaugeDiametro.png'),
                           size=(400 * 0.7, 250 * 0.7)
                            )
-AlertGraphLabel = CTkLabel(frameAlertGraph, image=AlertGraphImage, text="")
-AlertGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
+GaugeGraphLabel = CTkLabel(frameGaugeGraph, image=GaugeGraphImage, text="")
+GaugeGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
 #Criação dos frames da parte de baixo
-frameDataGraph = CTkFrame(framePrincipal, fg_color="#a4a8ad", border_width=2, corner_radius=15)
-frameDataGraph.grid(row=1, columnspan=2, padx=30, pady=(0, 10), sticky='nsew')
+frameLineGraph = CTkFrame(framePrincipal, fg_color="#a4a8ad", border_width=0, corner_radius=15)
+frameLineGraph.grid(row=1, columnspan=2, padx=30, pady=(0, 10), sticky='nsew')
 
-DataGraphImage = CTkImage(Image.open('./imagens/graphDiametro.png'),
+LineGraphImage = CTkImage(Image.open('./imagens/graphDiametro.png'),
                          size=(400 * 0.7, 250 * 0.7)
                          )
-DataGraphLabel = CTkLabel(frameDataGraph, image=DataGraphImage, text="")
-DataGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
+LineGraphLabel = CTkLabel(frameLineGraph, image=LineGraphImage, text="")
+LineGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
 
 # Criar o label do texto do vídeo e colocar em cima dele
