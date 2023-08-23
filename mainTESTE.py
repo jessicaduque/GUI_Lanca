@@ -58,9 +58,14 @@ class App(CTk):
         photo_image_ifes_logo = CTkImage(light_image=Image.open('./imagens/IFES_horizontal_logo.png'),
                                         size=(215.46, 86.184)
                                         )
-        photo_image_arcelor_logo = CTkImage(light_image=Image.open('./imagens/ArcelorMittal_logo.png'),
-                                           size=(168, 69.12)
+        #photo_image_empresa_logo = CTkImage(light_image=Image.open('./imagens/ArcelorMittal_logo.png'),
+        #                                   size=(168, 69.12)
+        #                                   )
+
+        photo_image_empresa_logo = CTkImage(light_image=Image.open('./imagens/LumarMetals_Logo.jpg'),
+                                           size=(265, 56)
                                            )
+
         photo_image_oficinas_logo = CTkImage(light_image=Image.open('./imagens/Oficinas4-0_logo.png'),
                                             size=(163.84, 33.6)
                                              )
@@ -69,8 +74,8 @@ class App(CTk):
         self.image_ifes_logo_label = CTkLabel(self.frameHeader, image=photo_image_ifes_logo, text="")
         self.image_ifes_logo_label.grid(row=0, column=0, padx=(20, 0))
         
-        self.image_arcelor_logo_label = CTkLabel(self.frameHeader, image=photo_image_arcelor_logo, text="")
-        self.image_arcelor_logo_label.grid(row=0, column=1)
+        self.image_empresa_logo_label = CTkLabel(self.frameHeader, image=photo_image_empresa_logo, text="")
+        self.image_empresa_logo_label.grid(row=0, column=1)
         
         self.image_oficinas_logo_label = CTkLabel(self.frameHeader, image=photo_image_oficinas_logo, text="")
         self.image_oficinas_logo_label.grid(row=0, column=2, padx=(0, 20))
@@ -90,32 +95,32 @@ class App(CTk):
         
         imagem_video = CTkImage(light_image=Image.open('./imagens/Oficinas4-0_logo.png'))
         self.video_widget = CTkLabel(self.frameVideo, image=imagem_video, text="")
-        self.video_widget.pack(padx=10, pady=10)
+        self.video_widget.pack(padx=10, pady=10, fill=BOTH, expand=True)
 
-        self.frameAlertGraph = CTkFrame(self.framePrincipal, fg_color="#a4a8ad", corner_radius=15)
-        self.frameAlertGraph.grid(row=0, column=1, padx=(0, 30), pady=(10, 10), sticky='nsew')
+        self.frameGaugeGraph = CTkFrame(self.framePrincipal, fg_color="#a4a8ad", corner_radius=15)
+        self.frameGaugeGraph.grid(row=0, column=1, padx=(0, 30), pady=(10, 10), sticky='nsew')
 
-        AlertGraphImage = CTkImage(Image.open('./imagens/gaugeDiametro.png'),
+        GaugeGraphImage = CTkImage(Image.open('./imagens/gaugeDiametro.png'),
                                   size=(400 * 0.7, 250 * 0.7)
                                    )
-        self.AlertGraphLabel = CTkLabel(self.frameAlertGraph, image=AlertGraphImage, text="")
-        self.AlertGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
+        self.GaugeGraphLabel = CTkLabel(self.frameGaugeGraph, image=GaugeGraphImage, text="")
+        self.GaugeGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
         # Configure bottom widgets
-        self.frameDataGraph = CTkFrame(self.framePrincipal, fg_color="#a4a8ad", corner_radius=15)
-        self.frameDataGraph.grid(row=1, columnspan=2, padx=30, pady=(0, 10), sticky='nsew')
+        self.frameLineGraph = CTkFrame(self.framePrincipal, fg_color="#a4a8ad", corner_radius=15)
+        self.frameLineGraph.grid(row=1, columnspan=2, padx=30, pady=(0, 10), sticky='nsew')
 
-        DataGraphImage = CTkImage(Image.open('./imagens/graphDiametro.png'),
+        LineGraphImage = CTkImage(Image.open('./imagens/graphDiametro.png'),
                                  size=(400 * 0.7, 250 * 0.7)
                                  )
-        self.DataGraphLabel = CTkLabel(self.frameDataGraph, image=DataGraphImage, text="")
-        self.DataGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
+        self.LineGraphLabel = CTkLabel(self.frameLineGraph, image=LineGraphImage, text="")
+        self.LineGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
         # Rodar métodos continuamente de atualização de imagem, segmentação e dos plots de gráficos
         self.update_image()
         #self.update_plots()
 
-    # PARA MEXER AINDA
+    # FEITO, MAS IMAGEM NÃO REDIMENSIONA
     def update_image(self):
         try:
             # Load pickled PIL image
@@ -124,14 +129,14 @@ class App(CTk):
             f.close()
             del f
             # Convert RGB image to BGR image
-            img_data = cv2.cvtColor(img_data, cv2.COLOR_RGB2BGR)
+            img_data = cv2.cvtColor(img_data, cv2.COLOR_BGR2RGB)
             # Convert numpy array to PIL image
             frame = Image.fromarray(img_data)
             #img_data = None
             del img_data
-            self.imagem_video = CTkImage(light_image=frame, size=(960, 540))
+            self.imagem_video = CTkImage(light_image=frame, size=(480, 270))
             self.video_widget.configure(image=self.imagem_video)
-            self.video_widget.pack(padx=10, pady=10)
+            self.video_widget.pack(padx=10, pady=10, fill=BOTH, expand=True)
 
         except Exception as e:
             print(e)
@@ -177,8 +182,7 @@ class App(CTk):
             self.dist.configure(text='Distância: '+ str(round(distancia, 2))+'m')
         except Exception as e:
             print(e)
-        # Schedule the next update
-        self.after(200, self.update_plots)
+        self.after(100, self.update_plots)
     
     #def stop_process(self):
     #    if self.process is not None and self.process.poll() is None:
@@ -202,6 +206,7 @@ if __name__ == "__main__":
     app = App()
     #app.protocol("WM_DELETE_WINDOW", shutdown)
     ctypes.windll.shcore.SetProcessDpiAwareness(2)
+
     #process2 = subprocess.Popen(['python', 'dashBt.py'], stdout=None, stderr=None)
     processSalvarImagem = subprocess.Popen(['python', 'saveimage.py'], stdout=None, stderr=None)
     #process3 = subprocess.Popen(['python', 'db.py'], stdout=None, stderr=None)
@@ -270,18 +275,18 @@ def CriacaoGrafico(queueTempo, queueDados):
     LineGraph(numData, current_time, queueTempo, queueDados)
 
     # Updating the line graph label every loop
-    DataGraphImage = CTkImage(Image.open('./imagens/graphDiametro.png'), size=(1300 * 0.7, 450 * 0.7))
-    DataGraphLabel.configure(image=DataGraphImage)
+    LineGraphImage = CTkImage(Image.open('./imagens/graphDiametro.png'), size=(1300 * 0.7, 450 * 0.7))
+    LineGraphLabel.configure(image=LineGraphImage)
 
     # Calling the gauge graph function to generate the gauge graph image
     GaugeGraph(numData)
 
     # Updating the gauge graph label every loop
-    AlertGraphImage = CTkImage(Image.open('./imagens/gaugeDiametro.png'), size=(400 * 0.7, 250 * 0.7))
-    AlertGraphLabel.configure(image=AlertGraphImage)
+    GaugeGraphImage = CTkImage(Image.open('./imagens/gaugeDiametro.png'), size=(400 * 0.7, 250 * 0.7))
+    GaugeGraphLabel.configure(image=GaugeGraphImage)
 
     # Chamando a função recursiva de segundo em segundo para rodar a função novamente e continuar atualizando o gráfico
-    AlertGraphLabel.after(1000, CriacaoGrafico, queueTempo, queueDados)
+    GaugeGraphLabel.after(1000, CriacaoGrafico, queueTempo, queueDados)
 
 def GaugeGraph(numData):
 
@@ -389,13 +394,13 @@ def segmentar_imagem():
     ### PARA VIDEO
     #success, frame = cap.read()
     # Conversão de imagem de uma espaço de cores para o outro
-    opencv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
+    opencv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     # Captura do frame mais atual e transformação dela para imagem
     captured_image = Image.fromarray(opencv_image)
     results = model(captured_image, verbose=False, max_det=10)
 
     imagem_segmentada_plot = results[0].plot()
-    imagem_segmentada = Image.fromarray(cv2.cvtColor(imagem_segmentada_plot, cv2.COLOR_BGR2RGBA))
+    imagem_segmentada = Image.fromarray(cv2.cvtColor(imagem_segmentada_plot, cv2.COLOR_BGR2RGB))
 
 def redefinir_res_cam():
     vid.set(cv2.CAP_PROP_FRAME_WIDTH, w_img * 2)

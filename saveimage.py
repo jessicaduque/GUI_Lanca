@@ -69,7 +69,6 @@ def storeCSV(arc):
      
 
 def ImageProcess():
-    auxiliar = 1
 
     model = YOLO("yolov8m-seg.pt")
     model.conf = 0.45  # NMS confidence threshold
@@ -94,16 +93,16 @@ def ImageProcess():
             # Captura do vídeo frame por frame
             _, frame = vid.read()
             # Conversão de imagem de uma espaço de cores para o outro
-            opencv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
+            opencv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             # Captura do frame mais atual e transformação dela para imagem
             captured_image = Image.fromarray(opencv_image)
             results = model(captured_image, verbose=False)
 
             imagem_segmentada_plot = results[0].plot()
-            imagem_segmentada = Image.fromarray(cv2.cvtColor(imagem_segmentada_plot, cv2.COLOR_BGR2RGBA))
+            imagem_segmentada = Image.fromarray(cv2.cvtColor(imagem_segmentada_plot, cv2.COLOR_BGR2RGB))
 
             img_array = results[0].plot(line_width=3, labels=0, boxes=1, probs=1)
-            img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
+            #img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
 
             ### CÓDIGO DOS MENINOS PARA RECONHECER DIÂMETRO DO CASCÃO E OBTER NÚMEROS
             #try:
@@ -139,7 +138,7 @@ def ImageProcess():
             outputArray = np.append(outputArray, [queueTempo, queueDados])
 
             storeData(img_array, './dados_pickle/framePickle1.pkl')
-            storeData(outputArray, './dados_pickle/dadosPickle'+str(auxiliar)+'.pkl')
+            storeData(outputArray, './dados_pickle/dadosPickle'+'.pkl')
         except Exception as e:
             print(e)
             time.sleep(0.015)

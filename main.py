@@ -90,18 +90,18 @@ def CriacaoGrafico(queueTempo, queueDados):
     LineGraph(numData, current_time, queueTempo, queueDados)
 
     # Updating the line graph label every loop
-    DataGraphImage = CTkImage(Image.open('./imagens/graphDiametro.png'), size=(1300 * 0.7, 450 * 0.7))
-    DataGraphLabel.configure(image=DataGraphImage)
+    LineGraphImage = CTkImage(Image.open('./imagens/graphDiametro.png'), size=(1300 * 0.7, 450 * 0.7))
+    LineGraphLabel.configure(image=LineGraphImage)
 
     # Calling the gauge graph function to generate the gauge graph image
     GaugeGraph(numData)
 
     # Updating the gauge graph label every loop
-    AlertGraphImage = CTkImage(Image.open('./imagens/gaugeDiametro.png'), size=(400 * 0.7, 250 * 0.7))
-    AlertGraphLabel.configure(image=AlertGraphImage)
+    GaugeGraphImage = CTkImage(Image.open('./imagens/gaugeDiametro.png'), size=(400 * 0.7, 250 * 0.7))
+    GaugeGraphLabel.configure(image=GaugeGraphImage)
 
     # Chamando a função recursiva de segundo em segundo para rodar a função novamente e continuar atualizando o gráfico
-    AlertGraphLabel.after(1000, CriacaoGrafico, queueTempo, queueDados)
+    GaugeGraphLabel.after(1000, CriacaoGrafico, queueTempo, queueDados)
 
 def GaugeGraph(numData):
 
@@ -209,7 +209,7 @@ def segmentar_imagem():
     ### PARA VIDEO
     #success, frame = cap.read()
     # Conversão de imagem de uma espaço de cores para o outro
-    opencv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
+    opencv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     # Captura do frame mais atual e transformação dela para imagem
     captured_image = Image.fromarray(opencv_image)
     results = model(captured_image, verbose=False, max_det=10)
@@ -217,7 +217,7 @@ def segmentar_imagem():
     print(results)
 
     imagem_segmentada_plot = results[0].plot()
-    imagem_segmentada = Image.fromarray(cv2.cvtColor(imagem_segmentada_plot, cv2.COLOR_BGR2RGBA))
+    imagem_segmentada = Image.fromarray(cv2.cvtColor(imagem_segmentada_plot, cv2.COLOR_BGR2RGB))
 
 def redefinir_res_cam():
     vid.set(cv2.CAP_PROP_FRAME_WIDTH, w_img * 2)
@@ -268,9 +268,10 @@ photo_image_ifes_logo = CTkImage(Image.open('./imagens/IFES_horizontal_logo.png'
 image_ifes_logo_label = CTkLabel(frameHeader, image=photo_image_ifes_logo, text="")
 image_ifes_logo_label.grid(row=0, column=0, padx=(20, 0))
 
-photo_image_arcelor_logo = CTkImage(Image.open('./imagens/ArcelorMittal_logo.png'), size=(168, 69.12))
-image_arcelor_logo_label = CTkLabel(frameHeader, image=photo_image_arcelor_logo, text="")
-image_arcelor_logo_label.grid(row=0, column=1)
+#photo_image_empresa_logo = CTkImage(Image.open('./imagens/ArcelorMittal_logo.png'), size=(168, 69.12))
+photo_image_empresa_logo = CTkImage(Image.open('./imagens/LumarMetals_Logo.jpg'), size=(265, 56))
+image_empresa_logo_label = CTkLabel(frameHeader, image=photo_image_empresa_logo, text="")
+image_empresa_logo_label.grid(row=0, column=1)
 
 photo_image_oficinas_logo = CTkImage(Image.open('./imagens/Oficinas4-0_logo.png'), size=(163.84, 33.6))
 image_oficinas_logo_label = CTkLabel(frameHeader, image=photo_image_oficinas_logo, text="")
@@ -292,24 +293,24 @@ frameVideo.grid(row=0, column=0, padx=(30, 20), pady=(10, 10), sticky='nsew')
 frameVideo.pack_propagate(False)
 frameVideo.bind('<Configure>', Imagem_Video)
 
-frameAlertGraph = CTkFrame(framePrincipal, fg_color="#a4a8ad", border_width=0, corner_radius=15)
-frameAlertGraph.grid(row=0, column=1, padx=(0, 30), pady=(10, 10), sticky='nsew')
+frameGaugeGraph = CTkFrame(framePrincipal, fg_color="#a4a8ad", border_width=0, corner_radius=15)
+frameGaugeGraph.grid(row=0, column=1, padx=(0, 30), pady=(10, 10), sticky='nsew')
 
-AlertGraphImage = CTkImage(Image.open('./imagens/gaugeDiametro.png'),
+GaugeGraphImage = CTkImage(Image.open('./imagens/gaugeDiametro.png'),
                           size=(400 * 0.7, 250 * 0.7)
                            )
-AlertGraphLabel = CTkLabel(frameAlertGraph, image=AlertGraphImage, text="")
-AlertGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
+GaugeGraphLabel = CTkLabel(frameGaugeGraph, image=GaugeGraphImage, text="")
+GaugeGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
 #Criação dos frames da parte de baixo
-frameDataGraph = CTkFrame(framePrincipal, fg_color="#a4a8ad", border_width=0, corner_radius=15)
-frameDataGraph.grid(row=1, columnspan=2, padx=30, pady=(0, 10), sticky='nsew')
+frameLineGraph = CTkFrame(framePrincipal, fg_color="#a4a8ad", border_width=0, corner_radius=15)
+frameLineGraph.grid(row=1, columnspan=2, padx=30, pady=(0, 10), sticky='nsew')
 
-DataGraphImage = CTkImage(Image.open('./imagens/graphDiametro.png'),
+LineGraphImage = CTkImage(Image.open('./imagens/graphDiametro.png'),
                          size=(400 * 0.7, 250 * 0.7)
                          )
-DataGraphLabel = CTkLabel(frameDataGraph, image=DataGraphImage, text="")
-DataGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
+LineGraphLabel = CTkLabel(frameLineGraph, image=LineGraphImage, text="")
+LineGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
 
 # Criar o label do texto do vídeo e colocar em cima dele
