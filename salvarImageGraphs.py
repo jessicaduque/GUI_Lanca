@@ -1,4 +1,6 @@
 from multiprocessing import Process
+from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
 from datetime import datetime
 from collections import deque
 from ultralytics import YOLO
@@ -33,38 +35,49 @@ def storeData(data, path):
     # source, destination 
     pickle.dump(db, dbfile)         
     dbfile.close()
-   
-#STORE OUTPUT DATA IN CSV FILE.
-def storeCSV(arc):
-    dateTime = datetime.now()
-    dateTime2 = dateTime.strftime("%Y-%m-%d %H:%M:%S")
-    #PATH OF CSF TO BE SAVED
-    if(int(dateTime.day)>9):
-        if(int(dateTime.month)>9):
-            path = 'data/cam0'+str(arc)+'/'+str(dateTime.year)+'-'+str(dateTime.month)+'-'+str(dateTime.day)+'.csv'
-        else:
-            path = 'data/cam0'+str(arc)+'/'+str(dateTime.year)+'-0'+str(dateTime.month)+'-'+str(dateTime.day)+'.csv'
-    else:
-        if(int(dateTime.month)>9):
-            path = 'data/cam0'+str(arc)+'/'+str(dateTime.year)+'-'+str(dateTime.month)+'-0'+str(dateTime.day)+'.csv' 
-        else:
-            path = 'data/cam0'+str(arc)+'/'+str(dateTime.year)+'-0'+str(dateTime.month)+'-0'+str(dateTime.day)+'.csv' 
-    dataFile = open('./assets/dados/dadosPickle'+str(arc)+'.pkl', 'rb')
-    data = pickle.load(dataFile)
-    dataFile.close()
-    csvData = str(dateTime2)+' '+str(data)
-    # open the file in the write mode
-    f = open(path, 'a')
-    # write a row to the csv file
-    f.write(csvData+'\n')
-    # close the file
-    f.close()
-     
 
-def ImageProcess():
+def LineGraph(queueTempo, queueDados):
+
+    # To run GUI event loops
+    figLineGraph = plt.figure(dpi=ORIGINAL_DPI)
+    figLineGraph.set_size_inches(9.2, 3.2)
+    canvas = fig.canvas
+    ax = figLineGraph.add_subplot()
+    figLineGraph.autofmt_xdate()
+
+    # Making the plot with the data and setting the vertical(diameter) limit on the graph
+    ax.plot(list(queueTempo), list(queueDados))
+    ax.set_ylim(min(list(queueDados)) - 2, max(list(queueDados)) + 2)
+    ax.set_xlabel("Horas")
+    ax.set_ylabel("Diâmetro [mm]")
+
+    # Setting general fontsyle for pyplot
+    plt.rcParams['font.family'] = 'Eras Medium ITC'
+
+    canvas.draw()
+    
+    arr_lineimg = np.frombuffer(canvas.tostring_rgb(), dtype='uint8')
+
+    ### Saving the plot as an image
+    #plt.savefig("imagens\graphDiametro.png")
+    ## Getting the saved image into a variable to crop
+    #img = cv2.imread('imagens\graphDiametro.png')
+    ## Cropping the image
+    #cropped_image = img[17:307, 0:815]
+    #cropped_image = cropped_image[0:290, 60:815]
+    ## Saving the cropped image
+    #cv2.imwrite("imagens\graphDiametro.png", cropped_image)
+
+    # closing the plot to avoid conflict
+    plt.close()
+
+    return arr_lineimg
+
+def GaugeGraph(numData):
 
     # Colors for each of the zones in the graph
     color = ["#ee3d55", "#ee3d55", "#fabd57" , "#fabd57", "#4dab6d", "#4dab6d", "#4dab6d", "#4dab6d", "#4dab6d"]
+
     # Values displayed around the gauge graph from highest to lowest
     values = [80, 75, 70, 65, 60, 55, 50, 45, 40]
 
@@ -81,11 +94,12 @@ def ImageProcess():
 
     # Setting plot size
     fig = plt.figure(figsize=(4, 4))
+    canvas = fig.canvas
 
     # layout of the plot
     axGauge = fig.add_subplot(projection="polar")
     axGauge.bar(x = [0, 0.385, 0.77, 1.155, 1.54, 1.925, 2.31, 2.695], width=0.42, height=0.5, bottom=2, 
-            color=color, align="edge")
+          color=color, align="edge")
 
     # Positioning the values in the graph
     for loc, val in zip([0, 0.385, 0.77, 1.155, 1.54, 1.925, 2.31, 2.695, 3.08, 3,465], values):
@@ -105,56 +119,29 @@ def ImageProcess():
 
     # Creating the arrow pointer
     axGauge.annotate(f"{numData}", xytext=(0,0), xy=(xvalue,2.0),
-                    arrowprops=dict(arrowstyle="wedge, tail_width= 0.5", color="black", shrinkA=0), 
-                    bbox = dict(boxstyle="circle", facecolor="black", linewidth=2,),
-                    fontsize=25, color =f"{colorLevel}", ha = "center"
+                 arrowprops=dict(arrowstyle="wedge, tail_width= 0.5", color="black", shrinkA=0), 
+                 bbox = dict(boxstyle="circle", facecolor="black", linewidth=2,),
+                 fontsize=25, color =f"{colorLevel}", ha = "center"
                 )
+    canvas.draw()
 
-    # Saving the plot as an image
-    plt.savefig("imagens\gaugeDiametro.png")
-    # Getting the saved image into a variable to crop
-    img = cv2.imread('imagens\gaugeDiametro.png')
-    # Cropping the image
-    cropped_image = img[0:250, 0:400]
-    # Saving the cropped image
-    cv2.imwrite("imagens\gaugeDiametro.png", cropped_image)
+    arr_gaugeimg = np.frombuffer(canvas.tostring_rgb(), dtype='uint8')
+
+    ### Saving the plot as an image
+    #plt.savefig("imagens\gaugeDiametro.png")
+    ## Getting the saved image into a variable to crop
+    #img = cv2.imread('imagens\gaugeDiametro.png')
+    ## Cropping the image
+    #cropped_image = img[0:250, 0:400]
+    ## Saving the cropped image
+    #cv2.imwrite("imagens\gaugeDiametro.png", cropped_image)
 
     # Closing the plot to avoid conflict
     plt.close()
 
-    # Adding the new data to the queues every loop
-    queueDados.append(numData) 
-    queueTempo.append(current_time)
+    return arr_gaugeimg
 
-    # To run GUI event loops
-    figLineGraph = plt.figure(dpi=ORIGINAL_DPI)
-    figLineGraph.set_size_inches(9.2, 3.2)
-    ax = figLineGraph.add_subplot()
-    figLineGraph.autofmt_xdate()
-
-    # Making the plot with the data and setting the vertical(diameter) limit on the graph
-    ax.plot(list(queueTempo), list(queueDados))
-    ax.set_ylim(min(list(queueDados)) - 2, max(list(queueDados)) + 2)
-    ax.set_xlabel("Horas")
-    ax.set_ylabel("Diâmetro [mm]")
-
-    # Setting general fontsyle for pyplot
-    plt.rcParams['font.family'] = 'Eras Medium ITC'
-
-    # Saving the plot as an image
-    plt.savefig("imagens\graphDiametro.png")
-    # Getting the saved image into a variable to crop
-    img = cv2.imread('imagens\graphDiametro.png')
-    # Cropping the image
-    cropped_image = img[17:307, 0:815]
-    cropped_image = cropped_image[0:290, 60:815]
-    # Saving the cropped image
-    cv2.imwrite("imagens\graphDiametro.png", cropped_image)
-
-    # closing the plot to avoid conflict
-    plt.close()
-
-   
+def graphProcess(): 
 
     while True:
         try:
@@ -163,50 +150,20 @@ def ImageProcess():
                 dados = pickle.load(f)
             with open('./dados_pickle/tempoPickle.pkl', 'rb') as f:
                 tempo = pickle.load(f)
-            # CONFIGURAR
 
+            # ATUALIZAÇÃO
+            # Gerando imagem de gauge
+            arr_gaugeimg = Image.fromarray(GaugeGraph(dados))
+            storeData(arr_gaugeimg, './dados_pickle/gaugeGraphPickle.pkl')
 
-def LineGraph(numData, current_time, queueTempo, queueDados):
-
-    # Adding the new data to the queues every loop
-    queueDados.append(numData) 
-    queueTempo.append(current_time)
-
-    # To run GUI event loops
-    figLineGraph = plt.figure(dpi=ORIGINAL_DPI)
-    figLineGraph.set_size_inches(9.2, 3.2)
-    ax = figLineGraph.add_subplot()
-    figLineGraph.autofmt_xdate()
-
-    # Making the plot with the data and setting the vertical(diameter) limit on the graph
-    ax.plot(list(queueTempo), list(queueDados))
-    ax.set_ylim(min(list(queueDados)) - 2, max(list(queueDados)) + 2)
-    ax.set_xlabel("Horas")
-    ax.set_ylabel("Diâmetro [mm]")
-
-    # Setting general fontsyle for pyplot
-    plt.rcParams['font.family'] = 'Eras Medium ITC'
-
-    # Saving the plot as an image
-    plt.savefig("imagens\graphDiametro.png")
-    # Getting the saved image into a variable to crop
-    img = cv2.imread('imagens\graphDiametro.png')
-    # Cropping the image
-    cropped_image = img[17:307, 0:815]
-    cropped_image = cropped_image[0:290, 60:815]
-    # Saving the cropped image
-    cv2.imwrite("imagens\graphDiametro.png", cropped_image)
-
-    # closing the plot to avoid conflict
-    plt.close()
-
-     
-    while True:
-        try:
+            # Gerando imagem de gauge
+            arr_lineimg = Image.fromarray(LineGraph(dados, tempo))
+            storeData(arr_lineimg, './dados_pickle/lineGraphPickle.pkl')
+            
             
         except Exception as e:
             print(e)
             time.sleep(0.015)
 
 if __name__ == '__main__':
-    ImageProcess()
+    graphProcess()
