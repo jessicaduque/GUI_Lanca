@@ -1,25 +1,20 @@
 import tkinter as tk
 from customtkinter import *
 
-import cv2
-from PIL import Image, ImageTk
-
-import random
-import subprocess
-import _pickle as pickle
-from datetime import datetime, timedelta
-
-import matplotlib.pyplot as plt
-from matplotlib.figure import Figure
-
-from collections import deque
 from matplotlib.backends.backend_tkagg import (
     FigureCanvasTkAgg, NavigationToolbar2Tk)
-
-from threading import Thread
-from ultralytics import YOLO
+from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
+from datetime import datetime, timedelta
 from database import dbAdd, dbShow
+from PIL import Image, ImageTk
+from collections import deque
+from ultralytics import YOLO
+import _pickle as pickle
+import subprocess
+import random
 import ctypes
+import cv2
 plt.style.use("seaborn-v0_8-whitegrid")
 
 
@@ -152,9 +147,11 @@ class App(CTk):
             tam_med = np.mean(dados)
             self.deque_med.append(tam_med)
             self.deque_time.append(datetime.now().strftime("%H:%M:%S"))
+
             # Clear the plot
             self.ax1.clear()
             self.ax2.clear()
+
             # Plot the data
             self.ax1.plot(self.deque_time, self.deque_med)
             self.ax1.set_ylim(0, 1000)
@@ -163,6 +160,7 @@ class App(CTk):
             mu, std = norm.fit(dados)
             x = np.linspace(4, 24, 100)
             p = norm.pdf(x, mu, std)
+
             # Define os parâmetros do histograma
             bins = 10
             range = (0, 1000)
@@ -174,9 +172,11 @@ class App(CTk):
             #self.ax2.plot(x, p*dados.size, 'k', linewidth=2)
             self.ax2.plot(x, p, 'k', linewidth=2)
             self.ax2.set_ylim(0, 15)
+
             # Update the plot
             self.canvas1.draw()
             self.canvas2.draw()
+
             # Update label text
             self.tamMed.configure(text='Tamanho médio: '+ str(round(tam_med,1))+'mm')
             self.dist.configure(text='Distância: '+ str(round(distancia, 2))+'m')
@@ -210,6 +210,23 @@ if __name__ == "__main__":
     #process2 = subprocess.Popen(['python', 'dashBt.py'], stdout=None, stderr=None)
     processSalvarImagem = subprocess.Popen(['python', 'saveimage.py'], stdout=None, stderr=None)
     #process3 = subprocess.Popen(['python', 'db.py'], stdout=None, stderr=None)
+
+    def on_closing():
+        print("ADJHNJSANDJAHSKDHsdjksaJDSSKJDKJASOD,APDÇADAKJDLJAKDADKAJSDK")
+
+        # Parando o subprocess de imagens ao fechar o app
+        processSalvarImagem.kill()
+
+        # Deletando os arquivos pickle ao fechar o app
+        os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/dadosPickle.pkl'))
+        os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/framePickle1.pkl'))
+
+        # Deletando a janela do app
+        app.destroy()
+
+    # Protocolo para executar funcao on_closing ao clickar no X do app
+    app.protocol("WM_DELETE_WINDOW", on_closing)
+
     app.mainloop()
 
 # Função que configura a câmera a ser usada
@@ -237,10 +254,12 @@ def Open_Camera():
     thread_segmentar = Thread(target=segmentar_imagem)
     thread_segmentar.daemon
     thread_segmentar.start()
+
     # Espera thread terminar
     thread_segmentar.join()
     photo_image = CTkImage(imagem_segmentada, size = (w_img, h_img))
     video_widget.configure(image=photo_image)
+
     # Repetição do mesmo processo após 10 milisegundos
     video_widget.after(10, Open_Camera)
 

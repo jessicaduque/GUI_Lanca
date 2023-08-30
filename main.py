@@ -81,9 +81,10 @@ def CriacaoGrafico(queueTempo, queueDados):
     numData = random.randrange(40, 80)
     now = datetime.now()
     current_time = now.strftime("%H:%M:%S")
+    current_date = now.strftime("%D")
 
     # Manipulating the database
-    dbAdd(numData, current_time)
+    dbAdd(numData, current_date, current_time)
     #dbShow()
 
     # Calling the Line graph function to add onto the queues and generate the line graph image
