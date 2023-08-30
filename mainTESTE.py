@@ -113,13 +113,13 @@ class App(CTk):
 
         # Rodar métodos continuamente de atualização de imagem, segmentação e dos plots de gráficos
         self.update_image()
-        #self.update_plots()
+        self.update_plots()
 
     # FEITO, MAS IMAGEM NÃO REDIMENSIONA
     def update_image(self):
         try:
             # Load pickled PIL image
-            f = open('./dados_pickle/framePickle1.pkl', 'rb')
+            f = open('./dados_pickle/framePickle.pkl', 'rb')
             img_data = pickle.load(f)
             f.close()
             del f
@@ -139,58 +139,62 @@ class App(CTk):
 
     def update_plots(self):
         try:
-            # Load pickled data
-            with open('./dados_pickle/dados/dadosPickle1.pkl', 'rb') as f:
-                dados = pickle.load(f)
-            distancia = dados[0]
-            dados = dados[1:]
-            tam_med = np.mean(dados)
-            self.deque_med.append(tam_med)
-            self.deque_time.append(datetime.now().strftime("%H:%M:%S"))
+            f = open('./dados_pickle/gaugeGraphPickle.pkl', 'rb')
+            img_data_gauge_graph = pickle.load(f)
+            f.close()
+            del f
+            img_data = cv2.cvtColor(img_data_gauge_graph, cv2.COLOR_BGR2RGB)
+            frameGaugeGraph = Image.fromarray(img_data)
+            del img_data
+
+            f = open('./dados_pickle/lineGraphPickle.pkl', 'rb')
+            img_data_line_graph = pickle.load(f)
+            f.close()
+            del f
+            img_data = cv2.cvtColor(img_data_line_graph, cv2.COLOR_BGR2RGB)
+            frameLineGraph = Image.fromarray(img_data)
+            del img_data
+
+            #self.imagem_video = CTkImage(light_image=frame, size=(480, 270))
+            #self.video_widget.configure(image=self.imagem_video)
+            #self.video_widget.pack(padx=10, pady=10, fill=BOTH, expand=True)
 
             # Clear the plot
-            self.ax1.clear()
-            self.ax2.clear()
+            #self.ax1.clear()
+            #self.ax2.clear()
 
             # Plot the data
-            self.ax1.plot(self.deque_time, self.deque_med)
-            self.ax1.set_ylim(0, 1000)
-            self.ax1.tick_params(axis='x', rotation=45, labelsize=6)
+            #self.ax1.plot(self.deque_time, self.deque_med)
+            #self.ax1.set_ylim(0, 1000)
+            #self.ax1.tick_params(axis='x', rotation=45, labelsize=6)
             # Calcula a média e o desvio padrão dos dados
-            mu, std = norm.fit(dados)
-            x = np.linspace(4, 24, 100)
-            p = norm.pdf(x, mu, std)
+            #mu, std = norm.fit(dados)
+            #x = np.linspace(4, 24, 100)
+            #p = norm.pdf(x, mu, std)
 
             # Define os parâmetros do histograma
-            bins = 10
-            range = (0, 1000)
-            density = False
-            color = 'blue'
-            alpha = 1
-            self.ax2.hist(dados, bins=bins, range=range, density=density, color=color, alpha=alpha)
+            #bins = 10
+            #range = (0, 1000)
+            #density = False
+            #color = 'blue'
+            #alpha = 1
+            #self.ax2.hist(dados, bins=bins, range=range, density=density, color=color, alpha=alpha)
             #self.ax2.hist(dados, bins=bins, range=range, density=True, color='red', alpha=0.5)
             #self.ax2.plot(x, p*dados.size, 'k', linewidth=2)
-            self.ax2.plot(x, p, 'k', linewidth=2)
-            self.ax2.set_ylim(0, 15)
+            #self.ax2.plot(x, p, 'k', linewidth=2)
+            #self.ax2.set_ylim(0, 15)
 
             # Update the plot
-            self.canvas1.draw()
-            self.canvas2.draw()
+            #self.canvas1.draw()
+            #self.canvas2.draw()
 
             # Update label text
-            self.tamMed.configure(text='Tamanho médio: '+ str(round(tam_med,1))+'mm')
-            self.dist.configure(text='Distância: '+ str(round(distancia, 2))+'m')
+            #self.tamMed.configure(text='Tamanho médio: '+ str(round(tam_med,1))+'mm')
+            #self.dist.configure(text='Distância: '+ str(round(distancia, 2))+'m')
         except Exception as e:
             print(e)
-        self.after(100, self.update_plots)
+        self.after(1000, self.update_plots)
     
-    #def stop_process(self):
-    #    if self.process is not None and self.process.poll() is None:
-    #        self.process.terminate()
-    #        # kill process in a couple of seconds if it is not terminated
-    #        self.after(2000, kill_process, self.process)
-    #    self.process = None
-
 if __name__ == "__main__":
     ### Variables
     # Defining original DPI being used
@@ -198,28 +202,19 @@ if __name__ == "__main__":
     APP_WIDTH = 1000
     APP_HEIGHT = 720
     w_img, h_img = 30, 30
-
-    #def shutdown():
-    #    app.stop_process()
-    #    app.destroy()
-
-    app = App()
-    #app.protocol("WM_DELETE_WINDOW", shutdown)
     ctypes.windll.shcore.SetProcessDpiAwareness(2)
 
-    #process2 = subprocess.Popen(['python', 'dashBt.py'], stdout=None, stderr=None)
-    processSalvarImagem = subprocess.Popen(['python', 'saveimage.py'], stdout=None, stderr=None)
+    processSalvarImageGraphs = subprocess.Popen(['python', 'saveImageGraphs.py'], stdout=None, stderr=None)
+    processSalvarImageSementado = subprocess.Popen(['python', 'saveImageSegmentado.py'], stdout=None, stderr=None)
     #process3 = subprocess.Popen(['python', 'db.py'], stdout=None, stderr=None)
 
-    def on_closing():
-        print("ADJHNJSANDJAHSKDHsdjksaJDSSKJDKJASOD,APDÇADAKJDLJAKDADKAJSDK")
-
-        # Parando o subprocess de imagens ao fechar o app
+    def on_closing():# Parando o subprocess de imagens ao fechar o app
         processSalvarImagem.kill()
 
         # Deletando os arquivos pickle ao fechar o app
         os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/dadosPickle.pkl'))
-        os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/framePickle1.pkl'))
+        os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/tempoPickle.pkl'))
+        os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/framePickle.pkl'))
 
         # Deletando a janela do app
         app.destroy()
@@ -402,24 +397,6 @@ def LineGraph(numData, current_time, queueTempo, queueDados):
 
     # closing the plot to avoid conflict
     plt.close()
-
-### THREADS
-def segmentar_imagem():
-    global imagem_segmentada
-
-    # Captura do vídeo frame por frame
-    ### TIRAR COMENTÁRIO A SEGUIR QUANDO USANDO CAMERA
-    _, frame = vid.read()
-    ### PARA VIDEO
-    #success, frame = cap.read()
-    # Conversão de imagem de uma espaço de cores para o outro
-    opencv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    # Captura do frame mais atual e transformação dela para imagem
-    captured_image = Image.fromarray(opencv_image)
-    results = model(captured_image, verbose=False, max_det=10)
-
-    imagem_segmentada_plot = results[0].plot()
-    imagem_segmentada = Image.fromarray(cv2.cvtColor(imagem_segmentada_plot, cv2.COLOR_BGR2RGB))
 
 def redefinir_res_cam():
     vid.set(cv2.CAP_PROP_FRAME_WIDTH, w_img * 2)

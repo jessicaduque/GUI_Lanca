@@ -18,9 +18,6 @@ import gc
 warnings.filterwarnings("ignore")
 
 gc.enable()
-
-import os
-
 global model
 # Resize para salvar imagens
 tamanho_imagem = (1920, 1080)
@@ -130,11 +127,15 @@ def ImageProcess():
             current_time = now.strftime("%H:%M:%S")
             queueTempo.append(current_time)
 
-            outputArray = np.array([])
-            outputArray = np.append(outputArray, [queueTempo, queueDados])
+            outputArrayTempo = np.array([])
+            outputArrayTempo = np.append(outputArrayTempo, queueTempo)
 
-            storeData(img_array, './dados_pickle/framePickle1.pkl')
-            storeData(outputArray, './dados_pickle/dadosPickle'+'.pkl')
+            outputArrayDados = np.array([])
+            outputArrayDados = np.append(outputArrayDados, queueDados)
+
+            storeData(img_array, './dados_pickle/framePickle.pkl')
+            storeData(outputArrayDados, './dados_pickle/dadosPickle.pkl')
+            storeData(outputArrayTempo, './dados_pickle/tempoPickle.pkl')
         except Exception as e:
             print(e)
             time.sleep(0.015)
