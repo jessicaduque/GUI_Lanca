@@ -148,7 +148,7 @@ def graphProcess():
              # Load pickled data
             with open('./dados_pickle/dadosPickle.pkl', 'rb') as f:
                 dados = pickle.load(f)
-            with open('./dados_pickle/tempoPickle.pkl', 'rb') as f:
+            with open('./dados_pickle/horaPickle.pkl', 'rb') as f:
                 tempo = pickle.load(f)
 
             # ATUALIZAÇÃO

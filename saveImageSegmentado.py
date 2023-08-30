@@ -78,7 +78,8 @@ def ImageProcess():
     vid.set(cv2.CAP_PROP_FRAME_WIDTH, tamanho_imagem[0])
     vid.set(cv2.CAP_PROP_FRAME_HEIGHT, tamanho_imagem[1])
 
-    queueTempo = deque([], maxlen = 15)
+    queueHoras = deque([], maxlen = 15)
+    queueDias = deque([], maxlen = 15)
     queueDados = deque([], maxlen = 15)
      
     while True:
@@ -125,17 +126,23 @@ def ImageProcess():
             # Horário
             now = datetime.now()
             current_time = now.strftime("%H:%M:%S")
-            queueTempo.append(current_time)
+            current_date = now.strftime("%D")
+            queueHoras.append(current_time)
+            queueDias.append(current_date)
 
-            outputArrayTempo = np.array([])
-            outputArrayTempo = np.append(outputArrayTempo, queueTempo)
+            outputArrayTempoHora = np.array([])
+            outputArrayTempoHora = np.append(outputArrayTempoHora, queueHoras)
+
+            outputArrayTempoData = np.array([])
+            outputArrayTempoData = np.append(outputArrayTempoData, queueDias)
 
             outputArrayDados = np.array([])
             outputArrayDados = np.append(outputArrayDados, queueDados)
 
             storeData(img_array, './dados_pickle/framePickle.pkl')
             storeData(outputArrayDados, './dados_pickle/dadosPickle.pkl')
-            storeData(outputArrayTempo, './dados_pickle/tempoPickle.pkl')
+            storeData(outputArrayTempoHora, './dados_pickle/horaPickle.pkl')
+            storeData(outputArrayTempoData, './dados_pickle/dataPickle.pkl')
         except Exception as e:
             print(e)
             time.sleep(0.015)
