@@ -1,25 +1,21 @@
-import _pickle as pickle
-import cv2
-import time
-import math
 from multiprocessing import Process
 from datetime import datetime
-import warnings
-warnings.filterwarnings("ignore")
-import csv
-import gc
-import platform
-import numpy as np
-import torch
-from ultralytics import YOLO
-from PIL import Image
-from numpy import asarray
-import random
-
-import cv2
-import time
-
 from collections import deque
+from ultralytics import YOLO
+import _pickle as pickle
+from numpy import asarray
+from PIL import Image
+import numpy as np
+import warnings
+import platform
+import random
+import torch
+import time
+import math
+import csv
+import cv2
+import gc
+warnings.filterwarnings("ignore")
 
 gc.enable()
 

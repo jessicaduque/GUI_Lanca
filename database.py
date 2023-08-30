@@ -9,14 +9,17 @@ cursor = connection.cursor()
 
 # Criando tabela do Cascao 
 create_table = """CREATE TABLE IF NOT EXISTS cascao(
+id_convertedor INT,
+id_lanca INT,
 diametro FLOAT,
+data DATE,
 horario TIME)"""
 
 cursor.execute(create_table)
 
 #adicionando valores na tabela cascao
-def dbAdd(numData, current_time):
-    cursor.execute(f"INSERT INTO cascao (diametro, horario) VALUES({numData}, '{current_time}')")   
+def dbAdd(numData, current_date, current_time):
+    cursor.execute(f"INSERT INTO cascao (id_convertedor, id_lanca, diametro, data, horario) VALUES({1}, {1}, {numData}, '{current_date}', '{current_time}')")   
     connection.commit()
 
 '''
@@ -34,3 +37,7 @@ def dbShow():
     results = cursor.fetchall()
 
     print(results)
+
+def delete():
+    cursor.execute("DELETE *")
+    connection.commit
