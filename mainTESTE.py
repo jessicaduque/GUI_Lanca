@@ -3,7 +3,6 @@ from customtkinter import *
 
 import cv2
 from PIL import Image, ImageTk
-import numpy as np
 
 import random
 import subprocess
@@ -119,13 +118,13 @@ class App(CTk):
 
         # Rodar métodos continuamente de atualização de imagem, segmentação e dos plots de gráficos
         self.update_image()
-        self.update_plots()
+        #self.update_plots()
 
     # FEITO, MAS IMAGEM NÃO REDIMENSIONA
     def update_image(self):
         try:
             # Load pickled PIL image
-            f = open('./dados_pickle/framePickle.pkl', 'rb')
+            f = open('./dados_pickle/framePickle1.pkl', 'rb')
             img_data = pickle.load(f)
             f.close()
             del f
@@ -146,15 +145,11 @@ class App(CTk):
     def update_plots(self):
         try:
             # Load pickled data
-            with open('./dados_pickle/dadosTempoPickle.pkl', 'rb') as f:
-                tempo = pickle.load(f)
-            with open('./dados_pickle/dadosDiamPickle.pkl', 'rb') as f:
+            with open('./dados_pickle/dados/dadosPickle1.pkl', 'rb') as f:
                 dados = pickle.load(f)
-            
-                
-                
-                
-            ultimoDiam = dados[:1]
+            distancia = dados[0]
+            dados = dados[1:]
+            tam_med = np.mean(dados)
             self.deque_med.append(tam_med)
             self.deque_time.append(datetime.now().strftime("%H:%M:%S"))
             # Clear the plot
@@ -179,8 +174,6 @@ class App(CTk):
             #self.ax2.plot(x, p*dados.size, 'k', linewidth=2)
             self.ax2.plot(x, p, 'k', linewidth=2)
             self.ax2.set_ylim(0, 15)
-
-            ## SUBSTITUIR PARTES POR IMAGEM
             # Update the plot
             self.canvas1.draw()
             self.canvas2.draw()
@@ -189,7 +182,7 @@ class App(CTk):
             self.dist.configure(text='Distância: '+ str(round(distancia, 2))+'m')
         except Exception as e:
             print(e)
-        self.after(1000, self.update_plots)
+        self.after(100, self.update_plots)
     
     #def stop_process(self):
     #    if self.process is not None and self.process.poll() is None:
