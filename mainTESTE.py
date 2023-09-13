@@ -112,9 +112,19 @@ class App(CTk):
 
         # Rodar métodos continuamente de atualização de imagem, segmentação e dos plots de gráficos
         self.update_image()
-        self.update_plots()
+        self.update_plot_gauge()
+        self.update_plot_line()
 
-    # FEITO, MAS IMAGEM NÃO REDIMENSIONA
+        # Bind para resize de imagens caso tamanho da tela seja alterada
+        self.frameLineGraph.bind("<Configure>", self.resize_image)
+
+    def resize_image(self, event):
+        size = (event.width, event.height)
+        resized = self.original.resize(size, image.antialias)
+        self.image = imagetk.photoimage(resized)
+        self.display.delete("img")
+        self.display.create_image(0, 0, image=self.image, anchor=nw, tags="img")
+
     def update_image(self):
         try:
             # Load pickled PIL image
@@ -136,7 +146,7 @@ class App(CTk):
             print(e)
         self.after(30, self.update_image)
 
-    def update_plots(self):
+    def update_plot_gauge(self):
         try:
             f = open('./dados_pickle/gaugeGraphPickle.pkl', 'rb')
             img_data_gauge_graph = pickle.load(f)
@@ -148,8 +158,12 @@ class App(CTk):
             self.GaugeGraphImage = CTkImage(light_image=frameGaugeGraph, size=(400 * 0.7, 250 * 0.7))
             self.GaugeGraphLabel.configure(image=self.GaugeGraphImage)
             self.GaugeGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
+        except Exception as e:
+            print(e)
+        self.after(1000, self.update_plot_gauge)
 
-
+    def update_plot_line(self):
+        try:
             f = open('./dados_pickle/lineGraphPickle.pkl', 'rb')
             img_data_line_graph = pickle.load(f)
             f.close()
@@ -163,7 +177,7 @@ class App(CTk):
 
         except Exception as e:
             print(e)
-        self.after(1000, self.update_plots)
+        self.after(1000, self.update_plot_line)
     
 if __name__ == "__main__":
     ### Variables
@@ -200,18 +214,3 @@ if __name__ == "__main__":
     # Protocolo para executar funcao on_closing ao clickar no X do app
     app.protocol("WM_DELETE_WINDOW", on_closing)
     app.mainloop()
-
-############### Configurar a câmera para o seu uso
-#vid = ConfigurarCamera()
-###cap = ConfigurarCamera()
-
-############### Função para abrir ativar câmera e encaixar ela no app
-#Open_Camera()
-
-############### Inicializacao das variaveis dos dados
-#queueTempo = deque([], maxlen = 15)
-#queueDados = deque([], maxlen = 15)
-#dbCreate()
-
-################ Chamada da função para atualzar as imagems dos graficos
-#CriacaoGrafico(queueTempo, queueDados)
