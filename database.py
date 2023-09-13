@@ -2,6 +2,24 @@ import sqlite3
 import random
 from datetime import datetime
 import time
+import _pickle as pickle
+
+# Adicionando valores na tabela cascao
+def dbAdd(numData, current_date, current_time):
+    cursor.execute(f"INSERT INTO cascao (id_convertedor, id_lanca, diametro, data, horario) VALUES({1}, {1}, {numData}, '{current_date}', '{current_time}')")   
+    conn.commit()
+
+def dbShow():
+    cursor.execute("SELECT rowid, * FROM cascao")
+
+    results = cursor.fetchall()
+
+    print(results)
+
+def delete():
+    cursor.execute("DELETE *")
+    conn.commit()
+
 
 while True:
     try:
@@ -63,18 +81,3 @@ while True:
 
 
 
-# Adicionando valores na tabela cascao
-def dbAdd(numData, current_date, current_time):
-    cursor.execute(f"INSERT INTO cascao (id_convertedor, id_lanca, diametro, data, horario) VALUES({1}, {1}, {numData}, '{current_date}', '{current_time}')")   
-    connection.commit()
-
-def dbShow():
-    cursor.execute("SELECT rowid, * FROM cascao")
-
-    results = cursor.fetchall()
-
-    print(results)
-
-def delete():
-    cursor.execute("DELETE *")
-    connection.commit()

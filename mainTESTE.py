@@ -1,12 +1,11 @@
 import tkinter as tk
 from customtkinter import *
-
+import signal
 from matplotlib.backends.backend_tkagg import (
     FigureCanvasTkAgg, NavigationToolbar2Tk)
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
-from database import dbAdd, dbShow
 from PIL import Image, ImageTk
 from collections import deque
 from ultralytics import YOLO
@@ -146,6 +145,10 @@ class App(CTk):
             img_data = cv2.cvtColor(img_data_gauge_graph, cv2.COLOR_BGR2RGB)
             frameGaugeGraph = Image.fromarray(img_data)
             del img_data
+            self.GaugeGraphImage = CTkImage(light_image=frameGaugeGraph, size=(400 * 0.7, 250 * 0.7))
+            self.GaugeGraphLabel.configure(image=self.GaugeGraphImage)
+            self.GaugeGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
+
 
             f = open('./dados_pickle/lineGraphPickle.pkl', 'rb')
             img_data_line_graph = pickle.load(f)
@@ -154,13 +157,15 @@ class App(CTk):
             img_data = cv2.cvtColor(img_data_line_graph, cv2.COLOR_BGR2RGB)
             frameLineGraph = Image.fromarray(img_data)
             del img_data
+            self.LineGraphImage = CTkImage(light_image=frameLineGraph, size=(400 * 0.7, 250 * 0.7))
+            self.LineGraphLabel.configure(image=self.LineGraphImage)
+            self.LineGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
+
         except Exception as e:
             print(e)
         self.after(1000, self.update_plots)
     
 if __name__ == "__main__":
-    print("aasdad")
-    app = App()
     ### Variables
     # Defining original DPI being used
     ORIGINAL_DPI = 96.09458128078816
@@ -168,25 +173,26 @@ if __name__ == "__main__":
     APP_HEIGHT = 720
     w_img, h_img = 30, 30
 
-    print("1")
+    app = App()
     processSalvarImageGraphs = subprocess.Popen(['python', 'saveImageGraphs.py'], stdout=None, stderr=None)
-    print("2")
     processSalvarImageSegmentado = subprocess.Popen(['python', 'saveImageSegmentado.py'], stdout=None, stderr=None)
-    print("3")
     processDataBase = subprocess.Popen(['python', 'database.py'], stdout=None, stderr=None)
-    print("4")
 
     
     ctypes.windll.shcore.SetProcessDpiAwareness(2)
 
     def on_closing():# Parando o subprocess de imagens ao fechar o app
-        processSalvarImagem.kill()
+        os.kill(processSalvarImageGraphs.pid, signal.SIGTERM)
+        os.kill(processSalvarImageSegmentado.pid, signal.SIGTERM)
+        os.kill(processDataBase.pid, signal.SIGTERM)
 
         # Deletando os arquivos pickle ao fechar o app
         os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/dadosPickle.pkl'))
         os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/dataPickle.pkl'))
         os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/horaPickle.pkl'))
         os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/framePickle.pkl'))
+        os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/gaugeGraphPickle.pkl'))
+        os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/lineGraphPickle.pkl'))
 
         # Deletando a janela do app
         app.destroy()
@@ -194,185 +200,6 @@ if __name__ == "__main__":
     # Protocolo para executar funcao on_closing ao clickar no X do app
     app.protocol("WM_DELETE_WINDOW", on_closing)
     app.mainloop()
-
-# Função que configura a câmera a ser usada
-def ConfigurarCamera():
-    # Define a video capture object
-    vid = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-  
-    # Declare the width and height in variables
-    width, height = 1079, 365
-  
-    # Set the width and height
-    vid.set(cv2.CAP_PROP_FRAME_WIDTH, width)
-    vid.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
-
-    video_path = 'video_sample.mp4'
-    cap = cv2.VideoCapture(video_path)
-
-
-    #return cap
-    return vid
-  
-# Função de abrir a câmera e mostrar no video_widget do app
-def Open_Camera():
-    
-    thread_segmentar = Thread(target=segmentar_imagem)
-    thread_segmentar.daemon
-    thread_segmentar.start()
-
-    # Espera thread terminar
-    thread_segmentar.join()
-    photo_image = CTkImage(imagem_segmentada, size = (w_img, h_img))
-    video_widget.configure(image=photo_image)
-
-    # Repetição do mesmo processo após 10 milisegundos
-    video_widget.after(10, Open_Camera)
-
-def Imagem_Video(e):
-    global w_img, h_img 
-
-    w_img = e.width - 50
-    h_img = e.height - 50
-
-    imagem_segmentada_resized = imagem_segmentada.resize((w_img, h_img), Image.LANCZOS)
-
-    photo_image = CTkImage(imagem_segmentada_resized, size = (w_img, h_img))
-    video_widget.configure(image=photo_image)
-
-
-    thread_res_cam = Thread(target=redefinir_res_cam)
-    thread_res_cam.daemon
-    thread_res_cam.start()
-
-def CriacaoGrafico(queueTempo, queueDados):
-
-    # Generating test values for the diameter and current time
-    numData = random.randrange(40, 80)
-    now = datetime.now()
-    current_time = now.strftime("%H:%M:%S")
-
-    # Manipulating the database
-    dbAdd(numData, current_time)
-    #dbShow()
-
-    # Calling the Line graph function to add onto the queues and generate the line graph image
-    LineGraph(numData, current_time, queueTempo, queueDados)
-
-    # Updating the line graph label every loop
-    LineGraphImage = CTkImage(Image.open('./imagens/graphDiametro.png'), size=(1300 * 0.7, 450 * 0.7))
-    LineGraphLabel.configure(image=LineGraphImage)
-
-    # Calling the gauge graph function to generate the gauge graph image
-    GaugeGraph(numData)
-
-    # Updating the gauge graph label every loop
-    GaugeGraphImage = CTkImage(Image.open('./imagens/gaugeDiametro.png'), size=(400 * 0.7, 250 * 0.7))
-    GaugeGraphLabel.configure(image=GaugeGraphImage)
-
-    # Chamando a função recursiva de segundo em segundo para rodar a função novamente e continuar atualizando o gráfico
-    GaugeGraphLabel.after(1000, CriacaoGrafico, queueTempo, queueDados)
-
-def GaugeGraph(numData):
-
-    # Colors for each of the zones in the graph
-    color = ["#ee3d55", "#ee3d55", "#fabd57" , "#fabd57", "#4dab6d", "#4dab6d", "#4dab6d", "#4dab6d", "#4dab6d"]
-
-    # Values displayed around the gauge graph from highest to lowest
-    values = [80, 75, 70, 65, 60, 55, 50, 45, 40]
-
-    # ALtering the color of the arrow pointer text depending on the diameter displayed
-    if numData < 60:
-        colorLevel = "#4dab6d"
-    elif numData >= 70:
-        colorLevel = "#ee3d55"
-    else:
-        colorLevel = "#fabd57"
-
-    # Calculating the angle of the arrow pointer to accurately display the value on the graph
-    xvalue = 3.465 - ((numData - 35) * 0.077)
-
-    # Setting plot size
-    fig = plt.figure(figsize=(4, 4))
-
-    # layout of the plot
-    axGauge = fig.add_subplot(projection="polar")
-    axGauge.bar(x = [0, 0.385, 0.77, 1.155, 1.54, 1.925, 2.31, 2.695], width=0.42, height=0.5, bottom=2, 
-          color=color, align="edge")
-
-    # Positioning the values in the graph
-    for loc, val in zip([0, 0.385, 0.77, 1.155, 1.54, 1.925, 2.31, 2.695, 3.08, 3,465], values):
-
-        # Aligning values depending on their angle
-        if val <= 55:
-            align = "right"
-        elif val == 60:
-            align = "center"
-        else:
-            align = "left"
-
-        plt.annotate(val, xy=(loc, 2.525), fontsize=15,  ha=f"{align}")
-
-    # Hiding the polar projection in the background
-    axGauge.set_axis_off()
-
-    # Creating the arrow pointer
-    axGauge.annotate(f"{numData}", xytext=(0,0), xy=(xvalue,2.0),
-                 arrowprops=dict(arrowstyle="wedge, tail_width= 0.5", color="black", shrinkA=0), 
-                 bbox = dict(boxstyle="circle", facecolor="black", linewidth=2,),
-                 fontsize=25, color =f"{colorLevel}", ha = "center"
-                )
-
-    # Saving the plot as an image
-    plt.savefig("imagens\gaugeDiametro.png")
-    # Getting the saved image into a variable to crop
-    img = cv2.imread('imagens\gaugeDiametro.png')
-    # Cropping the image
-    cropped_image = img[0:250, 0:400]
-    # Saving the cropped image
-    cv2.imwrite("imagens\gaugeDiametro.png", cropped_image)
-
-    # Closing the plot to avoid conflict
-    plt.close()
-
-def LineGraph(numData, current_time, queueTempo, queueDados):
-
-    # Adding the new data to the queues every loop
-    queueDados.append(numData) 
-    queueTempo.append(current_time)
-
-    # To run GUI event loops
-    figLineGraph = plt.figure(dpi=ORIGINAL_DPI)
-    figLineGraph.set_size_inches(9.2, 3.2)
-    ax = figLineGraph.add_subplot()
-    figLineGraph.autofmt_xdate()
-
-    # Making the plot with the data and setting the vertical(diameter) limit on the graph
-    ax.plot(list(queueTempo), list(queueDados))
-    ax.set_ylim(min(list(queueDados)) - 2, max(list(queueDados)) + 2)
-    ax.set_xlabel("Horas")
-    ax.set_ylabel("Diâmetro [mm]")
-
-    # Setting general fontsyle for pyplot
-    plt.rcParams['font.family'] = 'Eras Medium ITC'
-
-    # Saving the plot as an image
-    plt.savefig("imagens\graphDiametro.png")
-    # Getting the saved image into a variable to crop
-    img = cv2.imread('imagens\graphDiametro.png')
-    # Cropping the image
-    cropped_image = img[17:307, 0:815]
-    cropped_image = cropped_image[0:290, 60:815]
-    # Saving the cropped image
-    cv2.imwrite("imagens\graphDiametro.png", cropped_image)
-
-    # closing the plot to avoid conflict
-    plt.close()
-
-def redefinir_res_cam():
-    vid.set(cv2.CAP_PROP_FRAME_WIDTH, w_img * 2)
-    vid.set(cv2.CAP_PROP_FRAME_HEIGHT, h_img * 2)
-
 
 ############### Configurar a câmera para o seu uso
 #vid = ConfigurarCamera()
