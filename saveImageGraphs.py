@@ -44,10 +44,14 @@ def LineGraph(queueTempo, queueDados):
         x = list(queueTempo),
         y = list(queueDados)
     ))
-    fig = px.line(df, x="x", y="y", title='Medida Cascão')
+
+    fig = px.line(df, x="x", y="y", title='Medida Cascao', markers=True, template="seaborn")
+    fig.update_traces(line_color='#E0165C')
+
     fig_bytes = fig.to_image(format="png")
     buf = io.BytesIO(fig_bytes)
     img = Image.open(buf)
+
     return np.asarray(img)
 
     ## To run GUI event loops
@@ -77,11 +81,31 @@ def LineGraph(queueTempo, queueDados):
 
 def GaugeGraph(numData):
 
-    fig = go.Figure(go.Indicator(
+    if numData < 60:
+        colorLevel = "green"
+    elif numData >= 70:
+        colorLevel = "red"
+    else:
+        colorLevel = "yellow"
+
+    fig = go.Figure(go.Indicator(   
         mode = "gauge+number",
-        value = 270,
-        domain = {'x': [0, 1], 'y': [0, 1]},
-        title = {'text': "Speed"}
+        value = numData,
+        title = {'text': "Diametro", },
+        gauge = {
+            'axis': {'range': [40, 80], 'tickwidth': 1},
+            'bar': {'color': f"{colorLevel}"},
+            'steps': [
+                {'range': [0, 60], 'color': '#4dab6d'},
+                {'range': [60, 70], 'color': '#fabd57'},
+                {'range': [70, 80], 'color': '#ee3d55'}],
+
+            'threshold': {
+                'line': {'color': "darkred", 'width': 4},
+                'thickness': 0.75,
+                'value': 79}
+
+            }
     ))
 
     fig_bytes = fig.to_image(format="png")
