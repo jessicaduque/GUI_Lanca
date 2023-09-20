@@ -44,7 +44,8 @@ def LineGraph(queueTempo, queueDados):
         x = list(queueTempo),
         y = list(queueDados)
     ))
-    fig = px.line(df, x="x", y="y", title='Medida Cascão')
+    fig = px.line(df, x="x", y="y", title='Medida Cascão', markers=True, template="seaborn")
+    fig.update_traces(line_color='#E0165C'),
     fig_bytes = fig.to_image(format="png")
     buf = io.BytesIO(fig_bytes)
     img = Image.open(buf)
