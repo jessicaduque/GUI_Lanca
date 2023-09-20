@@ -117,13 +117,16 @@ class App(CTk):
 
         # Bind para resize de imagens caso tamanho da tela seja alterada
         self.frameLineGraph.bind("<Configure>", self.resize_image)
+        self.frameVideo.bind("<Configure>", self.resize_image)
 
     def resize_image(self, event):
         size = (event.width, event.height)
-        resized = self.original.resize(size, image.antialias)
-        self.image = imagetk.photoimage(resized)
-        self.display.delete("img")
-        self.display.create_image(0, 0, image=self.image, anchor=nw, tags="img")
+        #resized = self.original.resize(size, image.antialias)
+        #self.image = imagetk.photoimage(resized)
+        #pilimg = self.pirates.resize((new_width,new_height)) 
+        #self.homelbl.configure(image=customtkinter.CTkImage(pilimg))
+        #self.display.delete("img")
+        #self.display.create_image(0, 0, image=self.image, anchor=nw, tags="img")
 
     def update_image(self):
         try:

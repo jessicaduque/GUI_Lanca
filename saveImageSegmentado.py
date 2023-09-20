@@ -23,7 +23,6 @@ global model
 tamanho_imagem = (1920, 1080)
 
 
-####### PARA IGNORAR TEMPORARIAMENTE
 #SAVE IMAGE DATA IN PICKLE FILE TO BE USED BY THE DASH PROGRAM.
 def storeData(data, path): 
     # initializing data to be stored in db 
@@ -33,34 +32,7 @@ def storeData(data, path):
     # source, destination 
     pickle.dump(db, dbfile)         
     dbfile.close()
-   
-#STORE OUTPUT DATA IN CSV FILE.
-def storeCSV(arc):
-    dateTime = datetime.now()
-    dateTime2 = dateTime.strftime("%Y-%m-%d %H:%M:%S")
-    #PATH OF CSF TO BE SAVED
-    if(int(dateTime.day)>9):
-        if(int(dateTime.month)>9):
-            path = 'data/cam0'+str(arc)+'/'+str(dateTime.year)+'-'+str(dateTime.month)+'-'+str(dateTime.day)+'.csv'
-        else:
-            path = 'data/cam0'+str(arc)+'/'+str(dateTime.year)+'-0'+str(dateTime.month)+'-'+str(dateTime.day)+'.csv'
-    else:
-        if(int(dateTime.month)>9):
-            path = 'data/cam0'+str(arc)+'/'+str(dateTime.year)+'-'+str(dateTime.month)+'-0'+str(dateTime.day)+'.csv' 
-        else:
-            path = 'data/cam0'+str(arc)+'/'+str(dateTime.year)+'-0'+str(dateTime.month)+'-0'+str(dateTime.day)+'.csv' 
-    dataFile = open('./assets/dados/dadosPickle'+str(arc)+'.pkl', 'rb')
-    data = pickle.load(dataFile)
-    dataFile.close()
-    csvData = str(dateTime2)+' '+str(data)
-    # open the file in the write mode
-    f = open(path, 'a')
-    # write a row to the csv file
-    f.write(csvData+'\n')
-    # close the file
-    f.close()
-     
-
+ 
 def ImageProcess():
 
     model = YOLO("yolov8m-seg.pt")

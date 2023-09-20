@@ -29,6 +29,16 @@ global model
 #ORIGINAL_DPI = 96.09458128078816
 
 
+#SAVE IMAGE DATA IN PICKLE FILE TO BE USED BY THE DASH PROGRAM.
+def storeData(data, path): 
+    # initializing data to be stored in db 
+    db = (data)
+    # Its important to use binary mode 
+    dbfile = open(path, 'wb') 
+    # source, destination 
+    pickle.dump(db, dbfile)         
+    dbfile.close()
+
 def LineGraph(queueTempo, queueDados):
     df = pd.DataFrame(dict(
         x = list(queueTempo),
