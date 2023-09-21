@@ -112,7 +112,7 @@ class App(CTk):
 
         # Rodar métodos continuamente de atualização de imagem, segmentação e dos plots de gráficos
         self.update_image()
-        self.update_plots()
+        self.update_plot_gauge()
 
     # FEITO, MAS IMAGEM NÃO REDIMENSIONA
     def update_image(self):
@@ -136,7 +136,7 @@ class App(CTk):
             print(e)
         self.after(30, self.update_image)
 
-    def update_plots(self):
+    def update_plot_gauge(self):
         try:
             f = open('./dados_pickle/gaugeGraphPickle.pkl', 'rb')
             img_data_gauge_graph = pickle.load(f)
@@ -162,7 +162,7 @@ class App(CTk):
             self.LineGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
         except Exception as e:
             print(e)
-        self.after(1000, self.update_plots)
+        self.after(1000, self.update_plot_line)
     
 if __name__ == "__main__":
     ### Variables
