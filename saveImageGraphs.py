@@ -83,19 +83,14 @@ def LineGraph(queueTempo, queueDados):
     #return arr_lineimg
 
 def GaugeGraph(numData):
-<<<<<<< Updated upstream
 
     if numData < 60:
         colorLevel = "green"
     elif numData >= 70:
         colorLevel = "red"
     else:
-        colorLevel = "yellow"
-
-    fig = go.Figure(go.Indicator(   
-=======
+        colorLevel = "yellow"  
     fig = go.Figure(go.Indicator(
->>>>>>> Stashed changes
         mode = "gauge+number",
         value = numData,
         title = {'text': "Diametro", },
@@ -115,7 +110,7 @@ def GaugeGraph(numData):
             }
     ))
     
-    fig_bytes = fig.to_image(format="jpg")
+    fig_bytes = fig.to_image(format="png")
     buf = io.BytesIO(fig_bytes)
     img = Image.open(buf)
     return np.asarray(img)
@@ -185,17 +180,13 @@ def graphProcess():
 
     while True:
         try:
-            print("2")
             # Load pickled data
             with open('C:/Users/jojar/Documents/IC/GUI_Lanca/dados_pickle/dadosPickle.pkl', 'rb') as f:
                 dados = pickle.load(f)
-                print("3")
             with open('C:/Users/jojar/Documents/IC/GUI_Lanca/dados_pickle/horaPickle.pkl', 'rb') as f:
                 tempo = pickle.load(f)
-                print("4")
             with open('C:/Users/jojar/Documents/IC/GUI_Lanca/dados_pickle/dataPickle.pkl', 'rb') as f:
                 data = pickle.load(f)
-                print("5")
 
             ## ATUALIZAÇÃO
             ## Gerando imagem de gauge
@@ -207,13 +198,11 @@ def graphProcess():
             # Gerando imagem de line
             arr_lineimg = LineGraph(tempo, dados)
             storeData(arr_lineimg, 'C:/Users/jojar/Documents/IC/GUI_Lanca/dados_pickle/lineGraphPickle.pkl')
-            print("7")
             
             time.sleep(1)
             
         except Exception as e:
             print(e)
-            print("8")
             time.sleep(0.1)
 
 if __name__ == '__main__':

@@ -113,6 +113,7 @@ class App(CTk):
         # Rodar métodos continuamente de atualização de imagem, segmentação e dos plots de gráficos
         self.update_image()
         self.update_plot_gauge()
+        self.update_plot_line()
 
     # FEITO, MAS IMAGEM NÃO REDIMENSIONA
     def update_image(self):
