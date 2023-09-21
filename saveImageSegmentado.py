@@ -23,7 +23,6 @@ global model
 tamanho_imagem = (1920, 1080)
 
 
-####### PARA IGNORAR TEMPORARIAMENTE
 #SAVE IMAGE DATA IN PICKLE FILE TO BE USED BY THE DASH PROGRAM.
 def storeData(data, path): 
     # initializing data to be stored in db 
@@ -33,43 +32,15 @@ def storeData(data, path):
     # source, destination 
     pickle.dump(db, dbfile)         
     dbfile.close()
-   
-#STORE OUTPUT DATA IN CSV FILE.
-def storeCSV(arc):
-    dateTime = datetime.now()
-    dateTime2 = dateTime.strftime("%Y-%m-%d %H:%M:%S")
-    #PATH OF CSF TO BE SAVED
-    if(int(dateTime.day)>9):
-        if(int(dateTime.month)>9):
-            path = 'data/cam0'+str(arc)+'/'+str(dateTime.year)+'-'+str(dateTime.month)+'-'+str(dateTime.day)+'.csv'
-        else:
-            path = 'data/cam0'+str(arc)+'/'+str(dateTime.year)+'-0'+str(dateTime.month)+'-'+str(dateTime.day)+'.csv'
-    else:
-        if(int(dateTime.month)>9):
-            path = 'data/cam0'+str(arc)+'/'+str(dateTime.year)+'-'+str(dateTime.month)+'-0'+str(dateTime.day)+'.csv' 
-        else:
-            path = 'data/cam0'+str(arc)+'/'+str(dateTime.year)+'-0'+str(dateTime.month)+'-0'+str(dateTime.day)+'.csv' 
-    dataFile = open('./assets/dados/dadosPickle'+str(arc)+'.pkl', 'rb')
-    data = pickle.load(dataFile)
-    dataFile.close()
-    csvData = str(dateTime2)+' '+str(data)
-    # open the file in the write mode
-    f = open(path, 'a')
-    # write a row to the csv file
-    f.write(csvData+'\n')
-    # close the file
-    f.close()
-     
-
+ 
 def ImageProcess():
 
-    model = YOLO("yolov8m-seg.pt")
+    #model = YOLO("best.pt")
+    model = YOLO("yolov8n-seg.pt")
     model.conf = 0.45  # NMS confidence threshold
     model.iou = 0.65  # NMS IoU threshold
     model.agnostic = True  # NMS class-agnostic
-    model.max_det = 10  # maximum number of detections per image
     
-
     # Configure camera
     # Define a video capture object
     vid = cv2.VideoCapture(0, cv2.CAP_DSHOW)
@@ -82,6 +53,10 @@ def ImageProcess():
     queueDias = deque([], maxlen = 15)
     queueDados = deque([], maxlen = 15)
      
+    y, height, width = 200, 320, 640
+
+    jaCalibrou = False
+
     while True:
         try:
             # Captura do vídeo frame por frame
@@ -90,12 +65,47 @@ def ImageProcess():
             opencv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             # Captura do frame mais atual e transformação dela para imagem
             captured_image = Image.fromarray(opencv_image)
-            results = model(captured_image, verbose=False)
+            results = model(captured_image, verbose=False, max_det = 1)
+            
+            for result in results:
+                if(result.masks != None and jaCalibrou):
+                    print("entrou")
+                    mask = result.masks.data
+                    mask = mask.cpu()
+                    mask = np.squeeze(np.array(mask))
+                    npmask = np.count_nonzero(mask, axis=1)
+                    if mask.shape[0] > 200:
+                        tamanho = npmask[y]
+                        inicial = np.argmax(mask[y])
+                        height1, width1 = mask.shape
+                        imagem = results[0].plot(line_width=3, labels=0, boxes=1, probs=1)
+                        imagem = cv2.line(imagem, (inicial, y), ((inicial + tamanho), y), (0, 0, 255), 2)
+                        diametro = int(tamanho * tam)
+                        imagem = cv2.putText(imagem, (str(diametro) + ' cm'), (280, (y - 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 1, cv2.LINE_AA)
+                        imagem = cv2.resize(imagem, (1920, 1080))
+                elif(result.masks != None and jaCalibrou == False):
+                    print("calibracao!")
+                    mask2 = results[0].masks.data
+                    mask2 = mask2.cpu()
+                    mask2 = np.squeeze(np.array(mask2))
+                    npmask = np.count_nonzero(mask2, axis=1)
+                    tamanho = npmask[y]
+                    inicial = np.argmax(mask2[y])
+                    height1, width1 = mask2.shape
+                    calibracao = cv2.resize(opencv_image, (width1, height1))
+                    calibracao = cv2.line(calibracao, (inicial, y), ((inicial + tamanho), y), (0, 0, 255), 2)
+                    calibracao = cv2.putText(calibracao, '40 cm', (280, (y - 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 1, cv2.LINE_AA)
+                    tam = (int) (4 / (tamanho))
+                    jaCalibrou = True
+                else:
+                    print("ainda n")
+                    imagem = results[0].plot()
 
-            imagem_segmentada_plot = results[0].plot()
-            imagem_segmentada = Image.fromarray(cv2.cvtColor(imagem_segmentada_plot, cv2.COLOR_BGR2RGB))
+            img_array = imagem
+            #imagem_segmentada_plot = results[0].plot()
+            #imagem_segmentada = Image.fromarray(cv2.cvtColor(imagem_segmentada_plot, cv2.COLOR_BGR2RGB))
 
-            img_array = results[0].plot(line_width=3, labels=0, boxes=1, probs=1)
+            #img_array = results[0].plot(line_width=3, labels=0, boxes=1, probs=1)
             #img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
 
             ### CÓDIGO DOS MENINOS PARA RECONHECER DIÂMETRO DO CASCÃO E OBTER NÚMEROS

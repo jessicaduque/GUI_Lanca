@@ -115,7 +115,22 @@ class App(CTk):
         self.update_plot_gauge()
         self.update_plot_line()
 
-    # FEITO, MAS IMAGEM NÃO REDIMENSIONA
+        # Bind para resize de imagens caso tamanho da tela seja alterada
+        self.GaugeGraphLabel.bind("<Configure>", lambda event:self.resize_image(event, "Gauge"))
+        self.LineGraphLabel.bind("<Configure>", lambda event:self.resize_image(event, "Line"))
+        self.video_widget.bind("<Configure>", lambda event:self.resize_image(event, "Video"))
+
+    def resize_image(self, event, extra):
+        newSize = (event.width, event.height)
+        #if(extra == "Gauge"):
+        #    GaugeGraphImage = CTkImage(Image.open('./imagens/gaugeDiametro.png'),
+        #        size=newSize
+        #        )
+        #    self.GaugeGraphLabel = CTkLabel(self.frameGaugeGraph, image=GaugeGraphImage, text="")
+        #    self.GaugeGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
+
+
+
     def update_image(self):
         try:
             # Load pickled PIL image
@@ -161,6 +176,7 @@ class App(CTk):
             self.LineGraphImage = CTkImage(light_image=frameLineGraph, size=(400 * 0.7, 250 * 0.7))
             self.LineGraphLabel.configure(image=self.LineGraphImage)
             self.LineGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
+
         except Exception as e:
             print(e)
         self.after(1000, self.update_plot_line)
@@ -200,18 +216,3 @@ if __name__ == "__main__":
     # Protocolo para executar funcao on_closing ao clickar no X do app
     app.protocol("WM_DELETE_WINDOW", on_closing)
     app.mainloop()
-
-############### Configurar a câmera para o seu uso
-#vid = ConfigurarCamera()
-###cap = ConfigurarCamera()
-
-############### Função para abrir ativar câmera e encaixar ela no app
-#Open_Camera()
-
-############### Inicializacao das variaveis dos dados
-#queueTempo = deque([], maxlen = 15)
-#queueDados = deque([], maxlen = 15)
-#dbCreate()
-
-################ Chamada da função para atualzar as imagems dos graficos
-#CriacaoGrafico(queueTempo, queueDados)
