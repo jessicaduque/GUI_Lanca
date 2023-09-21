@@ -158,7 +158,7 @@ class App(CTk):
             img_data_gauge_graph = pickle.load(f)
             f.close()
             del f
-            frameGaugeGraph = Image.fromarray(img_data)
+            frameGaugeGraph = Image.fromarray(img_data_gauge_graph)
             self.GaugeGraphImage = CTkImage(light_image=frameGaugeGraph, size=(400 * 0.7, 250 * 0.7))
             self.GaugeGraphLabel.configure(image=self.GaugeGraphImage)
             self.GaugeGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
