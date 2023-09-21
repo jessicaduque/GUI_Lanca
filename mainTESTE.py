@@ -142,9 +142,13 @@ class App(CTk):
             img_data_gauge_graph = pickle.load(f)
             f.close()
             del f
+<<<<<<< Updated upstream
             img_data = cv2.cvtColor(img_data_gauge_graph, cv2.COLOR_BGR2RGB)
             frameGaugeGraph = Image.fromarray(img_data)
             del img_data
+=======
+            frameGaugeGraph = Image.fromarray(img_data_gauge_graph)
+>>>>>>> Stashed changes
             self.GaugeGraphImage = CTkImage(light_image=frameGaugeGraph, size=(400 * 0.7, 250 * 0.7))
             self.GaugeGraphLabel.configure(image=self.GaugeGraphImage)
             self.GaugeGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)

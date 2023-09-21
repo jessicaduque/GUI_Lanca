@@ -19,8 +19,11 @@ warnings.filterwarnings("ignore")
 
 import plotly.graph_objects as go
 import plotly.express as px
+import plotly.io as pio
 import io 
 import pandas as pd
+
+pio.kaleido.scope.mathjax = None
 
 gc.enable()
 global model
@@ -80,6 +83,7 @@ def LineGraph(queueTempo, queueDados):
     #return arr_lineimg
 
 def GaugeGraph(numData):
+<<<<<<< Updated upstream
 
     if numData < 60:
         colorLevel = "green"
@@ -89,6 +93,9 @@ def GaugeGraph(numData):
         colorLevel = "yellow"
 
     fig = go.Figure(go.Indicator(   
+=======
+    fig = go.Figure(go.Indicator(
+>>>>>>> Stashed changes
         mode = "gauge+number",
         value = numData,
         title = {'text': "Diametro", },
@@ -107,8 +114,8 @@ def GaugeGraph(numData):
 
             }
     ))
-
-    fig_bytes = fig.to_image(format="png")
+    
+    fig_bytes = fig.to_image(format="jpg")
     buf = io.BytesIO(fig_bytes)
     img = Image.open(buf)
     return np.asarray(img)
@@ -178,25 +185,35 @@ def graphProcess():
 
     while True:
         try:
+            print("2")
             # Load pickled data
-            with open('./dados_pickle/dadosPickle.pkl', 'rb') as f:
+            with open('C:/Users/jojar/Documents/IC/GUI_Lanca/dados_pickle/dadosPickle.pkl', 'rb') as f:
                 dados = pickle.load(f)
-            with open('./dados_pickle/horaPickle.pkl', 'rb') as f:
+                print("3")
+            with open('C:/Users/jojar/Documents/IC/GUI_Lanca/dados_pickle/horaPickle.pkl', 'rb') as f:
                 tempo = pickle.load(f)
-            with open('./dados_pickle/dataPickle.pkl', 'rb') as f:
+                print("4")
+            with open('C:/Users/jojar/Documents/IC/GUI_Lanca/dados_pickle/dataPickle.pkl', 'rb') as f:
                 data = pickle.load(f)
+                print("5")
+
             ## ATUALIZAÇÃO
             ## Gerando imagem de gauge
             arr_gaugeimg = GaugeGraph(dados)
-            storeData(arr_gaugeimg, './dados_pickle/gaugeGraphPickle.pkl')
+            cv2.imwrite('C:/Users/jojar/Documents/IC/GUI_Lanca/dados_pickle/img.png', arr_gaugeimg)
+            storeData(arr_gaugeimg, 'C:/Users/jojar/Documents/IC/GUI_Lanca/dados_pickle/gaugeGraphPickle.pkl')
+            print("6")
+
             # Gerando imagem de line
             arr_lineimg = LineGraph(tempo, dados)
-            storeData(arr_lineimg, './dados_pickle/lineGraphPickle.pkl')
+            storeData(arr_lineimg, 'C:/Users/jojar/Documents/IC/GUI_Lanca/dados_pickle/lineGraphPickle.pkl')
+            print("7")
             
             time.sleep(1)
             
         except Exception as e:
             print(e)
+            print("8")
             time.sleep(0.1)
 
 if __name__ == '__main__':
