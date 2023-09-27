@@ -69,7 +69,6 @@ def ImageProcess():
             
             for result in results:
                 if(result.masks != None and jaCalibrou):
-                    print("entrou")
                     mask = result.masks.data
                     mask = mask.cpu()
                     mask = np.squeeze(np.array(mask))
@@ -98,7 +97,6 @@ def ImageProcess():
                     tam = (int) (4 / (tamanho))
                     jaCalibrou = True
                 else:
-                    print("ainda n")
                     imagem = results[0].plot()
 
             img_array = imagem
