@@ -52,6 +52,8 @@ def ImageProcess():
     queueHoras = deque([], maxlen = 15)
     queueDias = deque([], maxlen = 15)
     queueDados = deque([], maxlen = 15)
+
+    time_matrix = []
      
     y, height, width = 200, 320, 640
 
@@ -128,16 +130,39 @@ def ImageProcess():
 
             ### CÓDIGO TEMPORÁRIO ALEATÓRIO ENQUANTO MENINOS NÃO TEM ALGORITMO
             # Dados
-            numData = random.randrange(40, 80)
-            queueDados.append(numData)
 
-            # Horário
+            numData = random.randrange(40, 80)
+
+            #### use a matrix with the values of just the second i want, upon changing append average of the values and reset the array
+
             now = datetime.now()
             current_time = now.strftime("%H:%M:%S")
             current_date = now.strftime("%D")
-            queueHoras.append(current_time)
-            queueDias.append(current_date)
 
+            if len(time_matrix) > 0:
+
+                if time_matrix[-1][1] != current_time:
+
+                    cont = int(0)
+                    media_diametro = int(0)
+
+                    for i in range(0, len(time_matrix)):
+
+                        media_diametro += time_matrix[i][0]
+                        cont += 1
+        
+                    media = media_diametro/cont
+                    print(f"media_diametro = {media_diametro}")
+                    print(f"cont = {cont}")
+                    print(f"media = {media}")
+
+                    queueDados.append(media)
+                    queueHoras.append(time_matrix[1][1])
+                    queueDias.append(current_date)
+
+                    time_matrix.clear()
+
+            time_matrix.append([numData, current_time])
             outputArrayTempoHora = np.array([])
             outputArrayTempoHora = np.append(outputArrayTempoHora, queueHoras)
 
@@ -146,6 +171,7 @@ def ImageProcess():
 
             outputArrayDados = np.array([])
             outputArrayDados = np.append(outputArrayDados, queueDados)
+
 
             storeData(img_array, './dados_pickle/framePickle.pkl')
             storeData(outputArrayDados, './dados_pickle/dadosPickle.pkl')

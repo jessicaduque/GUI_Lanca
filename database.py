@@ -50,9 +50,9 @@ while True:
                     horas = pickle.load(f)
                 hora = horas[-1]
 
-                with open('./dados_pickle/dataPickle.pkl', 'rb') as f:
-                    datas = pickle.load(f)
-                data = datas[-1]
+                #with open('./dados_pickle/dataPickle.pkl', 'rb') as f:
+                #    datas = pickle.load(f)
+                #data = datas[-1]
 
                 # Inserir os dados no banco de dados
                 dbAdd(diametro, data, hora)

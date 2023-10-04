@@ -137,26 +137,29 @@ class App(CTk):
 
         newSize = (event.width, event.height)
         if(extra == "Gauge"):
-            GaugeGraphImage = CTkImage(self.GaugeGraphImage.cget("light_image"),
-                size=newSize
+            self.GaugeGraphImage = CTkImage(light_image=self.GaugeGraphImage.cget("light_image").resize(newSize, Image.ANTIALIAS),
+                size = newSize
                 )
-            self.GaugeGraphLabel.configure(image = GaugeGraphImage)
-            self.GaugeGraphLabel.image = GaugeGraphImage
+            self.GaugeGraphLabel.configure(image = self.GaugeGraphImage)
+            self.GaugeGraphLabel.image = self.GaugeGraphImage
             self.GaugeGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
+            print("gauge: ", newSize)
         if(extra == "Line"):
-            LineGraphImage = CTkImage(self.LineGraphImage.cget("light_image"),
-                size=newSize
+            self.LineGraphImage = CTkImage(light_image=self.LineGraphImage.cget("light_image").resize(newSize, Image.ANTIALIAS),
+                size = newSize
                 )
-            self.LineGraphLabel.configure(image = LineGraphImage)
-            self.LineGraphLabel.image = LineGraphImage
+            self.LineGraphLabel.configure(image = self.LineGraphImage)
+            self.LineGraphLabel.image = self.LineGraphImage
             self.LineGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
-        #if(extra == "Video"):
-        #    imagem_video = CTkImage(self.imagem_video.cget("light_image"),
-        #        size=newSize
-        #        )
-        #    self.video_widget.configure(image = imagem_video)
-        #    #self.video_widget.pack(fill=BOTH, expand=True, padx=10, pady=10)
-
+            print("line", newSize)
+        if(extra == "Video: "):
+            self.imagem_video = CTkImage(light_image=self.imagem_video.cget("light_image").resize(newSize, Image.ANTIALIAS),
+                size = newSize
+                )
+            self.video_widget.configure(image = self.imagem_video)
+            self.video_widget.image = self.imagem_video
+            self.video_widget.pack(padx=10, pady=10, fill=BOTH, expand=True)
+            print("video: ", newSize)
 
 
     def update_image(self):
