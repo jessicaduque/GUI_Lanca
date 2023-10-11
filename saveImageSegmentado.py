@@ -29,6 +29,10 @@ tamanho_imagem = (1920, 1080)
 WIDHT, HEIGHT = pyautogui.size()
 Y, YX, WX = 200, int(200*(HEIGHT/384)), round(WIDHT/640, 2)
 
+diametroCM = 0
+
+
+
 #SAVE IMAGE DATA IN PICKLE FILE TO BE USED BY THE DASH PROGRAM.
 def storeData(data, path):
     # initializing data to be stored in db 
@@ -52,14 +56,17 @@ def calibracao(result, frame):
     return img
 
 def medicao(result, frame):
+    global diametroCM
+
     mask = result.masks.data
     mask = mask.cpu()
     if mask.shape[1] > 200:
         mask = np.squeeze(np.array(mask))[Y]
-        tamanho = int(np.count_nonzero(mask)*WX)
-        inicial = int(np.argmax(mask)*WX)
-        frameNovo = cv.line(frame, (inicial, YX), ((inicial + tamanho), YX), (0, 0, 255), 4)
-        frameNovo = cv.putText(frame, (str(int(tamanho * tam)) + ' cm'), (inicial, YX - 50), cv.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 2, cv.LINE_AA)
+        diametro = int(np.count_nonzero(mask)WX)
+        inicial = int(np.argmax(mask)WX)
+        diametroCM = int(diametro * tam)
+        frameNovo = cv.line(frame, (inicial, YX), ((inicial + diametro), YX), (0, 0, 255), 4)
+        frameNovo = cv.putText(frame, str(diametroCM) + ' cm', (inicial, YX - 50), cv.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 2, cv.LINE_AA)
         return frameNovo
     
 def ImageProcess():
@@ -121,6 +128,7 @@ def ImageProcess():
 
             now = datetime.now()
             current_time = now.strftime("%H:%M:%S")
+            current_date = now.strftime("%D")
 
             if len(time_matrix) > 0:
 
@@ -135,19 +143,22 @@ def ImageProcess():
                         cont += 1
         
                     media = float(f"{media_diametro/cont:.2f}")
-                    print(f"media_diametro = {media_diametro}")
-                    print(f"cont = {cont}")
-                    print(f"media = {media}")
+                    #print(f"media_diametro = {media_diametro}")
+                    #print(f"cont = {cont}")
+                    #print(f"media = {media}")
 
                     queueDados.append(media)
                     queueHoras.append(time_matrix[1][1])
-
+                    queueDias.append(current_date)
+                    print(queueDados)
+                    print(queueHoras)
                     time_matrix.clear()
 
-            time_matrix.append([numData, current_time])
+            time_matrix.append([diametroCM, current_time])
 
             outputArrayTempoHora = np.array([])
             outputArrayTempoHora = np.append(outputArrayTempoHora, queueHoras)
+
             outputArrayTempoData = np.array([])
             outputArrayTempoData = np.append(outputArrayTempoData, queueDias)
 
