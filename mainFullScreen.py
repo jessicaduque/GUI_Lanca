@@ -78,8 +78,8 @@ class App(CTk):
 
         self.framePrincipal.rowconfigure(0, weight=1)
         self.framePrincipal.rowconfigure(1, weight=1)
-        self.framePrincipal.columnconfigure(0, weight=1)
-        self.framePrincipal.columnconfigure(1, weight=0)
+        self.framePrincipal.columnconfigure(0, weight=2)
+        self.framePrincipal.columnconfigure(1, weight=1)
 
         # Configure top widgets
         self.frameVideo = CTkFrame(self.framePrincipal, fg_color="#a4a8ad", corner_radius=15)

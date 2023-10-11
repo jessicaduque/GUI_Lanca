@@ -8,10 +8,11 @@ import _pickle as pickle
 from numpy import asarray
 from PIL import Image
 import numpy as np
+import pyautogui
 import warnings
 import random
 import time
-import cv2
+import cv2 as cv
 import gc
 
 import platform
@@ -25,6 +26,8 @@ gc.enable()
 global model
 # Resize para salvar imagens
 tamanho_imagem = (1920, 1080)
+WIDHT, HEIGHT = pyautogui.size()
+Y, YX, WX = 200, int(200*(HEIGHT/384)), round(WIDHT/640, 2)
 
 #SAVE IMAGE DATA IN PICKLE FILE TO BE USED BY THE DASH PROGRAM.
 def storeData(data, path):
@@ -36,6 +39,29 @@ def storeData(data, path):
     pickle.dump(db, dbfile)         
     dbfile.close()
  
+def calibracao(result, frame):
+    global tam
+    mask = result.masks.data
+    mask = mask.cpu()
+    mask = np.squeeze(np.array(mask))[Y]
+    tamanho = int(np.count_nonzero(mask)*WX)
+    inicial = int(np.argmax(mask)*WX)
+    tam = round(40 / (tamanho), 2)
+    img = cv.line(frame, (inicial, YX), ((inicial + tamanho), YX), (0, 0, 255), 4)
+    img = cv.putText(img, '40 cm', (560, (YX - 40)), cv.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 2, cv.LINE_AA)
+    return img
+
+def medicao(result, frame):
+    mask = result.masks.data
+    mask = mask.cpu()
+    if mask.shape[1] > 200:
+        mask = np.squeeze(np.array(mask))[Y]
+        tamanho = int(np.count_nonzero(mask)*WX)
+        inicial = int(np.argmax(mask)*WX)
+        frameNovo = cv.line(frame, (inicial, YX), ((inicial + tamanho), YX), (0, 0, 255), 4)
+        frameNovo = cv.putText(frame, (str(int(tamanho * tam)) + ' cm'), (inicial, YX - 50), cv.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 2, cv.LINE_AA)
+        return frameNovo
+    
 def ImageProcess():
 
     #model = YOLO("best.pt")
@@ -46,109 +72,48 @@ def ImageProcess():
     
     # Configure camera
     # Define a video capture object
-    vid = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+    vid = cv.VideoCapture(0, cv.CAP_DSHOW)
   
     # Set the width and height
-    vid.set(cv2.CAP_PROP_FRAME_WIDTH, tamanho_imagem[0])
-    vid.set(cv2.CAP_PROP_FRAME_HEIGHT, tamanho_imagem[1])
+    vid.set(cv.CAP_PROP_FRAME_WIDTH, tamanho_imagem[0])
+    vid.set(cv.CAP_PROP_FRAME_HEIGHT, tamanho_imagem[1])
 
     queueHoras = deque([], maxlen = 20)
     queueDados = deque([], maxlen = 20)
     queueDias = deque([], maxlen = 20)
     time_matrix = []
 
-
-    y, height, width = 200, 320, 640
-
     jaCalibrou = False
+    
     while True:
         try:
             # Captura do vídeo frame por frame
             _, frame = vid.read()
+
             # Conversão de imagem de uma espaço de cores para o outro
-            opencv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            #opencv_image = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
+            
+            frameNovo = cv.resize(frame, (WIDHT, HEIGHT))
             # Captura do frame mais atual e transformação dela para imagem
-            captured_image = Image.fromarray(opencv_image)
+            captured_image = Image.fromarray(frameNovo)
+
             results = model(captured_image, verbose=False, max_det = 1)
             
             for result in results:
                 if(result.masks != None and jaCalibrou):
-                    print("entrou")
-                    mask = result.masks.data
-                    mask = mask.cpu()
-                    mask = np.squeeze(np.array(mask))
-                    npmask = np.count_nonzero(mask, axis=1)
-                    if mask.shape[0] > 200:
-                        tamanho = npmask[y]
-                        inicial = np.argmax(mask[y])
-                        height1, width1 = mask.shape
-                        imagem = results[0].plot(line_width=3, labels=0, boxes=1, probs=1)
-                        imagem = cv2.line(imagem, (inicial, y), ((inicial + tamanho), y), (0, 0, 255), 2)
-                        diametro = int(tamanho * tam)
-                        imagem = cv2.putText(imagem, (str(diametro) + ' cm'), (280, (y - 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 1, cv2.LINE_AA)
-                        imagem = cv2.resize(imagem, (1920, 1080))
+                    imagem = medicao(result, frameNovo)
                 elif(result.masks != None and jaCalibrou == False):
-                    print("calibracao!")
-                    mask2 = results[0].masks.data
-                    mask2 = mask2.cpu()
-                    mask2 = np.squeeze(np.array(mask2))
-                    npmask = np.count_nonzero(mask2, axis=1)
-                    tamanho = npmask[y]
-                    inicial = np.argmax(mask2[y])
-                    height1, width1 = mask2.shape
-                    calibracao = cv2.resize(opencv_image, (width1, height1))
-                    calibracao = cv2.line(calibracao, (inicial, y), ((inicial + tamanho), y), (0, 0, 255), 2)
-                    calibracao = cv2.putText(calibracao, '40 cm', (280, (y - 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 1, cv2.LINE_AA)
-                    tam = (int) (4 / (tamanho))
+                    print("Reconheceu e calibrou!")
+                    imagem = calibracao(result, frameNovo)
                     jaCalibrou = True
                 else:
-                    print("ainda n")
+                    print("Não reconheceu nada")
                     imagem = results[0].plot()
 
             img_array = imagem
-            #imagem_segmentada_plot = results[0].plot()
-            #imagem_segmentada = Image.fromarray(cv2.cvtColor(imagem_segmentada_plot, cv2.COLOR_BGR2RGB))
 
-            #img_array = results[0].plot(line_width=3, labels=0, boxes=1, probs=1)
-            #img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
 
-            ### CÓDIGO DOS MENINOS PARA RECONHECER DIÂMETRO DO CASCÃO E OBTER NÚMEROS
-            #try:
-            #    xyxy = results[0].boxes.xyxy.cpu()
-            #    print(xyxy.shape[0])
-            #    outputArray = np.array([])
-            #    outputArray = np.append(outputArray, distancia)
-            #    if(xyxy.shape[0]>=1):
-            #        cv2.imwrite('./saved-images/'+str(datetime.now().strftime("%Y-%m-%d-%H-%M-%S"))+'.jpg', color_image, [cv2.IMWRITE_JPEG_QUALITY, 60])
-            #        print("Objeto detectado!")
-            #    for i in range(xyxy.shape[0]):
-            #        c1, c2 = (int(xyxy[i,0]), int(xyxy[i,1])), (int(xyxy[i,2]), int(xyxy[i,3]))
-            #        diametro_pixel =(((int(xyxy[i,2])-int(xyxy[i,0]))+(int(xyxy[i,3])-int(xyxy[i,1])))/2)
-            #        diametro_mm = diametro_pixel
-            #        cv2.putText(img_array, str(round(diametro_mm, 1)), (int((c1[0]+c2[0])/2)-20, int((c1[1]+c2[1])/2)+5), cv2.FONT_HERSHEY_SIMPLEX, 0.5,(255,255,255), thickness=1, lineType=cv2.LINE_AA)
-            #        outputArray = np.append(outputArray, diametro_mm)
-            #    print("N de detecções: ", outputArray.size-1)
-            #except Exception as e:
-            #    print(e)
-            #    outputArray = 0
-
-            #count = int(1)
-            #media_diametro = queueDados[0]
-
-            #for i in range(0, queueHoras):
-       
-            #    if queueHoras[i] == queueHoras[i - 1]:
-            #        media_diametro += queueDados[i]
-            #        count += 1
-
-            #    if queueHoras[i] != queueHoras[i - 1]:
-
-            #        queueHorasFinal.append(queueHoras[i - 1])
-            #        queueDadosFinal.append(media_diametro/count)
-            #        count = 0
-
-            ### CÓDIGO TEMPORÁRIO ALEATÓRIO ENQUANTO MENINOS NÃO TEM ALGORITMO
-            # Dados
+           # Dados
 
             numData = random.randrange(40, 80)
 
