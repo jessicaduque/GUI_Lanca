@@ -7,20 +7,21 @@ from numpy import asarray
 from PIL import Image
 import numpy as np
 import warnings
+import time
+import gc
+
 import platform
 import random
 import torch
-import time
 import math
 import csv
 import cv2
-import gc
-warnings.filterwarnings("ignore")
 
 import plotly.graph_objects as go
 import plotly.express as px
 import io 
 import pandas as pd
+warnings.filterwarnings("ignore")
 
 gc.enable()
 global model
@@ -39,27 +40,148 @@ def storeData(data, path):
     pickle.dump(db, dbfile)         
     dbfile.close()
 
+## dados
+#queuehoras = deque([], maxlen = 15)
+#queuedias = deque([], maxlen = 15)
+#queuedados = deque([], maxlen = 15)
+     
+#numdata = random.randrange(40, 80)
+#queuedados.append(numdata)
+
+
+## horário
+#now = datetime.now()
+#current_time = now.strftime("%h:%m:%s")
+#current_date = now.strftime("%d")
+#queuehoras.append(current_time)
+#queuedias.append(current_date)
+
+#outputarraytempohora = np.array([])
+#outputarraytempohora = np.append(outputarraytempohora, queuehoras)
+
+#outputarraytempodata = np.array([])
+#outputarraytempodata = np.append(outputarraytempodata, queuedias)
+
+#outputarraydados = np.array([])
+#outputarraydados = np.append(outputarraydados, queuedados)
+
+#storedata(outputarraydados, './dados_pickle/dadospickle.pkl')
+#storedata(outputarraytempohora, './dados_pickle/horapickle.pkl')
+#storedata(outputarraytempodata, './dados_pickle/datapickle.pkl')
+
+
 def LineGraph(queueTempo, queueDados):
+
     df = pd.DataFrame(dict(
         x = list(queueTempo),
         y = list(queueDados)
     ))
-    fig = px.line(df, x="x", y="y", title='Medida Cascão', markers=True, template="seaborn")
+    fig = px.line(df, x="x", y="y", text="y", markers=True, template="seaborn", 
+                  labels = dict(x = "Horário", y = "Diâmetro (mm)"))
+
+    fig.update_layout(paper_bgcolor = "#a4a8ad")
+
+    fig.update_xaxes(
+        mirror=True,
+        ticks='outside',
+        showline=True,
+        linecolor='black',
+        gridcolor='lightgrey'
+    )
+
+    fig.update_yaxes(
+        mirror=True,
+        ticks='outside',
+        showline=True,
+        linecolor='black',
+        gridcolor='lightgrey'
+    )
+
     fig.update_traces(line_color='#E0165C'),
-    fig_bytes = fig.to_image(format="png")
+
+    fig_bytes = fig.to_image(format="png", width=1000, height=400)
     buf = io.BytesIO(fig_bytes)
     img = Image.open(buf)
     return np.asarray(img)
 
+#def LineGraph(queueTempo, queueDados):
+
+#    fig = go.figure(data=go.Scatter(x=queueTempo, y=queueDados))
+#    fig.show()
+#    fig.update_traces(line_color='#E0165C'),
+#    fig_bytes = fig.to_image(format="png", width=800, height=400)
+#    buf = io.BytesIO(fig_bytes)
+#    img = Image.open(buf)
+
+#    return np.asarray(img)
+
 
 def GaugeGraph(numData):
 
-    fig = go.Figure(go.Indicator(
-        mode = "gauge+number",
-        value = 270,
-        domain = {'x': [0, 1], 'y': [0, 1]},
-        title = {'text': "Speed"}
-    ))
+    if numData < 60:
+        colorLevel = "#4dab6d"
+    elif numData >= 70:
+        colorLevel = "#ee3d55"
+    else:
+        colorLevel = "#fabd57"
+
+    fig = go.Figure(
+
+        go.Indicator(
+            mode = "gauge+number",
+            value = numData,
+            domain = {'x': [0, 1], 'y': [0, 1]},
+            title = {'text': "Diametro"},
+            gauge = {
+
+                    'axis': {'range': [40, 80], 'tickwidth': 1},
+
+                    'bar': {'color': f"{colorLevel}"},
+
+                    'steps': [
+                        {'range': [40, 60], 'color': 'white'},
+                        {'range': [60, 70], 'color': 'white'},
+                        {'range': [70, 80], 'color': 'white'}],
+
+                    'threshold': {
+                        'line': {'color': "red", 'width': 4},
+                        'thickness': 0.75,
+                        'value': 79}
+
+                    }
+        )
+    )
+    fig.update_layout(
+        paper_bgcolor='#a4a8ad',
+
+        shapes=[go.layout.Shape(
+        fillcolor = '#EAEAF2',
+        layer='below',
+        type='rect',
+        xref='paper',
+        yref='paper',
+        x0=-0.1,
+        y0=-0.1,
+        x1=1.1,
+        y1=1.1,
+        line={'width': 1, 'color': 'black'}
+        )]
+    )
+
+    fig.update_xaxes(
+        mirror=True,
+        ticks='outside',
+        showline=True,
+        linecolor='black',
+    )
+
+    fig.update_yaxes(
+        mirror=True,
+        ticks='outside',
+        showline=True,
+        linecolor='black',
+    )
+
 
     fig_bytes = fig.to_image(format="png")
     buf = io.BytesIO(fig_bytes)
@@ -79,15 +201,16 @@ def graphProcess():
                 tempo = pickle.load(f)
             with open('./dados_pickle/dataPickle.pkl', 'rb') as f:
                 data = pickle.load(f)
-            ## ATUALIZAÇÃO
-            ## Gerando imagem de gauge
-            arr_gaugeimg = GaugeGraph(dados)
-            storeData(arr_gaugeimg, './dados_pickle/gaugeGraphPickle.pkl')
-            # Gerando imagem de line
+
+            ## UPDATES
+
+            # Plotting images
+            arr_gaugeimg = GaugeGraph(dados[-1])
             arr_lineimg = LineGraph(tempo, dados)
+
+            # Storing images in pickle files
+            storeData(arr_gaugeimg, './dados_pickle/gaugeGraphPickle.pkl')
             storeData(arr_lineimg, './dados_pickle/lineGraphPickle.pkl')
-            
-            time.sleep(1)
             
         except Exception as e:
             print(e)

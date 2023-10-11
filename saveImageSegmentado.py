@@ -1,20 +1,24 @@
 from multiprocessing import Process
 from datetime import datetime
+from threading import Timer
 from collections import deque
 from ultralytics import YOLO
+from threading import Timer
 import _pickle as pickle
 from numpy import asarray
 from PIL import Image
 import numpy as np
 import warnings
-import platform
 import random
-import torch
 import time
-import math
-import csv
 import cv2
 import gc
+
+import platform
+import torch
+import math
+import csv
+
 warnings.filterwarnings("ignore")
 
 gc.enable()
@@ -22,9 +26,8 @@ global model
 # Resize para salvar imagens
 tamanho_imagem = (1920, 1080)
 
-
 #SAVE IMAGE DATA IN PICKLE FILE TO BE USED BY THE DASH PROGRAM.
-def storeData(data, path): 
+def storeData(data, path):
     # initializing data to be stored in db 
     db = (data)
     # Its important to use binary mode 
@@ -49,14 +52,15 @@ def ImageProcess():
     vid.set(cv2.CAP_PROP_FRAME_WIDTH, tamanho_imagem[0])
     vid.set(cv2.CAP_PROP_FRAME_HEIGHT, tamanho_imagem[1])
 
-    queueHoras = deque([], maxlen = 15)
-    queueDias = deque([], maxlen = 15)
-    queueDados = deque([], maxlen = 15)
-     
+    queueHoras = deque([], maxlen = 20)
+    queueDados = deque([], maxlen = 20)
+    queueDias = deque([], maxlen = 20)
+    time_matrix = []
+
+
     y, height, width = 200, 320, 640
 
     jaCalibrou = False
-
     while True:
         try:
             # Captura do vídeo frame por frame
@@ -128,21 +132,57 @@ def ImageProcess():
             #    print(e)
             #    outputArray = 0
 
+            #count = int(1)
+            #media_diametro = queueDados[0]
+
+            #for i in range(0, queueHoras):
+       
+            #    if queueHoras[i] == queueHoras[i - 1]:
+            #        media_diametro += queueDados[i]
+            #        count += 1
+
+            #    if queueHoras[i] != queueHoras[i - 1]:
+
+            #        queueHorasFinal.append(queueHoras[i - 1])
+            #        queueDadosFinal.append(media_diametro/count)
+            #        count = 0
+
             ### CÓDIGO TEMPORÁRIO ALEATÓRIO ENQUANTO MENINOS NÃO TEM ALGORITMO
             # Dados
-            numData = random.randrange(40, 80)
-            queueDados.append(numData)
 
-            # Horário
+            numData = random.randrange(40, 80)
+
+            #### use a matrix with the values of just the second i want, upon changing append average of the values and reset the array
+
             now = datetime.now()
             current_time = now.strftime("%H:%M:%S")
-            current_date = now.strftime("%D")
-            queueHoras.append(current_time)
-            queueDias.append(current_date)
+
+            if len(time_matrix) > 0:
+
+                if time_matrix[-1][1] != current_time:
+
+                    cont = int(0)
+                    media_diametro = int(0)
+
+                    for i in range(0, len(time_matrix)):
+
+                        media_diametro += time_matrix[i][0]
+                        cont += 1
+        
+                    media = float(f"{media_diametro/cont:.2f}")
+                    print(f"media_diametro = {media_diametro}")
+                    print(f"cont = {cont}")
+                    print(f"media = {media}")
+
+                    queueDados.append(media)
+                    queueHoras.append(time_matrix[1][1])
+
+                    time_matrix.clear()
+
+            time_matrix.append([numData, current_time])
 
             outputArrayTempoHora = np.array([])
             outputArrayTempoHora = np.append(outputArrayTempoHora, queueHoras)
-
             outputArrayTempoData = np.array([])
             outputArrayTempoData = np.append(outputArrayTempoData, queueDias)
 
@@ -153,6 +193,7 @@ def ImageProcess():
             storeData(outputArrayDados, './dados_pickle/dadosPickle.pkl')
             storeData(outputArrayTempoHora, './dados_pickle/horaPickle.pkl')
             storeData(outputArrayTempoData, './dados_pickle/dataPickle.pkl')
+
         except Exception as e:
             print(e)
             time.sleep(0.015)

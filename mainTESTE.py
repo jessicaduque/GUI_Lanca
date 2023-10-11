@@ -1,21 +1,19 @@
 import tkinter as tk
 from customtkinter import *
 import signal
-from matplotlib.backends.backend_tkagg import (
-    FigureCanvasTkAgg, NavigationToolbar2Tk)
-from matplotlib.figure import Figure
-import matplotlib.pyplot as plt
+#from matplotlib.backends.backend_tkagg import (
+#    FigureCanvasTkAgg, NavigationToolbar2Tk)
+#from matplotlib.figure import Figure
+#import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 from PIL import Image, ImageTk
 from collections import deque
 from ultralytics import YOLO
 import _pickle as pickle
 import subprocess
-import random
 import ctypes
 import cv2
-plt.style.use("seaborn-v0_8-whitegrid")
-
+import random
 
 class App(CTk):
     def __init__(self):
@@ -105,7 +103,7 @@ class App(CTk):
         self.frameLineGraph.grid(row=1, columnspan=2, padx=30, pady=(0, 10), sticky='nsew')
 
         LineGraphImage = CTkImage(Image.open('./imagens/graphDiametro.png'),
-                                 size=(400 * 0.7, 250 * 0.7)
+                                 size=(400 * 0.7, 250* 0.7)
                                  )
         self.LineGraphLabel = CTkLabel(self.frameLineGraph, image=LineGraphImage, text="")
         self.LineGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
@@ -159,7 +157,7 @@ class App(CTk):
             f.close()
             del f
             frameGaugeGraph = Image.fromarray(img_data_gauge_graph)
-            self.GaugeGraphImage = CTkImage(light_image=frameGaugeGraph, size=(400 * 0.7, 250 * 0.7))
+            self.GaugeGraphImage = CTkImage(light_image=frameGaugeGraph, size=(400 * 0.7, 300 * 0.7))
             self.GaugeGraphLabel.configure(image=self.GaugeGraphImage)
             self.GaugeGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
         except Exception as e:
@@ -173,7 +171,7 @@ class App(CTk):
             f.close()
             del f
             frameLineGraph = Image.fromarray(img_data_line_graph)
-            self.LineGraphImage = CTkImage(light_image=frameLineGraph, size=(400 * 0.7, 250 * 0.7))
+            self.LineGraphImage = CTkImage(light_image=frameLineGraph, size=(900, 400))
             self.LineGraphLabel.configure(image=self.LineGraphImage)
             self.LineGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
