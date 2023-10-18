@@ -21,14 +21,27 @@ import plotly.graph_objects as go
 import plotly.express as px
 import io 
 import pandas as pd
+
+from winsound import Beep
+
 warnings.filterwarnings("ignore")
 
 gc.enable()
-global model
-# Resize para salvar imagens
-#tamanho_imagem = (1920, 1080)
-#ORIGINAL_DPI = 96.09458128078816
 
+maiorDiametro = 0
+
+notes = {'C': 1635,
+         'D': 1835,
+         'E': 2060,
+         'S': 1945,
+         'F': 2183,
+         'G': 2450,
+         'A': 2750,
+         'B': 3087,
+         ' ': 37}
+
+
+melodie = 'CDEFG G AAAAG AAAAG FFFFE E DDDDC'
 
 #SAVE IMAGE DATA IN PICKLE FILE TO BE USED BY THE DASH PROGRAM.
 def storeData(data, path): 
@@ -39,36 +52,6 @@ def storeData(data, path):
     # source, destination 
     pickle.dump(db, dbfile)         
     dbfile.close()
-
-## dados
-#queuehoras = deque([], maxlen = 15)
-#queuedias = deque([], maxlen = 15)
-#queuedados = deque([], maxlen = 15)
-     
-#numdata = random.randrange(40, 80)
-#queuedados.append(numdata)
-
-
-## horário
-#now = datetime.now()
-#current_time = now.strftime("%h:%m:%s")
-#current_date = now.strftime("%d")
-#queuehoras.append(current_time)
-#queuedias.append(current_date)
-
-#outputarraytempohora = np.array([])
-#outputarraytempohora = np.append(outputarraytempohora, queuehoras)
-
-#outputarraytempodata = np.array([])
-#outputarraytempodata = np.append(outputarraytempodata, queuedias)
-
-#outputarraydados = np.array([])
-#outputarraydados = np.append(outputarraydados, queuedados)
-
-#storedata(outputarraydados, './dados_pickle/dadospickle.pkl')
-#storedata(outputarraytempohora, './dados_pickle/horapickle.pkl')
-#storedata(outputarraytempodata, './dados_pickle/datapickle.pkl')
-
 
 def LineGraph(queueTempo, queueDados):
 
@@ -103,18 +86,6 @@ def LineGraph(queueTempo, queueDados):
     buf = io.BytesIO(fig_bytes)
     img = Image.open(buf)
     return np.asarray(img)
-
-#def LineGraph(queueTempo, queueDados):
-
-#    fig = go.figure(data=go.Scatter(x=queueTempo, y=queueDados))
-#    fig.show()
-#    fig.update_traces(line_color='#E0165C'),
-#    fig_bytes = fig.to_image(format="png", width=800, height=400)
-#    buf = io.BytesIO(fig_bytes)
-#    img = Image.open(buf)
-
-#    return np.asarray(img)
-
 
 def GaugeGraph(numData):
 
@@ -191,6 +162,7 @@ def GaugeGraph(numData):
 
     
 def graphProcess(): 
+    global maiorDiametro
 
     while True:
         try:
@@ -205,7 +177,14 @@ def graphProcess():
             ## UPDATES
 
             # Plotting images
-            arr_gaugeimg = GaugeGraph(dados[-1])
+            if(len(dados) > 0):
+                if(dados[-1] > maiorDiametro):
+                    maiorDiametro = dados[-1] 
+                    arr_gaugeimg = GaugeGraph(maiorDiametro)
+                    if(dados[-1] > 80):
+                        for note in melodie:
+                            Beep(notes[note], 100)
+
             arr_lineimg = LineGraph(tempo, dados)
 
             # Storing images in pickle files

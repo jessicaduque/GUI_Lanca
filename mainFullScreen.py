@@ -1,10 +1,6 @@
 import tkinter as tk
 from customtkinter import *
 import signal
-#from matplotlib.backends.backend_tkagg import (
-#    FigureCanvasTkAgg, NavigationToolbar2Tk)
-#from matplotlib.figure import Figure
-#import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 from PIL import Image, ImageTk
 from collections import deque
@@ -27,7 +23,7 @@ class App(CTk):
 
         ##### Configure window
         self.title("DashMedidor")
-        self.geometry(f"{APP_WIDTH}x{APP_HEIGHT}+{int(x)}+{int(y)}")
+        self.geometry(f"{screen_width}x{screen_height}")
         self.minsize(1000, 720)
         self.resizable(1, 1)
 
