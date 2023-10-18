@@ -4,12 +4,15 @@ from datetime import datetime
 import time
 import _pickle as pickle
 
+print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
 # Adicionando valores na tabela cascao
 def dbAdd(numData, current_date, current_time):
+    print("11111111111111111111111111")
     cursor.execute(f"INSERT INTO cascao (id_convertedor, id_lanca, diametro, data, horario) VALUES({1}, {1}, {numData}, '{current_date}', '{current_time}')")   
     conn.commit()
 
 def dbShow():
+    print("222222222222222222222222222")
     cursor.execute("SELECT rowid, * FROM cascao")
 
     results = cursor.fetchall()
@@ -36,6 +39,7 @@ while True:
         horario TIME)"""
 
         cursor.execute(create_table)
+
         conn.commit()
 
         # Loop para realizar a medição e salvar os dados no banco de dados
@@ -44,17 +48,16 @@ while True:
                 #Load pickled data
                 with open('./dados_pickle/dadosPickle.pkl', 'rb') as f:
                     dados = pickle.load(f)
-                diametro = dados[0]
+                diametro = dados[-1]
 
                 with open('./dados_pickle/horaPickle.pkl', 'rb') as f:
                     horas = pickle.load(f)
                 hora = horas[-1]
-
                 with open('./dados_pickle/dataPickle.pkl', 'rb') as f:
                     datas = pickle.load(f)
                 data = datas[-1]
-
                 # Inserir os dados no banco de dados
+                
                 dbAdd(diametro, data, hora)
                 
                 #print("Dados atuais gravados no database. Tam_med: ", tam_med)

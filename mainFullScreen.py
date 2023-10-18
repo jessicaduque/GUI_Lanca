@@ -138,7 +138,7 @@ class App(CTk):
             frame = Image.fromarray(img_data)
             #img_data = None
             del img_data
-            self.imagem_video = CTkImage(light_image=frame, size=(840, 450))
+            self.imagem_video = CTkImage(light_image=frame, size=(840, 420))
             self.video_widget.configure(image=self.imagem_video)
             self.video_widget.pack(padx=10, pady=10, fill=BOTH, expand=True)
 
@@ -167,7 +167,7 @@ class App(CTk):
             f.close()
             del f
             frameLineGraph = Image.fromarray(img_data_line_graph)
-            self.LineGraphImage = CTkImage(light_image=frameLineGraph, size=(1300, 400))
+            self.LineGraphImage = CTkImage(light_image=frameLineGraph, size=(1300, 350))
             self.LineGraphLabel.configure(image=self.LineGraphImage)
             self.LineGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
