@@ -1,21 +1,19 @@
 import tkinter as tk
 from customtkinter import *
 import signal
-from matplotlib.backends.backend_tkagg import (
-    FigureCanvasTkAgg, NavigationToolbar2Tk)
-from matplotlib.figure import Figure
-import matplotlib.pyplot as plt
+#from matplotlib.backends.backend_tkagg import (
+#    FigureCanvasTkAgg, NavigationToolbar2Tk)
+#from matplotlib.figure import Figure
+#import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 from PIL import Image, ImageTk
 from collections import deque
 from ultralytics import YOLO
 import _pickle as pickle
 import subprocess
-import random
 import ctypes
 import cv2
-plt.style.use("seaborn-v0_8-whitegrid")
-
+import random
 
 class App(CTk):
     def __init__(self):
@@ -81,36 +79,33 @@ class App(CTk):
         self.framePrincipal.rowconfigure(0, weight=1)
         self.framePrincipal.rowconfigure(1, weight=1)
         self.framePrincipal.columnconfigure(0, weight=1)
-        self.framePrincipal.columnconfigure(1, weight=1)
+        self.framePrincipal.columnconfigure(1, weight=0)
 
         # Configure top widgets
         self.frameVideo = CTkFrame(self.framePrincipal, fg_color="#a4a8ad", corner_radius=15)
         self.frameVideo.grid(row=0, column=0, padx=(30, 10), pady=(10, 10), sticky='nsew')
-        self.frameVideo.pack_propagate(False)
-
-        self.imagem_video = CTkImage(light_image=Image.open('./imagens/Oficinas4-0_logo.png'))
-        self.video_widget = CTkLabel(self.frameVideo, image=self.imagem_video, text="", bg_color="red")
+        
+        imagem_video = CTkImage(light_image=Image.open('./imagens/Oficinas4-0_logo.png'))
+        self.video_widget = CTkLabel(self.frameVideo, image=imagem_video, text="")
         self.video_widget.pack(padx=10, pady=10, fill=BOTH, expand=True)
 
         self.frameGaugeGraph = CTkFrame(self.framePrincipal, fg_color="#a4a8ad", corner_radius=15)
         self.frameGaugeGraph.grid(row=0, column=1, padx=(0, 30), pady=(10, 10), sticky='nsew')
-        self.frameGaugeGraph.pack_propagate(False)
 
-        self.GaugeGraphImage = CTkImage(light_image=Image.open('./imagens/gaugeDiametro.png'),
+        GaugeGraphImage = CTkImage(Image.open('./imagens/gaugeDiametro.png'),
                                   size=(400 * 0.7, 250 * 0.7)
                                    )
-        self.GaugeGraphLabel = CTkLabel(self.frameGaugeGraph, image=self.GaugeGraphImage, text="", bg_color="red")
+        self.GaugeGraphLabel = CTkLabel(self.frameGaugeGraph, image=GaugeGraphImage, text="")
         self.GaugeGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
         # Configure bottom widgets
         self.frameLineGraph = CTkFrame(self.framePrincipal, fg_color="#a4a8ad", corner_radius=15)
-        self.frameLineGraph.grid(row=1, column=0, columnspan=2, padx=30, pady=(0, 10), sticky='nsew')
-        self.frameLineGraph.pack_propagate(False)
+        self.frameLineGraph.grid(row=1, columnspan=2, padx=30, pady=(0, 10), sticky='nsew')
 
-        self.LineGraphImage = CTkImage(light_image=Image.open('./imagens/graphDiametro.png'),
-                                 size=(400 * 0.7, 250 * 0.7)
+        LineGraphImage = CTkImage(Image.open('./imagens/graphDiametro.png'),
+                                 size=(400 * 0.7, 250* 0.7)
                                  )
-        self.LineGraphLabel = CTkLabel(self.frameLineGraph, image=self.LineGraphImage, text="", bg_color="red")
+        self.LineGraphLabel = CTkLabel(self.frameLineGraph, image=LineGraphImage, text="")
         self.LineGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
         # Rodar métodos continuamente de atualização de imagem, segmentação e dos plots de gráficos
@@ -122,44 +117,16 @@ class App(CTk):
         self.GaugeGraphLabel.bind("<Configure>", lambda event:self.resize_image(event, "Gauge"))
         self.LineGraphLabel.bind("<Configure>", lambda event:self.resize_image(event, "Line"))
         self.video_widget.bind("<Configure>", lambda event:self.resize_image(event, "Video"))
-     
 
     def resize_image(self, event, extra):
-    #def resize_image(self, event):
-        #print(self.GaugeGraphLabel.winfo_width())
-
-        #GaugeGraphImage = CTkImage(self.GaugeGraphImage.cget("light_image"),
-        #        size=(self.GaugeGraphLabel.winfo_width(), self.GaugeGraphLabel.winfo_height())
-        #        )
-        #self.GaugeGraphLabel.configure(image = GaugeGraphImage)
-        #self.GaugeGraphLabel.image = GaugeGraphImage
-        #self.GaugeGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
-
         newSize = (event.width, event.height)
-        if(extra == "Gauge"):
-            self.GaugeGraphImage = CTkImage(light_image=self.GaugeGraphImage.cget("light_image").resize(newSize, Image.ANTIALIAS),
-                size = newSize
-                )
-            self.GaugeGraphLabel.configure(image = self.GaugeGraphImage)
-            self.GaugeGraphLabel.image = self.GaugeGraphImage
-            self.GaugeGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
-            print("gauge: ", newSize)
-        if(extra == "Line"):
-            self.LineGraphImage = CTkImage(light_image=self.LineGraphImage.cget("light_image").resize(newSize, Image.ANTIALIAS),
-                size = newSize
-                )
-            self.LineGraphLabel.configure(image = self.LineGraphImage)
-            self.LineGraphLabel.image = self.LineGraphImage
-            self.LineGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
-            print("line", newSize)
-        if(extra == "Video: "):
-            self.imagem_video = CTkImage(light_image=self.imagem_video.cget("light_image").resize(newSize, Image.ANTIALIAS),
-                size = newSize
-                )
-            self.video_widget.configure(image = self.imagem_video)
-            self.video_widget.image = self.imagem_video
-            self.video_widget.pack(padx=10, pady=10, fill=BOTH, expand=True)
-            print("video: ", newSize)
+        #if(extra == "Gauge"):
+        #    GaugeGraphImage = CTkImage(Image.open('./imagens/gaugeDiametro.png'),
+        #        size=newSize
+        #        )
+        #    self.GaugeGraphLabel = CTkLabel(self.frameGaugeGraph, image=GaugeGraphImage, text="")
+        #    self.GaugeGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
+
 
 
     def update_image(self):
@@ -190,9 +157,8 @@ class App(CTk):
             f.close()
             del f
             frameGaugeGraph = Image.fromarray(img_data_gauge_graph)
-            GaugeGraphImage = CTkImage(light_image=frameGaugeGraph, size=self.GaugeGraphImage.cget("size"))
-            self.GaugeGraphLabel.configure(image=GaugeGraphImage)
-            self.GaugeGraphLabel.image = GaugeGraphImage
+            self.GaugeGraphImage = CTkImage(light_image=frameGaugeGraph, size=(400 * 0.7, 300 * 0.7))
+            self.GaugeGraphLabel.configure(image=self.GaugeGraphImage)
             self.GaugeGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
         except Exception as e:
             print(e)
@@ -205,9 +171,8 @@ class App(CTk):
             f.close()
             del f
             frameLineGraph = Image.fromarray(img_data_line_graph)
-            LineGraphImage = CTkImage(light_image=frameLineGraph, size=self.LineGraphImage.cget("size"))
-            self.LineGraphLabel.configure(LineGraphImage)
-            self.GaugeGraphLabel.image = LineGraphImage
+            self.LineGraphImage = CTkImage(light_image=frameLineGraph, size=(900, 400))
+            self.LineGraphLabel.configure(image=self.LineGraphImage)
             self.LineGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
         except Exception as e:
@@ -223,7 +188,6 @@ if __name__ == "__main__":
     w_img, h_img = 30, 30
 
     app = App()
-
     processSalvarImageGraphs = subprocess.Popen(['python', 'saveImageGraphs.py'], stdout=None, stderr=None)
     processSalvarImageSegmentado = subprocess.Popen(['python', 'saveImageSegmentado.py'], stdout=None, stderr=None)
     processDataBase = subprocess.Popen(['python', 'database.py'], stdout=None, stderr=None)
