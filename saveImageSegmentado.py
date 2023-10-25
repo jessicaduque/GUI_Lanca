@@ -98,21 +98,24 @@ def ImageProcess():
             #opencv_image = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
             
             frameNovo = cv.resize(frame, (WIDHT, HEIGHT))
+            
             # Captura do frame mais atual e transformação dela para imagem
             captured_image = Image.fromarray(frameNovo)
 
             results = model(captured_image, verbose=False, max_det = 1)
             
-            for result in results:
-                if(result.masks != None and jaCalibrou):
-                    imagem = medicao(result, frameNovo)
-                elif(result.masks != None and jaCalibrou == False):
-                    print("Reconheceu e calibrou!")
-                    imagem = calibracao(result, frameNovo)
-                    jaCalibrou = True
-                else:
-                    print("Não reconheceu nada")
-                    imagem = results[0].plot()
+
+            if(results != None):
+                for result in results:
+                    frameNovo = result.plot()
+                    if(result.masks != None and jaCalibrou):
+                        imagem = medicao(result, frameNovo)
+                    elif(result.masks != None and jaCalibrou == False):
+                        print("Reconheceu e calibrou!")
+                        imagem = calibracao(result, frameNovo)
+                        jaCalibrou = True
+            else:
+                imagem = captured_image
 
             img_array = imagem
 
