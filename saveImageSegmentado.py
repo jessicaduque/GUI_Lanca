@@ -121,6 +121,7 @@ def ImageProcess():
 
             now = datetime.now()
             current_time = now.strftime("%H:%M:%S")
+            current_date = now.strftime("%D")
 
             if len(time_matrix) > 0:
 
@@ -141,6 +142,7 @@ def ImageProcess():
 
                     queueDados.append(media)
                     queueHoras.append(time_matrix[1][1])
+                    queueDias.append(current_date)
 
                     time_matrix.clear()
 

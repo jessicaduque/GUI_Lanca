@@ -10,6 +10,7 @@ import subprocess
 import ctypes
 import cv2
 import random
+import os
 
 class App(CTk):
     def __init__(self):
@@ -18,13 +19,15 @@ class App(CTk):
         screen_width = self.winfo_screenwidth()
         screen_height = self.winfo_screenheight()
 
-        x = (screen_width - APP_WIDTH ) / 2
-        y = (screen_height - APP_HEIGHT ) / 2
+        #x = (screen_width - APP_WIDTH ) / 2
+        #y = (screen_height - APP_HEIGHT ) / 2
 
         ##### Configure window
         self.title("DashMedidor")
-        self.geometry(f"{screen_width}x{screen_height}")
-        self.minsize(1000, 720)
+        #self.overrideredirect(True)
+        self.geometry("{0}x{1}+0+0".format(screen_width, screen_height))
+        #self.wm_attributes('-fullscreen', True)
+        self.minsize(screen_width, screen_height)
         self.resizable(1, 1)
 
         ##### Interface creation
@@ -81,15 +84,18 @@ class App(CTk):
         self.frameVideo = CTkFrame(self.framePrincipal, fg_color="#a4a8ad", corner_radius=15)
         self.frameVideo.grid(row=0, column=0, padx=(30, 10), pady=(10, 10), sticky='nsew')
         
-        imagem_video = CTkImage(light_image=Image.open('./imagens/Oficinas4-0_logo.png'))
+        imagem_video = CTkImage(light_image=Image.open('./imagens/IFES_logo.png'), size=(300 * 0.7, 250 * 0.7))
         self.video_widget = CTkLabel(self.frameVideo, image=imagem_video, text="")
         self.video_widget.pack(padx=10, pady=10, fill=BOTH, expand=True)
 
         self.frameGaugeGraph = CTkFrame(self.framePrincipal, fg_color="#a4a8ad", corner_radius=15)
         self.frameGaugeGraph.grid(row=0, column=1, padx=(0, 30), pady=(10, 10), sticky='nsew')
 
-        GaugeGraphImage = CTkImage(Image.open('./imagens/gaugeDiametro.png'),
-                                  size=(400 * 0.7, 250 * 0.7)
+        self.button = CTkButton(self.frameGaugeGraph, text="RESET MAIOR DIAMETRO", width=240, text_color="black", hover_color="#bdc3c9", border_width=2, border_color="black", fg_color='white', command=self.button_event_reset_diametro_gauge)
+        self.button.pack(pady=(20,0), anchor='s')
+
+        GaugeGraphImage = CTkImage(Image.open('./imagens/IFES_logo.png'),
+                                  size=(300 * 0.7, 250 * 0.7)
                                    )
         self.GaugeGraphLabel = CTkLabel(self.frameGaugeGraph, image=GaugeGraphImage, text="")
         self.GaugeGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
@@ -98,8 +104,8 @@ class App(CTk):
         self.frameLineGraph = CTkFrame(self.framePrincipal, fg_color="#a4a8ad", corner_radius=15)
         self.frameLineGraph.grid(row=1, columnspan=2, padx=30, pady=(0, 10), sticky='nsew')
 
-        LineGraphImage = CTkImage(Image.open('./imagens/graphDiametro.png'),
-                                 size=(2000 * 0.7, 250* 0.7)
+        LineGraphImage = CTkImage(Image.open('./imagens/IFES_horizontal_logo.png'),
+                                 size=(800 * 0.7, 250* 0.7)
                                  )
         self.LineGraphLabel = CTkLabel(self.frameLineGraph, image=LineGraphImage, text="")
         self.LineGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
@@ -114,6 +120,10 @@ class App(CTk):
         self.LineGraphLabel.bind("<Configure>", lambda event:self.resize_image(event, "Line"))
         self.video_widget.bind("<Configure>", lambda event:self.resize_image(event, "Video"))
 
+
+    def button_event_reset_diametro_gauge(self):
+        print("button!!")
+    
     def resize_image(self, event, extra):
         newSize = (event.width, event.height)
         #if(extra == "Gauge"):
@@ -121,9 +131,7 @@ class App(CTk):
         #        size=newSize
         #        )
         #    self.GaugeGraphLabel = CTkLabel(self.frameGaugeGraph, image=GaugeGraphImage, text="")
-        #    self.GaugeGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
-
-
+        #    self.GaugeGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
     def update_image(self):
         try:
@@ -187,7 +195,6 @@ if __name__ == "__main__":
     processSalvarImageGraphs = subprocess.Popen(['python', 'saveImageGraphs.py'], stdout=None, stderr=None)
     processSalvarImageSegmentado = subprocess.Popen(['python', 'saveImageSegmentado.py'], stdout=None, stderr=None)
     processDataBase = subprocess.Popen(['python', 'database.py'], stdout=None, stderr=None)
-
     
     ctypes.windll.shcore.SetProcessDpiAwareness(2)
 

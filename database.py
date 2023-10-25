@@ -4,7 +4,6 @@ from datetime import datetime
 import time
 import _pickle as pickle
 
-print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
 # Adicionando valores na tabela cascao
 def dbAdd(numData, current_date, current_time):
     print("11111111111111111111111111")
@@ -59,8 +58,6 @@ while True:
                 # Inserir os dados no banco de dados
                 
                 dbAdd(diametro, data, hora)
-                
-                #print("Dados atuais gravados no database. Tam_med: ", tam_med)
                 
                 # Aguardar um segundo antes da próxima leitura
                 time.sleep(1)

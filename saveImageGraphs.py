@@ -29,6 +29,8 @@ warnings.filterwarnings("ignore")
 gc.enable()
 
 maiorDiametro = 0
+font = "Raleway"
+print("kasjdkasjdkasjdkasj")
 
 notes = {'C': 1635,
          'D': 1835,
@@ -62,7 +64,10 @@ def LineGraph(queueTempo, queueDados):
     fig = px.line(df, x="x", y="y", text="y", markers=True, template="seaborn", 
                   labels = dict(x = "Horário", y = "Diâmetro (mm)"))
 
-    fig.update_layout(paper_bgcolor = "#a4a8ad")
+    fig.update_layout(
+        paper_bgcolor = "#a4a8ad", 
+        font_family = f"{font}"
+    )
 
     fig.update_xaxes(
         mirror=True,
@@ -88,6 +93,7 @@ def LineGraph(queueTempo, queueDados):
     return np.asarray(img)
 
 def GaugeGraph(numData):
+
 
     if numData < 60:
         colorLevel = "#4dab6d"
@@ -122,8 +128,14 @@ def GaugeGraph(numData):
                     }
         )
     )
+    fig.update_traces(
+        gauge_axis_tickfont = {
+            'size': 15
+        }
+    )
     fig.update_layout(
         paper_bgcolor='#a4a8ad',
+        font_family = f"{font}",
 
         shapes=[go.layout.Shape(
         fillcolor = '#EAEAF2',
@@ -179,11 +191,13 @@ def graphProcess():
             # Plotting images
             if(len(dados) > 0):
                 if(dados[-1] > maiorDiametro):
+
                     maiorDiametro = dados[-1] 
                     arr_gaugeimg = GaugeGraph(maiorDiametro)
-                    if(dados[-1] > 80):
+
+                    if(dados[-1] >= 80):
                         for note in melodie:
-                            Beep(notes[note], 100)
+                            Beep(notes[note], 200)
 
             arr_lineimg = LineGraph(tempo, dados)
 
