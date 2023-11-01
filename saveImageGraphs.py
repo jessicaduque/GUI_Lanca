@@ -30,20 +30,6 @@ gc.enable()
 
 maiorDiametro = 0
 font = "Raleway"
-print("kasjdkasjdkasjdkasj")
-
-notes = {'C': 1635,
-         'D': 1835,
-         'E': 2060,
-         'S': 1945,
-         'F': 2183,
-         'G': 2450,
-         'A': 2750,
-         'B': 3087,
-         ' ': 37}
-
-
-melodie = 'CDEFG G AAAAG AAAAG FFFFE E DDDDC'
 
 #SAVE IMAGE DATA IN PICKLE FILE TO BE USED BY THE DASH PROGRAM.
 def storeData(data, path): 
@@ -171,7 +157,6 @@ def GaugeGraph(numData):
     img = Image.open(buf)
     return np.asarray(img)
 
-
     
 def graphProcess(): 
     global maiorDiametro
@@ -195,9 +180,6 @@ def graphProcess():
                     maiorDiametro = dados[-1] 
                     arr_gaugeimg = GaugeGraph(maiorDiametro)
 
-                    if(dados[-1] >= 80):
-                        for note in melodie:
-                            Beep(notes[note], 200)
 
             arr_lineimg = LineGraph(tempo, dados)
 

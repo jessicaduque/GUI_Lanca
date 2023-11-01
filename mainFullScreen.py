@@ -11,6 +11,7 @@ import ctypes
 import cv2
 import random
 import os
+import manageSubprocess
 
 class App(CTk):
     def __init__(self):
@@ -122,8 +123,13 @@ class App(CTk):
 
 
     def button_event_reset_diametro_gauge(self):
-        print("button!!")
-    
+        manageSubprocess.KillSubprocess_All()
+        processDone = manageSubprocess.ChecarSubprocessesDone()
+        while(not processDone):
+            processDone = manageSubprocess.ChecarSubprocessesDone()
+        manageSubprocess.StartSubprocess_All()
+
+
     def resize_image(self, event, extra):
         newSize = (event.width, event.height)
         #if(extra == "Gauge"):
@@ -140,7 +146,6 @@ class App(CTk):
             img_data = pickle.load(f)
             f.close()
             del f
-            # Convert RGB image to BGR image
             img_data = cv2.cvtColor(img_data, cv2.COLOR_BGR2RGB)
             # Convert numpy array to PIL image
             frame = Image.fromarray(img_data)
@@ -190,26 +195,29 @@ if __name__ == "__main__":
     APP_WIDTH = 1000
     APP_HEIGHT = 720
     w_img, h_img = 30, 30
-
     app = App()
-    processSalvarImageGraphs = subprocess.Popen(['python', 'saveImageGraphs.py'], stdout=None, stderr=None)
-    processSalvarImageSegmentado = subprocess.Popen(['python', 'saveImageSegmentado.py'], stdout=None, stderr=None)
-    processDataBase = subprocess.Popen(['python', 'database.py'], stdout=None, stderr=None)
-    
+    #processSalvarImageGraphs = subprocess.Popen(['python', 'saveImageGraphs.py'], stdout=None, stderr=None)
+    #processSalvarImageSegmentado = subprocess.Popen(['python', 'saveImageSegmentado.py'], stdout=None, stderr=None)
+    #processDataBase = subprocess.Popen(['python', 'database.py'], stdout=None, stderr=None)
+    manageSubprocess.StartSubprocess_All()    
     ctypes.windll.shcore.SetProcessDpiAwareness(2)
 
     def on_closing():# Parando o subprocess de imagens ao fechar o app
-        os.kill(processSalvarImageGraphs.pid, signal.SIGTERM)
-        os.kill(processSalvarImageSegmentado.pid, signal.SIGTERM)
-        os.kill(processDataBase.pid, signal.SIGTERM)
+        try:
+            manageSubprocess.KillSubprocess_All()  
+        except Exception as e:
+            print(e)
 
-        # Deletando os arquivos pickle ao fechar o app
-        os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/dadosPickle.pkl'))
-        os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/dataPickle.pkl'))
-        os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/horaPickle.pkl'))
-        os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/framePickle.pkl'))
-        os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/gaugeGraphPickle.pkl'))
-        os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/lineGraphPickle.pkl'))
+        try:
+            # Deletando os arquivos pickle ao fechar o app
+            os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/dadosPickle.pkl'))
+            os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/dataPickle.pkl'))
+            os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/horaPickle.pkl'))
+            os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/framePickle.pkl'))
+            os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/gaugeGraphPickle.pkl'))
+            os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/lineGraphPickle.pkl'))
+        except Exception as e:
+            print(e)
 
         # Deletando a janela do app
         app.destroy()

@@ -6,12 +6,10 @@ import _pickle as pickle
 
 # Adicionando valores na tabela cascao
 def dbAdd(numData, current_date, current_time):
-    print("11111111111111111111111111")
     cursor.execute(f"INSERT INTO cascao (id_convertedor, id_lanca, diametro, data, horario) VALUES({1}, {1}, {numData}, '{current_date}', '{current_time}')")   
     conn.commit()
 
 def dbShow():
-    print("222222222222222222222222222")
     cursor.execute("SELECT rowid, * FROM cascao")
 
     results = cursor.fetchall()

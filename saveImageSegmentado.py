@@ -95,9 +95,9 @@ def ImageProcess():
             _, frame = vid.read()
 
             # Conversão de imagem de uma espaço de cores para o outro
-            #opencv_image = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
+            opencv_image = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
             
-            frameNovo = cv.resize(frame, (WIDHT, HEIGHT))
+            frameNovo = cv.resize(opencv_image, (WIDHT, HEIGHT))
             
             # Captura do frame mais atual e transformação dela para imagem
             captured_image = Image.fromarray(frameNovo)
