@@ -1,7 +1,6 @@
 from multiprocessing import Process
 from datetime import datetime
 from collections import deque
-from ultralytics import YOLO
 import _pickle as pickle
 from numpy import asarray
 from PIL import Image
@@ -168,15 +167,16 @@ def graphProcess():
                 dados = pickle.load(f)
             with open('./dados_pickle/horaPickle.pkl', 'rb') as f:
                 tempo = pickle.load(f)
-            with open('./dados_pickle/dataPickle.pkl', 'rb') as f:
-                data = pickle.load(f)
 
             ## UPDATES
 
-            # Plotting images
-            if(len(dados) > 0):
-                if(dados[-1] > maiorDiametro):
 
+            arr_gaugeimg = np.array([])
+
+            # Plotting images
+            if(np.any(dados)):
+                if(dados[-1] > maiorDiametro):
+                    print("dados -1: " + dados[-1])
                     maiorDiametro = dados[-1] 
                     arr_gaugeimg = GaugeGraph(maiorDiametro)
 

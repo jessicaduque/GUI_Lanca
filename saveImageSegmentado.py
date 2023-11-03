@@ -111,7 +111,6 @@ def ImageProcess():
                     if(result.masks != None and jaCalibrou):
                         imagem = medicao(result, frameNovo)
                     elif(result.masks != None and jaCalibrou == False):
-                        print("Reconheceu e calibrou!")
                         imagem = calibracao(result, frameNovo)
                         jaCalibrou = True
             else:

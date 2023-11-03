@@ -92,15 +92,17 @@ class App(CTk):
         self.frameGaugeGraph = CTkFrame(self.framePrincipal, fg_color="#a4a8ad", corner_radius=15)
         self.frameGaugeGraph.grid(row=0, column=1, padx=(0, 30), pady=(10, 10), sticky='nsew')
 
-        self.button = CTkButton(self.frameGaugeGraph, text="RESET MAIOR DIAMETRO", width=240, text_color="black", hover_color="#bdc3c9", border_width=2, border_color="black", fg_color='white', command=self.button_event_reset_diametro_gauge)
-        self.button.pack(pady=(20,0), anchor='s')
-
         GaugeGraphImage = CTkImage(Image.open('./imagens/IFES_logo.png'),
                                   size=(300 * 0.7, 250 * 0.7)
                                    )
-        self.GaugeGraphLabel = CTkLabel(self.frameGaugeGraph, image=GaugeGraphImage, text="")
-        self.GaugeGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
+        self.button = CTkButton(self.frameGaugeGraph, text="PARAR APITO", width=240, text_color="black", hover_color="#bdc3c9", border_width=2, border_color="black", fg_color='white', command=self.button_event_reset_diametro_gauge)
+        self.button.pack(pady=(0,20), anchor='s')
+
+
+        self.GaugeGraphLabel = CTkLabel(self.frameGaugeGraph, image=GaugeGraphImage, text="")
+        self.GaugeGraphLabel.pack(padx=10, pady=10, anchor='n')
+       
         # Configure bottom widgets
         self.frameLineGraph = CTkFrame(self.framePrincipal, fg_color="#a4a8ad", corner_radius=15)
         self.frameLineGraph.grid(row=1, columnspan=2, padx=30, pady=(0, 10), sticky='nsew')
@@ -124,9 +126,22 @@ class App(CTk):
 
     def button_event_reset_diametro_gauge(self):
         manageSubprocess.KillSubprocess_All()
+
+        self.GaugeGraphLabel.configure(image=GaugeGraphImage) 
+        self.GaugeGraphLabel.image = GaugeGraphImage
+
+        self.LineGraphLabel.configure(image=LineGraphImage) 
+        self.LineGraphImage.image = self.LineGraphImage
+
+        self.video_widget.configure(image=self.imagem_video) 
+        self.video_widget.image = imagem_video
+
+
         processDone = manageSubprocess.ChecarSubprocessesDone()
         while(not processDone):
             processDone = manageSubprocess.ChecarSubprocessesDone()
+            time.sleep(1)
+
         manageSubprocess.StartSubprocess_All()
 
 
@@ -157,7 +172,8 @@ class App(CTk):
 
         except Exception as e:
             print(e)
-        self.after(30, self.update_image)
+        finally:
+            self.after(30, self.update_image)
 
     def update_plot_gauge(self):
         try:
@@ -171,7 +187,8 @@ class App(CTk):
             self.GaugeGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
         except Exception as e:
             print(e)
-        self.after(1000, self.update_plot_gauge)
+        finally:
+            self.after(1000, self.update_plot_gauge)
 
     def update_plot_line(self):
         try:
@@ -183,10 +200,10 @@ class App(CTk):
             self.LineGraphImage = CTkImage(light_image=frameLineGraph, size=(1300, 350))
             self.LineGraphLabel.configure(image=self.LineGraphImage)
             self.LineGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
-
         except Exception as e:
             print(e)
-        self.after(1000, self.update_plot_line)
+        finally:
+            self.after(1000, self.update_plot_line)
     
 if __name__ == "__main__":
     ### Variables
@@ -195,29 +212,46 @@ if __name__ == "__main__":
     APP_WIDTH = 1000
     APP_HEIGHT = 720
     w_img, h_img = 30, 30
-    app = App()
-    #processSalvarImageGraphs = subprocess.Popen(['python', 'saveImageGraphs.py'], stdout=None, stderr=None)
-    #processSalvarImageSegmentado = subprocess.Popen(['python', 'saveImageSegmentado.py'], stdout=None, stderr=None)
-    #processDataBase = subprocess.Popen(['python', 'database.py'], stdout=None, stderr=None)
     manageSubprocess.StartSubprocess_All()    
+    app = App()
     ctypes.windll.shcore.SetProcessDpiAwareness(2)
 
-    def on_closing():# Parando o subprocess de imagens ao fechar o app
+    def on_closing():
         try:
             manageSubprocess.KillSubprocess_All()  
         except Exception as e:
             print(e)
 
         try:
-            # Deletando os arquivos pickle ao fechar o app
             os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/dadosPickle.pkl'))
-            os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/dataPickle.pkl'))
-            os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/horaPickle.pkl'))
-            os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/framePickle.pkl'))
-            os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/gaugeGraphPickle.pkl'))
-            os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/lineGraphPickle.pkl'))
         except Exception as e:
             print(e)
+
+        try:
+            os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/dataPickle.pkl'))
+        except Exception as e:
+            print(e)
+
+        try:
+            os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/horaPickle.pkl'))
+        except Exception as e:
+            print(e)
+
+        try:
+            os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/framePickle.pkl'))
+        except Exception as e:
+            print(e)
+        try:
+            os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/gaugeGraphPickle.pkl'))
+        except Exception as e:
+            print(e)   
+          
+        try:
+            os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/lineGraphPickle.pkl'))
+        except Exception as e:
+            print(e)   
+        
+        print("Chegou aqui")
 
         # Deletando a janela do app
         app.destroy()
