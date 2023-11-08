@@ -212,8 +212,8 @@ if __name__ == "__main__":
     APP_WIDTH = 1000
     APP_HEIGHT = 720
     w_img, h_img = 30, 30
-    manageSubprocess.StartSubprocess_All()    
     app = App()
+    manageSubprocess.StartSubprocess_All()   
     ctypes.windll.shcore.SetProcessDpiAwareness(2)
 
     def on_closing():
@@ -250,8 +250,6 @@ if __name__ == "__main__":
             os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/lineGraphPickle.pkl'))
         except Exception as e:
             print(e)   
-        
-        print("Chegou aqui")
 
         # Deletando a janela do app
         app.destroy()
