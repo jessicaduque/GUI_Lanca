@@ -127,14 +127,14 @@ class App(CTk):
     def button_event_reset_diametro_gauge(self):
         manageSubprocess.KillSubprocess_All()
 
-        self.GaugeGraphLabel.configure(image=GaugeGraphImage) 
-        self.GaugeGraphLabel.image = GaugeGraphImage
+        #self.GaugeGraphLabel.configure(image=GaugeGraphImage) 
+        #self.GaugeGraphLabel.image = GaugeGraphImage
 
-        self.LineGraphLabel.configure(image=LineGraphImage) 
-        self.LineGraphImage.image = self.LineGraphImage
+        #self.LineGraphLabel.configure(image=LineGraphImage) 
+        #self.LineGraphImage.image = self.LineGraphImage
 
-        self.video_widget.configure(image=self.imagem_video) 
-        self.video_widget.image = imagem_video
+        #self.video_widget.configure(image=self.imagem_video) 
+        #self.video_widget.image = imagem_video
 
 
         processDone = manageSubprocess.ChecarSubprocessesDone()

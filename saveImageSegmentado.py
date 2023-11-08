@@ -20,6 +20,8 @@ import torch
 import math
 import csv
 
+import mainFullScreen
+
 warnings.filterwarnings("ignore")
 
 gc.enable()
@@ -27,8 +29,9 @@ global model
 # Resize para salvar imagens
 tamanho_imagem = (1920, 1080)
 diametroCM = 0
-WIDHT, HEIGHT = pyautogui.size()
-Y, YX, WX = 200, int(200*(HEIGHT/384)), round(WIDHT/640, 2)
+WIDTH, HEIGHT = pyautogui.size()
+
+Y, YX, HX, WX = 300, int(200*(HEIGHT/384)), round((HEIGHT/384), 3), round((WIDTH/640), 3)
 
 #SAVE IMAGE DATA IN PICKLE FILE TO BE USED BY THE DASH PROGRAM.
 def storeData(data, path):
@@ -55,16 +58,41 @@ def calibracao(result, frame):
 def medicao(result, frame):
     global diametroCM
 
-    mask = result.masks.data
-    mask = mask.cpu()
-    if mask.shape[1] > 200:
-        mask = np.squeeze(np.array(mask))[Y]
-        diametro = int(np.count_nonzero(mask)*WX)
-        inicial = int(np.argmax(mask)*WX)
-        diametroCM = int(diametro * tam)
-        frameNovo = cv.line(frame, (inicial, YX), ((inicial + diametro), YX), (0, 0, 255), 4)
-        frameNovo = cv.putText(frame, str(diametroCM) + ' cm', (inicial, YX - 50), cv.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 2, cv.LINE_AA)
-        return frameNovo
+    mask = np.squeeze(np.array(result.masks.data))
+    if mask.shape[0] > 200:
+        mask = np.squeeze(np.array(mask))
+        dimen = np.array(result.boxes.xyxy)
+        mask = mask[(int(dimen[0, 1]//HX)):(int(dimen[0, 3]//HX)), (int(dimen[0, 0]//WX)):(int(dimen[0, 2]//WX))]
+        n0 = np.count_nonzero(mask, axis=1, keepdims=True)
+        ind = (np.where(n0 == np.max(n0))[0])[-1]
+        diametroCM = int((n0[ind])*WX)
+        inicial = int(((np.argmax(mask[ind]))*WX)+dimen[0, 0])
+        tamanho2 = int(n0[Y]*WX)
+        inicial2 = int(((np.argmax(mask[Y]))*WX)+dimen[0, 0])
+        y_vid2 = int(Y*HX)
+        y_vid = int(ind*HX)
+        x_vid = int(dimen[0, 2] + 40)
+        frame = cv.line(frame, (inicial2, y_vid2), ((inicial2 + tamanho2), y_vid2), (0, 0, 255), 4)
+        frame = cv.putText(frame, (str(int(diametroCM * tam)) + ' cm'), (x_vid, (y_vid2 + 20)), cv.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 2, cv.LINE_AA)
+        frame = cv.line(frame, (inicial, y_vid), ((inicial + tamanho), y_vid), (0, 0, 255), 4)
+        frame = cv.putText(frame, (str(int(tamanho * tam)) + ' cm'), (x_vid, (y_vid + 20)), cv.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 2, cv.LINE_AA)
+        return frame
+
+
+
+#def medicao(result, frame):
+#    global diametroCM
+
+#    mask = result.masks.data
+#    mask = mask.cpu()
+#    if mask.shape[1] > 200:
+#        mask = np.squeeze(np.array(mask))[Y]
+#        diametro = int(np.count_nonzero(mask)*WX)
+#        inicial = int(np.argmax(mask)*WX)
+#        diametroCM = int(diametro * tam)
+#        frameNovo = cv.line(frame, (inicial, YX), ((inicial + diametro), YX), (0, 0, 255), 4)
+#        frameNovo = cv.putText(frame, str(diametroCM) + ' cm', (inicial, YX - 50), cv.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 2, cv.LINE_AA)
+#        return frameNovo
     
 def ImageProcess():
 
@@ -97,7 +125,7 @@ def ImageProcess():
             # Conversão de imagem de uma espaço de cores para o outro
             opencv_image = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
             
-            frameNovo = cv.resize(opencv_image, (WIDHT, HEIGHT))
+            frameNovo = cv.resize(opencv_image, (WIDTH, HEIGHT))
             
             # Captura do frame mais atual e transformação dela para imagem
             captured_image = Image.fromarray(frameNovo)
@@ -113,10 +141,11 @@ def ImageProcess():
                     elif(result.masks != None and jaCalibrou == False):
                         imagem = calibracao(result, frameNovo)
                         jaCalibrou = True
+            elif(jaCalibrou):
+                print("aqui")
+                mainFullScreen.app.button_event_reset_diametro_gauge()
             else:
-                imagem = captured_image
-
-            img_array = imagem
+                img_array = imagem
 
 
            # Dados

@@ -171,12 +171,12 @@ def graphProcess():
             ## UPDATES
 
 
-            arr_gaugeimg = np.array([])
+            arr_gaugeimg = GaugeGraph(dados[-1])
 
             # Plotting images
             if(np.any(dados)):
                 if(dados[-1] > maiorDiametro):
-                    print("dados -1: " + dados[-1])
+                    print("dados -1: " + str(dados[-1]))
                     maiorDiametro = dados[-1] 
                     arr_gaugeimg = GaugeGraph(maiorDiametro)
 
