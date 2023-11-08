@@ -1,45 +1,42 @@
-from multiprocessing import Process
 from datetime import datetime
-from threading import Timer
 from collections import deque
 from ultralytics import YOLO
-from threading import Timer
 import _pickle as pickle
-from numpy import asarray
 from PIL import Image
 import numpy as np
+import cv2 as cv
 import pyautogui
 import warnings
-import random
 import time
-import cv2 as cv
 import gc
-
-import platform
-import torch
-import math
-import csv
 
 warnings.filterwarnings("ignore")
 
 gc.enable()
+
 global model
-# Resize para salvar imagens
+
+# Resize to save the images
 tamanho_imagem = (1920, 1080)
 diametroCM = 0
 WIDHT, HEIGHT = pyautogui.size()
 Y, YX, WX = 200, int(200*(HEIGHT/384)), round(WIDHT/640, 2)
 
-#SAVE IMAGE DATA IN PICKLE FILE TO BE USED BY THE DASH PROGRAM.
+#SAVE IMAGE DATA IN PICKLE FILE TO BE USED BY THE PROGRAM.
 def storeData(data, path):
+
     # initializing data to be stored in db 
     db = (data)
+
     # Its important to use binary mode 
     dbfile = open(path, 'wb') 
+
     # source, destination 
     pickle.dump(db, dbfile)         
     dbfile.close()
  
+#####
+
 def calibracao(result, frame):
     global tam
     mask = result.masks.data
@@ -65,7 +62,9 @@ def medicao(result, frame):
         frameNovo = cv.line(frame, (inicial, YX), ((inicial + diametro), YX), (0, 0, 255), 4)
         frameNovo = cv.putText(frame, str(diametroCM) + ' cm', (inicial, YX - 50), cv.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 2, cv.LINE_AA)
         return frameNovo
-    
+ 
+#####
+
 def ImageProcess():
 
     #model = YOLO("best.pt")
@@ -82,10 +81,15 @@ def ImageProcess():
     vid.set(cv.CAP_PROP_FRAME_WIDTH, tamanho_imagem[0])
     vid.set(cv.CAP_PROP_FRAME_HEIGHT, tamanho_imagem[1])
 
-    queueHoras = deque([], maxlen = 20)
-    queueDados = deque([], maxlen = 20)
-    queueDias = deque([], maxlen = 20)
-    time_matrix = []
+    # Initializing the queue variables
+    queue_time = deque([], maxlen = 20)
+    queue_diameter = deque([], maxlen = 20)
+    queue_date = deque([], maxlen = 20)
+
+    # Initializing matrix for all values obtained in one second
+    timeData_matrix = []
+
+    #####
 
     jaCalibrou = False
     
@@ -116,50 +120,64 @@ def ImageProcess():
 
             img_array = imagem
 
+    #####
 
-           # Dados
-
+            # Data
+            # Getting the time of each measurement of the program
             now = datetime.now()
             current_time = now.strftime("%H:%M:%S")
             current_date = now.strftime("%D")
+            
+            # Only executes if the matrix isnt empty
+            if len(timeData_matrix) > 0:
 
-            if len(time_matrix) > 0:
+                # If the last time on the matrix is different from current it starts the update of the queues
+                if timeData_matrix[-1][0] != current_time:
 
-                if time_matrix[-1][1] != current_time:
-
+                    # Initializing variables before loop
                     cont = int(0)
-                    media_diametro = int(0)
+                    avg_diameter = int(0)
 
-                    for i in range(0, len(time_matrix)):
+                    # Loop for the index of every value on the matrix
+                    for i in range(0, len(timeData_matrix)):
 
-                        media_diametro += time_matrix[i][0]
+                        # Sum of all the values obtained in one second of the program
+                        avg_diameter += timeData_matrix[i][1]
+
+                        # Amount of values obtained in one second of the program
                         cont += 1
-        
-                    media = float(f"{media_diametro/cont:.2f}")
-                    #print(f"media_diametro = {media_diametro}")
+                    
+                    # Calculating the average of the values obtained
+                    avg = float(f"{avg_diameter/cont:.2f}")
+
+                    #print(f"avg_diameter = {avg_diameter}")
                     #print(f"cont = {cont}")
-                    #print(f"media = {media}")
+                    #print(f"avg = {avg}")
 
-                    queueDados.append(media)
-                    queueHoras.append(time_matrix[1][1])
-                    queueDias.append(current_date)
+                    # Adds the updated values to the queue
+                    queue_diameter.append(avg)
+                    queue_time.append(timeData_matrix[1][0])
+                    queue_date.append(current_date)
 
-                    time_matrix.clear()
+                    # Empties the matrix to be used on the next second
+                    timeData_matrix.clear()
 
-            time_matrix.append([diametroCM, current_time])
+            # Appends the diameter and time values obtained in the matrix
+            timeData_matrix.append([current_time, diametroCM])
 
-            outputArrayTempoHora = np.array([])
-            outputArrayTempoHora = np.append(outputArrayTempoHora, queueHoras)
-            outputArrayTempoData = np.array([])
-            outputArrayTempoData = np.append(outputArrayTempoData, queueDias)
+            # Initializing numpy arrays with the queues to pickle the data
+            outputArray_time = np.array([])
+            outputArray_time = np.append(outputArray_time, queue_time)
+            outputArray_date = np.array([])
+            outputArray_date = np.append(outputArray_date, queue_date)
+            outputArray_diameter = np.array([])
+            outputArray_diameter = np.append(outputArray_diameter, queue_diameter)
 
-            outputArrayDados = np.array([])
-            outputArrayDados = np.append(outputArrayDados, queueDados)
-
+            # Pickling the data so the code is lighter, pkl files are lighter to load
             storeData(img_array, './dados_pickle/framePickle.pkl')
-            storeData(outputArrayDados, './dados_pickle/dadosPickle.pkl')
-            storeData(outputArrayTempoHora, './dados_pickle/horaPickle.pkl')
-            storeData(outputArrayTempoData, './dados_pickle/dataPickle.pkl')
+            storeData(outputArray_diameter, './dados_pickle/dadosPickle.pkl')
+            storeData(outputArray_time, './dados_pickle/horaPickle.pkl')
+            storeData(outputArray_date, './dados_pickle/dataPickle.pkl')
 
         except Exception as e:
             print(e)
