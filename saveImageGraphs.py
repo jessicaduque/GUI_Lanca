@@ -1,3 +1,4 @@
+from winreg import QueryInfoKey
 import plotly.graph_objects as go
 import plotly.express as px
 from winsound import Beep
@@ -21,8 +22,6 @@ font = "Raleway"
 
 #SAVE IMAGE DATA IN PICKLE FILE TO BE USED BY THE DASH PROGRAM.
 def storeData(data, path):
-
-    print("stored data 123456789")
 
     # initializing data to be stored in db 
     db = (data)
@@ -188,15 +187,18 @@ def graph_process():
             if(np.any(diameter)):
                 if(diameter[-1] > max_diameter):
 
-                    print("data -1: " + str(diameter[-1]))
+                    #print("data -1: " + str(diameter[-1]))
                     max_diameter = diameter[-1] 
                     arr_gaugeimg = gauge_graph(max_diameter)
+
+                    #while max_diameter >= 75:
+
+                    #    Beep(4000, 1000)
 
 
             arr_lineimg = line_graph(time, diameter)
 
             # Storing images in pickle files
-            print("skjdkajdkasjdkajksdjakjdkdjaksd")
             storeData(arr_gaugeimg, './pickle_data/gaugeGraph_pickle.pkl')
             storeData(arr_lineimg, './pickle_data/lineGraph_pickle.pkl')
             

@@ -71,14 +71,14 @@ class App(CTk):
         self.video_frame = CTkFrame(self.primary_frame, fg_color="#a4a8ad", corner_radius=15)
         self.video_frame.grid(row=0, column=0, padx=(30, 10), pady=(10, 10), sticky='nsew')
         
-        image_video = CTkImage(light_image=Image.open('./imagens/IFES_logo.png'), size=(300 * 0.7, 250 * 0.7))
+        image_video = CTkImage(light_image=Image.open('./imagens/IFES_logo.png'), size=(400 * 0.7, 400 * 0.7))
         self.video_widget = CTkLabel(self.video_frame, image=image_video, text="")
         self.video_widget.pack(padx=10, pady=10, fill=BOTH, expand=True)
 
         self.gaugeGraph_frame = CTkFrame(self.primary_frame, fg_color="#a4a8ad", corner_radius=15)
         self.gaugeGraph_frame.grid(row=0, column=1, padx=(0, 30), pady=(10, 10), sticky='nsew')
 
-        gaugeGraph_image = CTkImage(Image.open('./imagens/IFES_logo.png'), size=(300 * 0.7, 250 * 0.7))
+        gaugeGraph_image = CTkImage(Image.open('./imagens/IFES_logo.png'), size=(400 * 0.7, 400 * 0.7))
 
         self.button = CTkButton(self.gaugeGraph_frame, text="PARAR APITO", width=240, text_color="black", hover_color="#bdc3c9", 
                                 border_width=2, border_color="black", fg_color='white', command=self.button_event_reset_diametro_gauge)
@@ -93,7 +93,7 @@ class App(CTk):
         self.lineGraph_frame = CTkFrame(self.primary_frame, fg_color="#a4a8ad", corner_radius=15)
         self.lineGraph_frame.grid(row=1, columnspan=2, padx=30, pady=(0, 10), sticky='nsew')
 
-        lineGraph_image = CTkImage(Image.open('./imagens/IFES_horizontal_logo.png'), size=(800 * 0.7, 250* 0.7))
+        lineGraph_image = CTkImage(Image.open('./imagens/IFES_horizontal_logo.png'), size=(600 * 0.7, 250* 0.7))
         self.lineGraph_label = CTkLabel(self.lineGraph_frame, image=lineGraph_image, text="")
         self.lineGraph_label.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
@@ -205,15 +205,12 @@ if __name__ == "__main__":
     APP_WIDTH = 1000
     APP_HEIGHT = 720
     w_img, h_img = 30, 30
-<<<<<<< Updated upstream
-=======
 
-    # Setting up all subprocesses
-    manageSubprocess.StartSubprocess_All()   
+    #manageSubprocess.StartSubprocess_All()   
     
     # Starting the app
->>>>>>> Stashed changes
     app = App()
+    # Setting up all subprocesses
     manageSubprocess.StartSubprocess_All()   
     ctypes.windll.shcore.SetProcessDpiAwareness(2)
     
@@ -257,5 +254,5 @@ if __name__ == "__main__":
         app.destroy()
 
     # Protocol to execute on_closing function when the X is clicked on the app
-    app.protocol("WM_DELETE_WINDOW", on_closing)
+    app.protocol("WM_DELETE_WINDOW", on_closing)    
     app.mainloop()

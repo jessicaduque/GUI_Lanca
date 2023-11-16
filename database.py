@@ -3,10 +3,16 @@ import _pickle as pickle
 import sqlite3
 from time import sleep
 
-
 # Adding values to cascao table
 def dbAdd(num_data, current_date, current_time):
-    cursor.execute(f"INSERT INTO cascao (id_convertedor, id_lanca, diametro, data, horario) VALUES({1}, {1}, {num_data}, '{current_date}', '{current_time}')")   
+
+    if num_data >= 75:
+        cursor.execute(f"INSERT INTO cascao (id_convertedor, id_lanca, diametro, data, horario) VALUES({1}, {1}, {num_data}, '{current_date}', '{current_time}')")
+        cursor.execute(f"INSERT INTO pontoCritico (id_convertedor, id_lanca, diametro, data, horario) VALUES({1}, {1}, {num_data}, '{current_date}', '{current_time}')")
+
+    else:
+        cursor.execute(f"INSERT INTO cascao (id_convertedor, id_lanca, diametro, data, horario) VALUES({1}, {1}, {num_data}, '{current_date}', '{current_time}')")
+
     conn.commit()
 
 # Print all values in cascao table
@@ -36,7 +42,15 @@ while True:
         data DATE,
         horario TIME)"""
 
+        create_table2 = """CREATE TABLE IF NOT EXISTS pontoCritico(
+        id_convertedor INT,
+        id_lanca INT,
+        diametro FLOAT,
+        data DATE,
+        horario TIME)"""
+
         cursor.execute(create_table)
+        cursor.execute(create_table2)
         conn.commit()
 
         # Loop to unpickle the data from the compacted files and save it on the database
