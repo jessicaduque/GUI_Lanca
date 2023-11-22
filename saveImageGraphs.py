@@ -1,3 +1,4 @@
+from winreg import QueryInfoKey
 import plotly.graph_objects as go
 import plotly.express as px
 from winsound import Beep
@@ -6,7 +7,7 @@ from PIL import Image
 import pandas as pd
 import numpy as np
 import warnings
-import time
+from time import sleep
 import gc
 import io 
 
@@ -14,26 +15,14 @@ warnings.filterwarnings("ignore")
 
 gc.enable()
 
-maior_diametro = 0
+max_diameter = 0
 
 # Defining global font
 font = "Raleway"
 
-notes = {'C': 1635,
-         'D': 1835,
-         'E': 2060,
-         'S': 1945,
-         'F': 2183,
-         'G': 2450,
-         'A': 2750,
-         'B': 3087,
-         ' ': 37}
+#SAVE IMAGE DATA IN PICKLE FILE TO BE USED BY THE DASH PROGRAM.
+def storeData(data, path):
 
-
-melodie = 'CDEFG G AAAAG AAAAG FFFFE E DDDDC'
-
-#SAVE IMAGE DATA IN PICKLE FILE TO BE USED BY THE PROGRAM.
-def storeData(data, path): 
     # initializing data to be stored in db 
     db = (data)
 
@@ -45,12 +34,12 @@ def storeData(data, path):
     dbfile.close()
 
 # Line graph to show all values inside the queues
-def lineGraph(queue_time, queue_diameter):
+def line_graph(queue_time, queue_data):
 
     # Dataframe dictionary with the xy values of the graph
     df = pd.DataFrame(dict(
         x_axis = list(queue_time),
-        y_axis = list(queue_diameter)
+        y_axis = list(queue_data)
     ))
 
     # PLotting the figure of the graph
@@ -71,6 +60,7 @@ def lineGraph(queue_time, queue_diameter):
         linecolor='black',
         gridcolor='lightgrey'
     )
+
     fig.update_yaxes(
         mirror=True,
         ticks='outside',
@@ -87,25 +77,17 @@ def lineGraph(queue_time, queue_diameter):
     buf = io.BytesIO(fig_bytes)
     img = Image.open(buf)
     return np.asarray(img)
-
+    
 # Gauge graph to show the highest diameter recorded
-def gaugeGraph(num_data):
+def gauge_graph(num_data):
 
     # Changing the color of the graph's bar based on the diameter
     if num_data < 60:
         color_level = "#4dab6d"
-
     elif num_data >= 70:
         color_level = "#ee3d55"
-
     else:
         color_level = "#fabd57"
-
-    if num_data < 40:
-        num_data = 40
-
-    elif num_data > 80:
-        num_data = 80
 
     # Plotting the figure of the gauge graph
     fig = go.Figure(
@@ -115,14 +97,18 @@ def gaugeGraph(num_data):
             mode = "gauge+number",
             value = num_data,
             domain = {'x': [0, 1], 'y': [0, 1]},
-            title = {'text': ""},
-            gauge = {
+            title = {'text': "Diametro"},
 
-                    # limits for the gauge graphs min and max values
-                    'axis': {'range': [40, 80], 'tickwidth': 1},
+            # color based on diameter to represent danger
+            number = {'font':{'color': f'{color_level}'}},
+
+            gauge = {
 
                     # color based on diameter to represent danger
                     'bar': {'color': f"{color_level}"},
+
+                    # limits for the gauge graphs min and max values
+                    'axis': {'range': [40, 80], 'tickwidth': 1},
 
                     # Dividing the graph in sectors GOOD/WORRY/CRITICAL
                     'steps': [
@@ -134,34 +120,33 @@ def gaugeGraph(num_data):
                     'threshold': {
                         'line': {'color': "red", 'width': 4},
                         'thickness': 0.75,
-                        'value': 70}
+                        'value': 75}
 
                     }
         )
     )
-
     # Setting gauge graph font size
     fig.update_traces(
         gauge_axis_tickfont = {
-            'size': 25
+            'size': 15
         }
     )
-    # Updating layout background to be the same as the frame, change font style and make a border around graph
+     # Updating layout background to be the same as the frame, change font style and make a border around graph
     fig.update_layout(
         paper_bgcolor='#a4a8ad',
         font_family = f"{font}",
 
         shapes=[go.layout.Shape(
-            fillcolor = '#EAEAF2',
-            layer='below',
-            type='rect',
-            xref='paper',
-            yref='paper',
-            x0=-0.1,
-            y0=-0.1,
-            x1=1.1,
-            y1=1.1,
-            line={'width': 1, 'color': 'black'}
+        fillcolor = '#EAEAF2',
+        layer='below',
+        type='rect',
+        xref='paper',
+        yref='paper',
+        x0=-0.1,
+        y0=-0.1,
+        x1=1.1,
+        y1=1.1,
+        line={'width': 1, 'color': 'black'}
         )]
     )
 
@@ -185,44 +170,45 @@ def gaugeGraph(num_data):
     img = Image.open(buf)
     return np.asarray(img)
 
-
-    
-def graphProcess(): 
-    global maior_diametro
+# Function to store the data from both graphs
+def graph_process(): 
+    global max_diameter
 
     while True:
         try:
-            # Loading pickled data
-            with open('./dados_pickle/dadosPickle.pkl', 'rb') as f:
-                dados = pickle.load(f)
-            with open('./dados_pickle/horaPickle.pkl', 'rb') as f:
-                tempo = pickle.load(f)
+
+            # Load pickled data
+            with open('./pickle_data/diameter_pickle.pkl', 'rb') as f:
+                diameter = pickle.load(f)
+            with open('./pickle_data/time_pickle.pkl', 'rb') as f:
+                time = pickle.load(f)
 
             ## UPDATES
 
-            arr_gaugeimg = np.array([])
+            #arr_gaugeimg = gauge_graph(diameter[-1])
 
             # Plotting images
-            if(np.any(dados) > 0):
-                if(dados[-1] > maior_diametro):
+            if(np.any(diameter)):
+                if(diameter[-1] > max_diameter):
 
-                    maior_diametro = dados[-1] 
-                    arr_gaugeimg = gaugeGraph(maior_diametro)
+                    #print("data -1: " + str(diameter[-1]))
+                    max_diameter = diameter[-1] 
+                    arr_gaugeimg = gauge_graph(max_diameter)
 
-                    # Plays a sound after the diameter reaches a threshold
-                    if(dados[-1] >= 80):
-                        for note in melodie:
-                            Beep(notes[note], 200)
+                    #while max_diameter >= 75:
 
-            arr_lineimg = lineGraph(tempo, dados)
+                    #    Beep(4000, 1000)
+
+
+            arr_lineimg = line_graph(time, diameter)
 
             # Storing images in pickle files
-            storeData(arr_gaugeimg, './dados_pickle/gaugeGraphPickle.pkl')
-            storeData(arr_lineimg, './dados_pickle/lineGraphPickle.pkl')
+            storeData(arr_gaugeimg, './pickle_data/gaugeGraph_pickle.pkl')
+            storeData(arr_lineimg, './pickle_data/lineGraph_pickle.pkl')
             
         except Exception as e:
             print(e)
-            time.sleep(0.1)
+            sleep(0.1)
 
 if __name__ == '__main__':
-    graphProcess()
+    graph_process()

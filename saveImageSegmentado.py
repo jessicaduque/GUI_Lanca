@@ -10,19 +10,21 @@ import warnings
 import time
 import gc
 
+import mainFullScreen
+
 warnings.filterwarnings("ignore")
 
 gc.enable()
-
 global model
 
 # Resize to save the images
-tamanho_imagem = (1920, 1080)
+img_size = (1920, 1080)
 diametroCM = 0
-WIDHT, HEIGHT = pyautogui.size()
-Y, YX, WX = 200, int(200*(HEIGHT/384)), round(WIDHT/640, 2)
+WIDTH, HEIGHT = pyautogui.size()
 
-#SAVE IMAGE DATA IN PICKLE FILE TO BE USED BY THE PROGRAM.
+Y, YX, HX, WX = 300, int(200*(HEIGHT/384)), round((HEIGHT/384), 3), round((WIDTH/640), 3)
+
+#SAVE IMAGE DATA IN PICKLE FILE TO BE USED BY THE DASH PROGRAM.
 def storeData(data, path):
 
     # initializing data to be stored in db 
@@ -35,8 +37,6 @@ def storeData(data, path):
     pickle.dump(db, dbfile)         
     dbfile.close()
  
-#####
-
 def calibracao(result, frame):
     global tam
     mask = result.masks.data
@@ -54,17 +54,45 @@ def medicao(result, frame):
 
     mask = result.masks.data
     mask = mask.cpu()
-    if mask.shape[1] > 200:
-        mask = np.squeeze(np.array(mask))[Y]
-        diametro = int(np.count_nonzero(mask)*WX)
-        inicial = int(np.argmax(mask)*WX)
-        diametroCM = int(diametro * tam)
-        frameNovo = cv.line(frame, (inicial, YX), ((inicial + diametro), YX), (0, 0, 255), 4)
-        frameNovo = cv.putText(frame, str(diametroCM) + ' cm', (inicial, YX - 50), cv.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 2, cv.LINE_AA)
-        return frameNovo
- 
-#####
 
+    if mask.shape[1] > 200:
+        mask = np.squeeze(np.array(mask))
+        boxes = result.boxes.xyxy.cpu()
+        dimen = np.array(boxes)
+        mask = mask[(int(dimen[0, 1]//HX)):(int(dimen[0, 3]//HX)), (int(dimen[0, 0]//WX)):(int(dimen[0, 2]//WX))]
+        n0 = np.count_nonzero(mask, axis=1, keepdims=True)
+        ind = (np.where(n0 == np.max(n0))[0])[-1]
+        tamanho = int((n0[ind])*WX)
+        inicial = int(((np.argmax(mask[ind]))*WX)+dimen[0, 0])
+        diametroCM = int(tamanho * tam)
+        #tamanho2 = int(n0[Y]*WX)
+        #inicial2 = int(((np.argmax(mask[Y]))*WX)+dimen[0, 0])
+        #y_vid2 = int(Y*HX)
+        y_vid = int(ind*HX)
+        x_vid = int(dimen[0, 2] + 40)
+        #frame = cv.line(frmae, (inicial2, y_vid2), ((inicial2 + tamanho2), y_vid2), (0, 0, 255), 4)
+        #frame = cv.putText(frame, (str(int(tamanho2 * tam)) + ' cm'), (x_vid, (y_vid2 + 20)), cv.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 2, cv.LINE_AA)
+        frame = cv.line(frame, (inicial, y_vid), ((inicial + tamanho), y_vid), (0, 0, 255), 4)
+        frame = cv.putText(frame, (str(diametroCM) + ' cm'), (x_vid, (y_vid + 20)), cv.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 2, cv.LINE_AA)
+        return frame
+
+#def medicao(result, frame):
+#    global diametroCM
+
+#    mask = result.masks.data
+#    mask = mask.cpu()
+
+#    print(mask)
+#    print(type(mask))
+#    if mask.shape[1] > 200:
+#        mask = np.squeeze(np.array(mask))[Y]
+#        diametro = int(np.count_nonzero(mask)*WX)
+#        inicial = int(np.argmax(mask)*WX)
+#        diametroCM = int(diametro * tam)
+#        frameNovo = cv.line(frame, (inicial, YX), ((inicial + diametro), YX), (0, 0, 255), 4)
+#        frameNovo = cv.putText(frame, str(diametroCM) + ' cm', (inicial, YX - 50), cv.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 2, cv.LINE_AA)
+#        return frameNovo
+    
 def ImageProcess():
 
     #model = YOLO("best.pt")
@@ -78,8 +106,8 @@ def ImageProcess():
     vid = cv.VideoCapture(0, cv.CAP_DSHOW)
   
     # Set the width and height
-    vid.set(cv.CAP_PROP_FRAME_WIDTH, tamanho_imagem[0])
-    vid.set(cv.CAP_PROP_FRAME_HEIGHT, tamanho_imagem[1])
+    vid.set(cv.CAP_PROP_FRAME_WIDTH, img_size[0])
+    vid.set(cv.CAP_PROP_FRAME_HEIGHT, img_size[1])
 
     # Initializing the queue variables
     queue_time = deque([], maxlen = 20)
@@ -89,8 +117,6 @@ def ImageProcess():
     # Initializing matrix for all values obtained in one second
     timeData_matrix = []
 
-    #####
-
     jaCalibrou = False
     
     while True:
@@ -99,28 +125,33 @@ def ImageProcess():
             _, frame = vid.read()
 
             # Conversão de imagem de uma espaço de cores para o outro
-            #opencv_image = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
+            opencv_image = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
             
-            frameNovo = cv.resize(frame, (WIDHT, HEIGHT))
+            frameNovo = cv.resize(frame, (WIDTH, HEIGHT))
+            
             # Captura do frame mais atual e transformação dela para imagem
             captured_image = Image.fromarray(frameNovo)
 
             results = model(captured_image, verbose=False, max_det = 1)
             
-            for result in results:
-                if(result.masks != None and jaCalibrou):
-                    imagem = medicao(result, frameNovo)
-                elif(result.masks != None and jaCalibrou == False):
-                    print("Reconheceu e calibrou!")
-                    imagem = calibracao(result, frameNovo)
-                    jaCalibrou = True
-                else:
-                    print("Não reconheceu nada")
-                    imagem = results[0].plot()
+
+            if(results != None):
+                for result in results:
+                    frameNovo = result.plot()
+                    if(result.masks != None and jaCalibrou):
+                        imagem = medicao(result, frameNovo)
+                    elif(result.masks != None and jaCalibrou == False):
+                        imagem = calibracao(result, frameNovo)
+                        jaCalibrou = True
+            elif(jaCalibrou):
+                print("aqui")
+                imagem = frameNovo
+                #mainFullScreen.app.button_event_reset_diametro_gauge()
+            else:
+                imagem = frameNovo
 
             img_array = imagem
 
-    #####
 
             # Data
             # Getting the time of each measurement of the program
@@ -174,10 +205,10 @@ def ImageProcess():
             outputArray_diameter = np.append(outputArray_diameter, queue_diameter)
 
             # Pickling the data so the code is lighter, pkl files are lighter to load
-            storeData(img_array, './dados_pickle/framePickle.pkl')
-            storeData(outputArray_diameter, './dados_pickle/dadosPickle.pkl')
-            storeData(outputArray_time, './dados_pickle/horaPickle.pkl')
-            storeData(outputArray_date, './dados_pickle/dataPickle.pkl')
+            storeData(img_array, './pickle_data/frame_pickle.pkl')
+            storeData(outputArray_diameter, './pickle_data/diameter_pickle.pkl')
+            storeData(outputArray_time, './pickle_data/time_pickle.pkl')
+            storeData(outputArray_date, './pickle_data/date_pickle.pkl')
 
         except Exception as e:
             print(e)

@@ -1,12 +1,18 @@
 from datetime import datetime
 import _pickle as pickle
 import sqlite3
-import time
-
+from time import sleep
 
 # Adding values to cascao table
 def dbAdd(num_data, current_date, current_time):
-    cursor.execute(f"INSERT INTO cascao (id_convertedor, id_lanca, diametro, data, horario) VALUES({1}, {1}, {num_data}, '{current_date}', '{current_time}')")   
+
+    if num_data >= 75:
+        cursor.execute(f"INSERT INTO cascao (id_convertedor, id_lanca, diametro, data, horario) VALUES({1}, {1}, {num_data}, '{current_date}', '{current_time}')")
+        cursor.execute(f"INSERT INTO pontoCritico (id_convertedor, id_lanca, diametro, data, horario) VALUES({1}, {1}, {num_data}, '{current_date}', '{current_time}')")
+
+    else:
+        cursor.execute(f"INSERT INTO cascao (id_convertedor, id_lanca, diametro, data, horario) VALUES({1}, {1}, {num_data}, '{current_date}', '{current_time}')")
+
     conn.commit()
 
 # Print all values in cascao table
@@ -36,20 +42,28 @@ while True:
         data DATE,
         horario TIME)"""
 
+        create_table2 = """CREATE TABLE IF NOT EXISTS pontoCritico(
+        id_convertedor INT,
+        id_lanca INT,
+        diametro FLOAT,
+        data DATE,
+        horario TIME)"""
+
         cursor.execute(create_table)
+        cursor.execute(create_table2)
         conn.commit()
 
         # Loop to unpickle the data from the compacted files and save it on the database
         while True:
             try:
                 #Loading pickled data
-                with open('./dados_pickle/dadosPickle.pkl', 'rb') as f:
+                with open('./pickle_data/diameter_pickle.pkl', 'rb') as f:
                     diameters = pickle.load(f)
                 diameter = diameters[-1]
-                with open('./dados_pickle/horaPickle.pkl', 'rb') as f:
+                with open('./pickle_data/time_pickle.pkl', 'rb') as f:
                     times = pickle.load(f)
                 time = times[-1]
-                with open('./dados_pickle/dataPickle.pkl', 'rb') as f:
+                with open('./pickle_data/date_pickle.pkl', 'rb') as f:
                     dates = pickle.load(f)
                 date = dates[-1]
 
@@ -57,14 +71,14 @@ while True:
                 dbAdd(diameter, date, time)
                 
                 # Waiting a second before reading again
-                time.sleep(1)
+                sleep(1)
 
             except Exception as e:
                 # Treating error when reading or saving data
                 print("Erro ao ler ou gravar dados:", str(e))
 
                 # Waiting a second before trying again
-                time.sleep(1)
+                sleep(1)
                 
                 # Make a backup of the file after every hour
                 if datetime.now().minute == 0:
@@ -77,8 +91,4 @@ while True:
         print("Erro ao conectar ao banco de dados:", str(e))
 
         # Waiting 5 seconds before attempting to connect again
-        time.sleep(5)
-
-
-
-
+        sleep(5)
