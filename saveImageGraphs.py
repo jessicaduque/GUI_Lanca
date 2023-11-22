@@ -98,13 +98,17 @@ def gauge_graph(num_data):
             value = num_data,
             domain = {'x': [0, 1], 'y': [0, 1]},
             title = {'text': "Diametro"},
-            gauge = {
 
-                    # limits for the gauge graphs min and max values
-                    'axis': {'range': [40, 80], 'tickwidth': 1},
+            # color based on diameter to represent danger
+            number = {'font':{'color': f'{color_level}'}},
+
+            gauge = {
 
                     # color based on diameter to represent danger
                     'bar': {'color': f"{color_level}"},
+
+                    # limits for the gauge graphs min and max values
+                    'axis': {'range': [40, 80], 'tickwidth': 1},
 
                     # Dividing the graph in sectors GOOD/WORRY/CRITICAL
                     'steps': [
@@ -116,7 +120,7 @@ def gauge_graph(num_data):
                     'threshold': {
                         'line': {'color': "red", 'width': 4},
                         'thickness': 0.75,
-                        'value': 79}
+                        'value': 75}
 
                     }
         )

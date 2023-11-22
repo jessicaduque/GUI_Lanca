@@ -81,13 +81,12 @@ class App(CTk):
         gaugeGraph_image = CTkImage(Image.open('./imagens/IFES_logo.png'), size=(400 * 0.7, 400 * 0.7))
 
         self.button = CTkButton(self.gaugeGraph_frame, text="PARAR APITO", width=240, text_color="black", hover_color="#bdc3c9", 
-                                border_width=2, border_color="black", fg_color='white', command=self.button_event_reset_diametro_gauge)
+        border_width=2, border_color="black", fg_color='white', command=self.button_event_reset_diametro_gauge)
 
-        self.button.pack(pady=(0,20), anchor='s')
-
+        self.button.pack(pady=(25,25), anchor='s')
 
         self.gaugeGraph_label = CTkLabel(self.gaugeGraph_frame, image=gaugeGraph_image, text="")
-        self.gaugeGraph_label.pack(padx=10, pady=10, anchor='n')
+        self.gaugeGraph_label.pack(padx=10, pady=0, anchor='n')
        
         # Configure bottom widgets
         self.lineGraph_frame = CTkFrame(self.primary_frame, fg_color="#a4a8ad", corner_radius=15)
