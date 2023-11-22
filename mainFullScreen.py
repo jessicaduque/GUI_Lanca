@@ -1,15 +1,18 @@
 from customtkinter import *
-import manageSubprocess
+from manageSubprocess import SubprocessManager
 from PIL import Image
 import _pickle as pickle
 import ctypes
 import cv2
 import os
+import imutils
 
 class App(CTk):
     def __init__(self):
         super().__init__()
         
+        self.thisSubprocessManager = SubprocessManager()
+
         screen_width = self.winfo_screenwidth()
         screen_height = self.winfo_screenheight()
 
@@ -108,7 +111,7 @@ class App(CTk):
 
 
     def button_event_reset_diametro_gauge(self):
-        manageSubprocess.KillSubprocess_All()
+        self.thisSubprocessManager.KillSubprocess_All()
 
         #self.gaugeGraph_label.configure(image=gaugeGraph_image) 
         #self.gaugeGraph_label.image = gaugeGraph_image
@@ -120,23 +123,13 @@ class App(CTk):
         #self.video_widget.image = image_video
 
 
-        processDone = manageSubprocess.ChecarSubprocessesDone()
+        processDone = self.thisSubprocessManager.ChecarSubprocessesDone()
         while(not processDone):
-            processDone = manageSubprocess.ChecarSubprocessesDone()
+            processDone = self.thisSubprocessManager.ChecarSubprocessesDone()
             time.sleep(1)
 
-        manageSubprocess.StartSubprocess_All()
+        self.thisSubprocessManager.StartSubprocess_All()
 
-    # Resize function
-    def resize_image(self, event, extra):
-        newSize = (event.width, event.height)
-        #if(extra == "Gauge"):
-        #    gaugeGraph_image = CTkImage(Image.open('./imagens/gaugeDiametro.png'),
-        #        size=newSize
-        #        )
-        #    self.gaugeGraph_label = CTkLabel(self.gaugeGraph_frame, image=gaugeGraph_image, text="")
-        #    self.gaugeGraph_label.pack(fill=BOTH, expand=True, padx=10, pady=10)
-    
     # Function to update the segmented video
     def update_image(self):
         try:
@@ -145,11 +138,12 @@ class App(CTk):
             img_data = pickle.load(f)
             f.close()
             del f
-            img_data = cv2.cvtColor(img_data, cv2.COLOR_BGR2RGB)
+            #img_data = cv2.cvtColor(img_data, cv2.COLOR_BGR2RGB)
             # Convert numpy array to PIL image
             frame = Image.fromarray(img_data)
             #img_data = None
             del img_data
+            #resized = imutils.resize(frame, 840);
             self.image_video = CTkImage(light_image=frame, size=(840, 420))
             self.video_widget.configure(image=self.image_video)
             self.video_widget.pack(padx=10, pady=10, fill=BOTH, expand=True)
@@ -198,6 +192,8 @@ class App(CTk):
             self.after(1000, self.update_plot_line)
     
 if __name__ == "__main__":
+    global app
+
     ### Variables
     # Defining original DPI being used
     ORIGINAL_DPI = 96.09458128078816
@@ -205,18 +201,16 @@ if __name__ == "__main__":
     APP_HEIGHT = 720
     w_img, h_img = 30, 30
 
-    #manageSubprocess.StartSubprocess_All()   
-    
     # Starting the app
     app = App()
     # Setting up all subprocesses
-    manageSubprocess.StartSubprocess_All()   
+    app.thisSubprocessManager.StartSubprocess_All()   
     ctypes.windll.shcore.SetProcessDpiAwareness(2)
     
     # Function that stops the subprocesses when closing the app
     def on_closing():
         try:
-            manageSubprocess.KillSubprocess_All()  
+           app.thisSubprocessManager.KillSubprocess_All()  
         except Exception as e:
             print(e)
 

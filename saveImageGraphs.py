@@ -89,6 +89,12 @@ def gauge_graph(num_data):
     else:
         color_level = "#fabd57"
 
+    if num_data < 40:
+        num_data = 40
+
+    elif num_data > 80:
+        num_data = 80
+
     # Plotting the figure of the gauge graph
     fig = go.Figure(
 

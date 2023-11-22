@@ -144,9 +144,9 @@ def ImageProcess():
                         imagem = calibracao(result, frameNovo)
                         jaCalibrou = True
             elif(jaCalibrou):
-                print("aqui")
                 imagem = frameNovo
-                #mainFullScreen.app.button_event_reset_diametro_gauge()
+                print("aqui")
+                mainFullScreen.app.button_event_reset_diametro_gauge()
             else:
                 imagem = frameNovo
 
