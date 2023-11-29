@@ -105,9 +105,9 @@ class App(CTk):
         self.update_plot_line()
 
         # Bind to resize the images if the screen size changes
-        self.gaugeGraph_label.bind("<Configure>", lambda event:self.resize_image(event, "Gauge"))
-        self.lineGraph_label.bind("<Configure>", lambda event:self.resize_image(event, "Line"))
-        self.video_widget.bind("<Configure>", lambda event:self.resize_image(event, "Video"))
+        #self.gaugeGraph_label.bind("<Configure>", lambda event:self.resize_image(event, "Gauge"))
+        #self.lineGraph_label.bind("<Configure>", lambda event:self.resize_image(event, "Line"))
+        #self.video_widget.bind("<Configure>", lambda event:self.resize_image(event, "Video"))
 
 
     def button_event_reset_diametro_gauge(self):

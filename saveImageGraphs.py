@@ -191,7 +191,7 @@ def graph_process():
 
             ## UPDATES
 
-            #arr_gaugeimg = gauge_graph(diameter[-1])
+            arr_gaugeimg = gauge_graph(diameter[-1])
 
             # Plotting images
             if(np.any(diameter)):

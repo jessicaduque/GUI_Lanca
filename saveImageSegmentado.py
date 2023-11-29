@@ -51,17 +51,15 @@ def calibracao(result, frame):
 
 def medicao(result, frame):
     global diametroCM
-
-    mask = result.masks.data
-    mask = mask.cpu()
-
-    if mask.shape[1] > 200:
-        mask = np.squeeze(np.array(mask))
-        boxes = result.boxes.xyxy.cpu()
-        dimen = np.array(boxes)
-        mask = mask[(int(dimen[0, 1]//HX)):(int(dimen[0, 3]//HX)), (int(dimen[0, 0]//WX)):(int(dimen[0, 2]//WX))]
-        n0 = np.count_nonzero(mask, axis=1, keepdims=True)
-        ind = (np.where(n0 == np.max(n0))[0])[-1]
+    
+    mask = result.cpu().masks.data
+    mask = np.squeeze(np.array(mask))
+    dimen = np.array(result.boxes.cpu().xyxy)
+    mask = mask[(int(dimen[0, 1]//HX)):(int(dimen[0, 3]//HX)), (int(dimen[0, 0]//WX)):(int(dimen[0, 2]//WX))]
+    n0 = np.count_nonzero(mask, axis=1, keepdims=True)
+    ind = (np.unravel_index(np.argmax(n0, axis=0), n0.shape))[0]
+    if ind.size == 1:
+        ind = int(ind)
         tamanho = int((n0[ind])*WX)
         inicial = int(((np.argmax(mask[ind]))*WX)+dimen[0, 0])
         diametroCM = int(tamanho * tam)
@@ -70,11 +68,38 @@ def medicao(result, frame):
         #y_vid2 = int(Y*HX)
         y_vid = int(ind*HX)
         x_vid = int(dimen[0, 2] + 40)
-        #frame = cv.line(frmae, (inicial2, y_vid2), ((inicial2 + tamanho2), y_vid2), (0, 0, 255), 4)
+        #frame = cv.line(frame, (inicial2, y_vid2), ((inicial2 + tamanho2), y_vid2), (0, 0, 255), 4)
         #frame = cv.putText(frame, (str(int(tamanho2 * tam)) + ' cm'), (x_vid, (y_vid2 + 20)), cv.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 2, cv.LINE_AA)
         frame = cv.line(frame, (inicial, y_vid), ((inicial + tamanho), y_vid), (0, 0, 255), 4)
         frame = cv.putText(frame, (str(diametroCM) + ' cm'), (x_vid, (y_vid + 20)), cv.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 2, cv.LINE_AA)
         return frame
+
+#def medicao(result, frame):
+#    global diametroCM
+
+#    mask = result.masks.data
+#    mask = mask.cpu()
+
+#    if mask.shape[1] > 200:
+#        mask = np.squeeze(np.array(mask))
+#        boxes = result.boxes.xyxy.cpu()
+#        dimen = np.array(boxes)
+#        mask = mask[(int(dimen[0, 1]//HX)):(int(dimen[0, 3]//HX)), (int(dimen[0, 0]//WX)):(int(dimen[0, 2]//WX))]
+#        n0 = np.count_nonzero(mask, axis=1, keepdims=True)
+#        ind = (np.where(n0 == np.max(n0))[0])[-1]
+#        tamanho = int((n0[ind])*WX)
+#        inicial = int(((np.argmax(mask[ind]))*WX)+dimen[0, 0])
+#        diametroCM = int(tamanho * tam)
+#        #tamanho2 = int(n0[Y]*WX)
+#        #inicial2 = int(((np.argmax(mask[Y]))*WX)+dimen[0, 0])
+#        #y_vid2 = int(Y*HX)
+#        y_vid = int(ind*HX)
+#        x_vid = int(dimen[0, 2] + 40)
+#        #frame = cv.line(frmae, (inicial2, y_vid2), ((inicial2 + tamanho2), y_vid2), (0, 0, 255), 4)
+#        #frame = cv.putText(frame, (str(int(tamanho2 * tam)) + ' cm'), (x_vid, (y_vid2 + 20)), cv.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 2, cv.LINE_AA)
+#        frame = cv.line(frame, (inicial, y_vid), ((inicial + tamanho), y_vid), (0, 0, 255), 4)
+#        frame = cv.putText(frame, (str(diametroCM) + ' cm'), (x_vid, (y_vid + 20)), cv.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 2, cv.LINE_AA)
+#        return frame
 
 #def medicao(result, frame):
 #    global diametroCM
@@ -127,13 +152,14 @@ def ImageProcess():
             # Conversão de imagem de uma espaço de cores para o outro
             opencv_image = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
             
-            frameNovo = cv.resize(frame, (WIDTH, HEIGHT))
+            #frameNovo = cv.resize(frame, (WIDTH, HEIGHT))
             
             # Captura do frame mais atual e transformação dela para imagem
-            captured_image = Image.fromarray(frameNovo)
+            captured_image = Image.fromarray(opencv_image)
 
             results = model(captured_image, verbose=False, max_det = 1)
             
+            imagem = opencv_image
 
             if(results != None):
                 for result in results:
@@ -144,11 +170,8 @@ def ImageProcess():
                         imagem = calibracao(result, frameNovo)
                         jaCalibrou = True
             elif(jaCalibrou):
-                imagem = frameNovo
                 print("aqui")
                 mainFullScreen.app.button_event_reset_diametro_gauge()
-            else:
-                imagem = frameNovo
 
             img_array = imagem
 
