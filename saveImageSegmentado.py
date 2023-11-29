@@ -116,6 +116,7 @@ def ImageProcess():
 
     # Initializing matrix for all values obtained in one second
     timeData_matrix = []
+    diameter_list = []
 
     jaCalibrou = False
     
@@ -132,21 +133,19 @@ def ImageProcess():
             # Captura do frame mais atual e transformação dela para imagem
             captured_image = Image.fromarray(frameNovo)
 
-            results = model(captured_image, verbose=False, max_det = 1)
+            results = model(captured_image, verbose=False, max_det = 1)[0]
             
-
             if(results != None):
+                #frameNovo = results.plot()
                 for result in results:
-                    frameNovo = result.plot()
                     if(result.masks != None and jaCalibrou):
                         imagem = medicao(result, frameNovo)
                     elif(result.masks != None and jaCalibrou == False):
+
                         imagem = calibracao(result, frameNovo)
+
+                        
                         jaCalibrou = True
-            elif(jaCalibrou):
-                print("aqui")
-                imagem = frameNovo
-                #mainFullScreen.app.button_event_reset_diametro_gauge()
             else:
                 imagem = frameNovo
 
@@ -165,25 +164,20 @@ def ImageProcess():
                 # If the last time on the matrix is different from current it starts the update of the queues
                 if timeData_matrix[-1][0] != current_time:
 
-                    # Initializing variables before loop
-                    cont = int(0)
-                    avg_diameter = int(0)
-
                     # Loop for the index of every value on the matrix
-                    for i in range(0, len(timeData_matrix)):
 
-                        # Sum of all the values obtained in one second of the program
-                        avg_diameter += timeData_matrix[i][1]
+                    # Sum of all the values obtained in one second of the program
+                    avg_diameter = sum(diameter_list)
 
-                        # Amount of values obtained in one second of the program
-                        cont += 1
+                    # Amount of values obtained in one second of the program
+                    cont = len(diameter_list)
                     
                     # Calculating the average of the values obtained
                     avg = float(f"{avg_diameter/cont:.2f}")
 
-                    #print(f"avg_diameter = {avg_diameter}")
-                    #print(f"cont = {cont}")
-                    #print(f"avg = {avg}")
+                    print(f"avg_diameter = {avg_diameter}")
+                    print(f"cont = {cont}")
+                    print(f"avg = {avg}")
 
                     # Adds the updated values to the queue
                     queue_diameter.append(avg)
@@ -191,10 +185,14 @@ def ImageProcess():
                     queue_date.append(current_date)
 
                     # Empties the matrix to be used on the next second
+                    cont = int(0)
+                    avg_diameter = int(0)
                     timeData_matrix.clear()
+                    diameter_list.clear()
 
             # Appends the diameter and time values obtained in the matrix
             timeData_matrix.append([current_time, diametroCM])
+            diameter_list.append(diametroCM)
 
             # Initializing numpy arrays with the queues to pickle the data
             outputArray_time = np.array([])
@@ -212,7 +210,9 @@ def ImageProcess():
 
         except Exception as e:
             print(e)
-            time.sleep(0.015)
+            time.sleep(0.05)
+
+        time.sleep(0.2)
 
 if __name__ == '__main__':
     ImageProcess()

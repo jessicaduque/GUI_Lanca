@@ -84,10 +84,18 @@ def gauge_graph(num_data):
     # Changing the color of the graph's bar based on the diameter
     if num_data < 60:
         color_level = "#4dab6d"
+
     elif num_data >= 70:
         color_level = "#ee3d55"
+
     else:
         color_level = "#fabd57"
+
+    if num_data < 40:
+        num_data = 40
+
+    elif num_data > 80:
+        num_data = 80
 
     # Plotting the figure of the gauge graph
     fig = go.Figure(
@@ -120,7 +128,7 @@ def gauge_graph(num_data):
                     'threshold': {
                         'line': {'color': "red", 'width': 4},
                         'thickness': 0.75,
-                        'value': 75}
+                        'value': 70}
 
                     }
         )

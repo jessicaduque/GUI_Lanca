@@ -72,19 +72,18 @@ class App(CTk):
         self.video_frame.grid(row=0, column=0, padx=(30, 10), pady=(10, 10), sticky='nsew')
         
         image_video = CTkImage(light_image=Image.open('./imagens/IFES_logo.png'), size=(400 * 0.7, 400 * 0.7))
+
         self.video_widget = CTkLabel(self.video_frame, image=image_video, text="")
         self.video_widget.pack(padx=10, pady=10, fill=BOTH, expand=True)
 
         self.gaugeGraph_frame = CTkFrame(self.primary_frame, fg_color="#a4a8ad", corner_radius=15)
         self.gaugeGraph_frame.grid(row=0, column=1, padx=(0, 30), pady=(10, 10), sticky='nsew')
 
-        gaugeGraph_image = CTkImage(Image.open('./imagens/IFES_logo.png'), size=(400 * 0.7, 400 * 0.7))
-
         self.button = CTkButton(self.gaugeGraph_frame, text="PARAR APITO", width=240, text_color="black", hover_color="#bdc3c9", 
         border_width=2, border_color="black", fg_color='white', command=self.button_event_reset_diametro_gauge)
-
         self.button.pack(pady=(25,25), anchor='s')
 
+        gaugeGraph_image = CTkImage(Image.open('./imagens/IFES_logo.png'), size=(400 * 0.7, 400 * 0.7))
         self.gaugeGraph_label = CTkLabel(self.gaugeGraph_frame, image=gaugeGraph_image, text="")
         self.gaugeGraph_label.pack(padx=10, pady=0, anchor='n')
        
