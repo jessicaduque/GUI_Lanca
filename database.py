@@ -1,7 +1,9 @@
 from datetime import datetime
 import _pickle as pickle
-import sqlite3
 from time import sleep
+import pathlib
+import sqlite3
+import shutil
 
 # Adding values to cascao table
 def dbAdd(num_data, current_date, current_time):
@@ -69,6 +71,12 @@ while True:
 
                 # Inserting the values in the database
                 dbAdd(diameter, date, time)
+
+                # Make a backup of the file after every hour
+                if (datetime.now().minute == 0 and datetime.now().second == 0) or pathlib.Path("./diametro_cascao_backup.db").is_file() == False:
+                    backup_file = 'diametro_cascao_backup.db'
+                    shutil.copyfile('diametro_cascao.db', backup_file)
+                    print('Backup realizado com sucesso.')
                 
                 # Waiting a second before reading again
                 sleep(1)
@@ -79,12 +87,7 @@ while True:
 
                 # Waiting a second before trying again
                 sleep(1)
-                
-                # Make a backup of the file after every hour
-                if datetime.now().minute == 0:
-                    backup_file = 'diametro_cascao_backup.db'
-                    shutil.copyfile('diametro_cascao.db', backup_file)
-                    print('Backup realizado com sucesso.')
+               
 
     except Exception as e:
         # Treating error in the connection with the database

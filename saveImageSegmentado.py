@@ -65,7 +65,6 @@ def medicao(result, frame):
         #print("y_vid", y_vid)
         diametroCM = int(tamanho * tam)
         #print("diam", diametroCM)
-        frame =  cv.putText(frame, "Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", (1, 1), cv.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 2, cv.LINE_AA)
 
 
         #tamanho2 = int(n0[Y]*WX)
