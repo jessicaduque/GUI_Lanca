@@ -175,10 +175,10 @@ def ImageProcess():
                     # Calculating the average of the values obtained
                     avg = float(f"{avg_diameter/cont:.2f}")
 
-                    print(f"avg_diameter = {avg_diameter}")
-                    print(f"cont = {cont}")
-                    print(f"avg = {avg}")
-
+                    #print(f"avg_diameter = {avg_diameter}")
+                    #print(f"cont = {cont}")
+                    #print(f"avg = {avg}")s
+                   
                     # Adds the updated values to the queue
                     queue_diameter.append(avg)
                     queue_time.append(timeData_matrix[1][0])

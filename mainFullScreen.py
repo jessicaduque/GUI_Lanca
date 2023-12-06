@@ -5,6 +5,7 @@ import _pickle as pickle
 import ctypes
 import cv2
 import os
+import time
 
 class App(CTk):
     def __init__(self):
@@ -107,20 +108,25 @@ class App(CTk):
 
 
     def button_event_reset_diametro_gauge(self):
-        manageSubprocess.KillSubprocess_All()
 
-        #self.gaugeGraph_label.configure(image=gaugeGraph_image) 
-        #self.gaugeGraph_label.image = gaugeGraph_image
-
-        #self.lineGraph_label.configure(image=lineGraph_image) 
-        #self.lineGraph_image.image = self.lineGraph_image
-
-        #self.video_widget.configure(image=self.image_video) 
-        #self.video_widget.image = image_video
-
-
+        manageSubprocess.KillSubprocess_All
         processDone = manageSubprocess.ChecarSubprocessesDone()
+
+        gaugeGraph_image = CTkImage(Image.open('./imagens/IFES_logo.png'), size=(400 * 0.7, 400 * 0.7))
+        lineGraph_image = CTkImage(Image.open('./imagens/IFES_horizontal_logo.png'), size=(600 * 0.7, 250* 0.7))
+        image_video = CTkImage(light_image=Image.open('./imagens/IFES_logo.png'), size=(400 * 0.7, 400 * 0.7))
+
+        self.gaugeGraph_label.configure(image=gaugeGraph_image) 
+        self.gaugeGraph_label.image = gaugeGraph_image
+
+        self.lineGraph_label.configure(image=lineGraph_image) 
+        self.lineGraph_image.image = lineGraph_image
+        
+        self.video_widget.configure(image=self.image_video) 
+        self.video_widget.image = image_video
+
         while(not processDone):
+
             processDone = manageSubprocess.ChecarSubprocessesDone()
             time.sleep(1)
 

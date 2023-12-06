@@ -43,8 +43,7 @@ def line_graph(queue_time, queue_data):
     ))
 
     # PLotting the figure of the graph
-    fig = px.line(df, x="x_axis", y="y_axis", text="y_axis", markers=True, template="seaborn", 
-                  labels = dict(x = "", y = "Diâmetro (mm)"))
+    fig = px.line(df, x="x_axis", y="y_axis", text="y_axis", markers=True, template="seaborn", labels = dict(x_axis = "", y_axis = "Diâmetro (mm)"))
 
     # Updating layout background to be the same as the frame and font style
     fig.update_layout(
@@ -70,7 +69,7 @@ def line_graph(queue_time, queue_data):
     )
 
     # Updating traces line color to contrast with UI
-    fig.update_traces(line_color='#E0165C'),
+    fig.update_traces(line_color='#E0165C', textposition = "top center"),
 
     # Turning plot into image, then turning the image into a numpy array to pickle
     fig_bytes = fig.to_image(format="png", width=1000, height=400)
@@ -133,12 +132,14 @@ def gauge_graph(num_data):
                     }
         )
     )
+
     # Setting gauge graph font size
     fig.update_traces(
         gauge_axis_tickfont = {
             'size': 15
         }
     )
+
      # Updating layout background to be the same as the frame, change font style and make a border around graph
     fig.update_layout(
         paper_bgcolor='#a4a8ad',
