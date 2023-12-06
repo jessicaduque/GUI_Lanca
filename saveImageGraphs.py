@@ -1,74 +1,57 @@
-from multiprocessing import Process
-from datetime import datetime
-from collections import deque
-from ultralytics import YOLO
-import _pickle as pickle
-from numpy import asarray
-from PIL import Image
-import numpy as np
-import warnings
-import time
-import gc
-
-import platform
-import random
-import torch
-import math
-import csv
-import cv2
-
+from winreg import QueryInfoKey
 import plotly.graph_objects as go
 import plotly.express as px
-import io 
-import pandas as pd
-
 from winsound import Beep
+import _pickle as pickle
+from PIL import Image
+import pandas as pd
+import numpy as np
+import warnings
+from time import sleep
+import gc
+import io 
 
 warnings.filterwarnings("ignore")
 
 gc.enable()
 
-maiorDiametro = 0
+max_diameter = 0
+
+# Defining global font
 font = "Raleway"
-print("kasjdkasjdkasjdkasj")
-
-notes = {'C': 1635,
-         'D': 1835,
-         'E': 2060,
-         'S': 1945,
-         'F': 2183,
-         'G': 2450,
-         'A': 2750,
-         'B': 3087,
-         ' ': 37}
-
-
-melodie = 'CDEFG G AAAAG AAAAG FFFFE E DDDDC'
 
 #SAVE IMAGE DATA IN PICKLE FILE TO BE USED BY THE DASH PROGRAM.
-def storeData(data, path): 
+def storeData(data, path):
+
     # initializing data to be stored in db 
     db = (data)
+
     # Its important to use binary mode 
     dbfile = open(path, 'wb') 
+
     # source, destination 
     pickle.dump(db, dbfile)         
     dbfile.close()
 
-def LineGraph(queueTempo, queueDados):
+# Line graph to show all values inside the queues
+def line_graph(queue_time, queue_data):
 
+    # Dataframe dictionary with the xy values of the graph
     df = pd.DataFrame(dict(
-        x = list(queueTempo),
-        y = list(queueDados)
+        x_axis = list(queue_time),
+        y_axis = list(queue_data)
     ))
-    fig = px.line(df, x="x", y="y", text="y", markers=True, template="seaborn", 
-                  labels = dict(x = "Horário", y = "Diâmetro (mm)"))
 
+    # PLotting the figure of the graph
+    fig = px.line(df, x="x_axis", y="y_axis", text="y_axis", markers=True, template="seaborn", labels = dict(x_axis = "", y_axis = "Diâmetro (mm)"))
+
+    # Updating layout background to be the same as the frame and font style
     fig.update_layout(
         paper_bgcolor = "#a4a8ad", 
         font_family = f"{font}"
     )
 
+    # Updating axes to make a border around the graph
     fig.update_xaxes(
         mirror=True,
         ticks='outside',
@@ -85,54 +68,79 @@ def LineGraph(queueTempo, queueDados):
         gridcolor='lightgrey'
     )
 
-    fig.update_traces(line_color='#E0165C'),
+    # Updating traces line color to contrast with UI
+    fig.update_traces(line_color='#E0165C', textposition = "top center"),
 
+    # Turning plot into image, then turning the image into a numpy array to pickle
     fig_bytes = fig.to_image(format="png", width=1000, height=400)
     buf = io.BytesIO(fig_bytes)
     img = Image.open(buf)
     return np.asarray(img)
+    
+# Gauge graph to show the highest diameter recorded
+def gauge_graph(num_data):
 
-def GaugeGraph(numData):
+    # Changing the color of the graph's bar based on the diameter
+    if num_data < 60:
+        color_level = "#4dab6d"
 
+    elif num_data >= 70:
+        color_level = "#ee3d55"
 
-    if numData < 60:
-        colorLevel = "#4dab6d"
-    elif numData >= 70:
-        colorLevel = "#ee3d55"
     else:
-        colorLevel = "#fabd57"
+        color_level = "#fabd57"
 
+    if num_data < 40:
+        num_data = 40
+
+    elif num_data > 80:
+        num_data = 80
+
+    # Plotting the figure of the gauge graph
     fig = go.Figure(
 
+        # Defining type of graph and characteristics
         go.Indicator(
             mode = "gauge+number",
-            value = numData,
+            value = num_data,
             domain = {'x': [0, 1], 'y': [0, 1]},
             title = {'text': "Diametro"},
+
+            # color based on diameter to represent danger
+            number = {'font':{'color': f'{color_level}'}},
+
             gauge = {
 
+                    # color based on diameter to represent danger
+                    'bar': {'color': f"{color_level}"},
+
+                    # limits for the gauge graphs min and max values
                     'axis': {'range': [40, 80], 'tickwidth': 1},
 
-                    'bar': {'color': f"{colorLevel}"},
-
+                    # Dividing the graph in sectors GOOD/WORRY/CRITICAL
                     'steps': [
                         {'range': [40, 60], 'color': 'white'},
                         {'range': [60, 70], 'color': 'white'},
                         {'range': [70, 80], 'color': 'white'}],
 
+                    # Treshold to alarm when diameter levels are critical 
                     'threshold': {
                         'line': {'color': "red", 'width': 4},
                         'thickness': 0.75,
-                        'value': 79}
+                        'value': 70}
 
                     }
         )
     )
+
+    # Setting gauge graph font size
     fig.update_traces(
         gauge_axis_tickfont = {
             'size': 15
         }
     )
+
+     # Updating layout background to be the same as the frame, change font style and make a border around graph
     fig.update_layout(
         paper_bgcolor='#a4a8ad',
         font_family = f"{font}",
@@ -151,13 +159,13 @@ def GaugeGraph(numData):
         )]
     )
 
+    # using update axes to format
     fig.update_xaxes(
         mirror=True,
         ticks='outside',
         showline=True,
         linecolor='black',
     )
-
     fig.update_yaxes(
         mirror=True,
         ticks='outside',
@@ -165,49 +173,52 @@ def GaugeGraph(numData):
         linecolor='black',
     )
 
-
+    # Turning plot into image, then turning the image into a numpy array to pickle
     fig_bytes = fig.to_image(format="png")
     buf = io.BytesIO(fig_bytes)
     img = Image.open(buf)
     return np.asarray(img)
 
-
-    
-def graphProcess(): 
-    global maiorDiametro
+# Function to store the data from both graphs
+def graph_process(): 
+    global max_diameter
 
     while True:
         try:
+
             # Load pickled data
-            with open('./dados_pickle/dadosPickle.pkl', 'rb') as f:
-                dados = pickle.load(f)
-            with open('./dados_pickle/horaPickle.pkl', 'rb') as f:
-                tempo = pickle.load(f)
-            with open('./dados_pickle/dataPickle.pkl', 'rb') as f:
-                data = pickle.load(f)
+            with open('./pickle_data/diameter_pickle.pkl', 'rb') as f:
+                diameter = pickle.load(f)
+            with open('./pickle_data/time_pickle.pkl', 'rb') as f:
+                time = pickle.load(f)
 
             ## UPDATES
 
+            if(len(diameter) > 0):
+                arr_gaugeimg = gauge_graph(diameter[-1])
+
             # Plotting images
-            if(len(dados) > 0):
-                if(dados[-1] > maiorDiametro):
+            if(len(diameter) > 0):
+                if(diameter[-1] > max_diameter):
 
-                    maiorDiametro = dados[-1] 
-                    arr_gaugeimg = GaugeGraph(maiorDiametro)
+                    #print("data -1: " + str(diameter[-1]))
+                    max_diameter = diameter[-1] 
+                    arr_gaugeimg = gauge_graph(max_diameter)
 
-                    if(dados[-1] >= 80):
-                        for note in melodie:
-                            Beep(notes[note], 200)
+                    #while max_diameter >= 75:
 
-            arr_lineimg = LineGraph(tempo, dados)
+                    #    Beep(4000, 1000)
+
+
+            arr_lineimg = line_graph(time, diameter)
 
             # Storing images in pickle files
-            storeData(arr_gaugeimg, './dados_pickle/gaugeGraphPickle.pkl')
-            storeData(arr_lineimg, './dados_pickle/lineGraphPickle.pkl')
+            storeData(arr_gaugeimg, './pickle_data/gaugeGraph_pickle.pkl')
+            storeData(arr_lineimg, './pickle_data/lineGraph_pickle.pkl')
             
         except Exception as e:
             print(e)
-            time.sleep(0.1)
+            sleep(1)
 
 if __name__ == '__main__':
-    graphProcess()
+    graph_process()

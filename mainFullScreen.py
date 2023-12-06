@@ -1,21 +1,18 @@
-import tkinter as tk
 from customtkinter import *
-import signal
-from datetime import datetime, timedelta
-from PIL import Image, ImageTk
-from collections import deque
-from ultralytics import YOLO
+from manageSubprocess import SubprocessManager
+from PIL import Image
+import numpy as np
 import _pickle as pickle
-import subprocess
 import ctypes
 import cv2
-import random
 import os
 
 class App(CTk):
     def __init__(self):
         super().__init__()
         
+        self.thisSubprocessManager = SubprocessManager()
+
         screen_width = self.winfo_screenwidth()
         screen_height = self.winfo_screenheight()
 
@@ -46,144 +43,205 @@ class App(CTk):
 
         ### Configure logo images into header
         # Defining image variables and sizes
-        photo_image_ifes_logo = CTkImage(light_image=Image.open('./imagens/IFES_horizontal_logo.png'),
-                                        size=(215.46, 86.184)
-                                        )
-        #photo_image_empresa_logo = CTkImage(light_image=Image.open('./imagens/ArcelorMittal_logo.png'),
-        #                                   size=(168, 69.12)
-        #                                   )
+        image_ifes_logo = CTkImage(light_image=Image.open('./imagens/IFES_horizontal_logo.png'), size=(215.46, 86.184))
+        #image_empresa_logo = CTkImage(light_image=Image.open('./imagens/ArcelorMittal_logo.png'), size=(168, 69.12))
 
-        photo_image_empresa_logo = CTkImage(light_image=Image.open('./imagens/LumarMetals_Logo.jpg'),
-                                           size=(265, 56)
-                                           )
+        image_empresa_logo = CTkImage(light_image=Image.open('./imagens/LumarMetals_Logo.jpg'), size=(265, 56))
 
-        photo_image_oficinas_logo = CTkImage(light_image=Image.open('./imagens/Oficinas4-0_logo.png'),
-                                            size=(163.84, 33.6)
-                                             )
+        image_oficinas_logo = CTkImage(light_image=Image.open('./imagens/Oficinas4-0_logo.png'), size=(163.84, 33.6))
 
         # Configuring images
-        self.image_ifes_logo_label = CTkLabel(self.frameHeader, image=photo_image_ifes_logo, text="")
+
+        self.image_ifes_logo_label = CTkLabel(self.frameHeader, image=image_ifes_logo, text="")
         self.image_ifes_logo_label.grid(row=0, column=0, padx=(20, 0))
         
-        self.image_empresa_logo_label = CTkLabel(self.frameHeader, image=photo_image_empresa_logo, text="")
+        self.image_empresa_logo_label = CTkLabel(self.frameHeader, image=image_empresa_logo, text="")
         self.image_empresa_logo_label.grid(row=0, column=1)
         
-        self.image_oficinas_logo_label = CTkLabel(self.frameHeader, image=photo_image_oficinas_logo, text="")
+        self.image_oficinas_logo_label = CTkLabel(self.frameHeader, image=image_oficinas_logo, text="")
         self.image_oficinas_logo_label.grid(row=0, column=2, padx=(0, 20))
 
         ### Configure main frame
-        self.framePrincipal = CTkFrame(self, fg_color='#4f7d71', corner_radius=0)
-        self.framePrincipal.grid(row=1, column=0, sticky='nsew')
+        self.primary_frame = CTkFrame(self, fg_color='#4f7d71', corner_radius=0)
+        self.primary_frame.grid(row=1, column=0, sticky='nsew')
 
-        self.framePrincipal.rowconfigure(0, weight=1)
-        self.framePrincipal.rowconfigure(1, weight=1)
-        self.framePrincipal.columnconfigure(0, weight=2)
-        self.framePrincipal.columnconfigure(1, weight=1)
+        self.primary_frame.rowconfigure(0, weight=1)
+        self.primary_frame.rowconfigure(1, weight=1)
+        self.primary_frame.columnconfigure(0, weight=2)
+        self.primary_frame.columnconfigure(1, weight=1)
 
         # Configure top widgets
-        self.frameVideo = CTkFrame(self.framePrincipal, fg_color="#a4a8ad", corner_radius=15)
-        self.frameVideo.grid(row=0, column=0, padx=(30, 10), pady=(10, 10), sticky='nsew')
+        self.video_frame = CTkFrame(self.primary_frame, fg_color="#a4a8ad", corner_radius=15)
+        self.video_frame.grid(row=0, column=0, padx=(30, 10), pady=(10, 10), sticky='nsew')
         
-        imagem_video = CTkImage(light_image=Image.open('./imagens/IFES_logo.png'), size=(300 * 0.7, 250 * 0.7))
-        self.video_widget = CTkLabel(self.frameVideo, image=imagem_video, text="")
+        image_video = CTkImage(light_image=Image.open('./imagens/IFES_logo.png'), size=(400 * 0.7, 400 * 0.7))
+        self.video_widget = CTkLabel(self.video_frame, image=image_video, text="")
         self.video_widget.pack(padx=10, pady=10, fill=BOTH, expand=True)
 
-        self.frameGaugeGraph = CTkFrame(self.framePrincipal, fg_color="#a4a8ad", corner_radius=15)
-        self.frameGaugeGraph.grid(row=0, column=1, padx=(0, 30), pady=(10, 10), sticky='nsew')
+        self.gaugeGraph_frame = CTkFrame(self.primary_frame, fg_color="#a4a8ad", corner_radius=15)
+        self.gaugeGraph_frame.grid(row=0, column=1, padx=(0, 30), pady=(10, 10), sticky='nsew')
 
-        self.button = CTkButton(self.frameGaugeGraph, text="RESET MAIOR DIAMETRO", width=240, text_color="black", hover_color="#bdc3c9", border_width=2, border_color="black", fg_color='white', command=self.button_event_reset_diametro_gauge)
-        self.button.pack(pady=(20,0), anchor='s')
+        gaugeGraph_image = CTkImage(Image.open('./imagens/IFES_logo.png'), size=(400 * 0.7, 400 * 0.7))
 
-        GaugeGraphImage = CTkImage(Image.open('./imagens/IFES_logo.png'),
-                                  size=(300 * 0.7, 250 * 0.7)
-                                   )
-        self.GaugeGraphLabel = CTkLabel(self.frameGaugeGraph, image=GaugeGraphImage, text="")
-        self.GaugeGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
+        self.button = CTkButton(self.gaugeGraph_frame, text="PARAR APITO", width=240, text_color="black", hover_color="#bdc3c9", 
+        border_width=2, border_color="black", fg_color='white', command=self.button_event_parar_apito)
 
+        self.button.pack(pady=(25,25), anchor='s')
+
+        self.gaugeGraph_label = CTkLabel(self.gaugeGraph_frame, image=gaugeGraph_image, text="")
+        self.gaugeGraph_label.pack(padx=10, pady=0, anchor='n')
+       
         # Configure bottom widgets
-        self.frameLineGraph = CTkFrame(self.framePrincipal, fg_color="#a4a8ad", corner_radius=15)
-        self.frameLineGraph.grid(row=1, columnspan=2, padx=30, pady=(0, 10), sticky='nsew')
+        self.lineGraph_frame = CTkFrame(self.primary_frame, fg_color="#a4a8ad", corner_radius=15)
+        self.lineGraph_frame.grid(row=1, columnspan=2, padx=30, pady=(0, 10), sticky='nsew')
 
-        LineGraphImage = CTkImage(Image.open('./imagens/IFES_horizontal_logo.png'),
-                                 size=(800 * 0.7, 250* 0.7)
-                                 )
-        self.LineGraphLabel = CTkLabel(self.frameLineGraph, image=LineGraphImage, text="")
-        self.LineGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
+        lineGraph_image = CTkImage(Image.open('./imagens/IFES_horizontal_logo.png'), size=(600 * 0.7, 250* 0.7))
+        self.lineGraph_label = CTkLabel(self.lineGraph_frame, image=lineGraph_image, text="")
+        self.lineGraph_label.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
-        # Rodar métodos continuamente de atualização de imagem, segmentação e dos plots de gráficos
+        # Continuously run methods updating the image, plots segmentation and graphs
         self.update_image()
         self.update_plot_gauge()
         self.update_plot_line()
 
-        # Bind para resize de imagens caso tamanho da tela seja alterada
-        self.GaugeGraphLabel.bind("<Configure>", lambda event:self.resize_image(event, "Gauge"))
-        self.LineGraphLabel.bind("<Configure>", lambda event:self.resize_image(event, "Line"))
-        self.video_widget.bind("<Configure>", lambda event:self.resize_image(event, "Video"))
-
-
-    def button_event_reset_diametro_gauge(self):
-        print("button!!")
+        # Bind to resize the images if the screen size changes
+        #self.gaugeGraph_label.bind("<Configure>", lambda event:self.resize_image(event, "Gauge"))
+        #self.lineGraph_label.bind("<Configure>", lambda event:self.resize_image(event, "Line"))
+        #self.video_widget.bind("<Configure>", lambda event:self.resize_image(event, "Video"))
     
-    def resize_image(self, event, extra):
-        newSize = (event.width, event.height)
-        #if(extra == "Gauge"):
-        #    GaugeGraphImage = CTkImage(Image.open('./imagens/gaugeDiametro.png'),
-        #        size=newSize
-        #        )
-        #    self.GaugeGraphLabel = CTkLabel(self.frameGaugeGraph, image=GaugeGraphImage, text="")
-        #    self.GaugeGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
+    def button_event_parar_apito(self):
+        # Código para parar o apito
+        print("Parar apito faltando implementação")
 
+    def reset_diametro_gauge(self):
+        self.thisSubprocessManager.KillSubprocess_All()
+
+        new_ifes_logo = CTkImage(light_image=Image.open('./imagens/IFES_logo.png'), size=(400 * 0.7, 400 * 0.7))
+
+        self.video_widget.configure(image=new_ifes_logo)
+        self.video_widget.image = new_ifes_logo
+
+        self.lineGraph_label.configure(image=new_ifes_logo) 
+        self.lineGraph_image.image = new_ifes_logo
+
+        self.gaugeGraph_label.configure(image=new_ifes_logo) 
+        self.gaugeGraph_label.image = new_ifes_logo
+
+        processDone = self.thisSubprocessManager.ChecarSubprocessesDone()
+        while(not processDone):
+            processDone = self.thisSubprocessManager.ChecarSubprocessesDone()
+            time.sleep(1)
+
+        self.thisSubprocessManager.StartSubprocess_All()
+
+        self.DeletePickleData()
+
+        self.update_image()
+
+    # Function to update the segmented video
     def update_image(self):
         try:
             # Load pickled PIL image
-            f = open('./dados_pickle/framePickle.pkl', 'rb')
+            f = open('./pickle_data/frame_pickle.pkl', 'rb')
             img_data = pickle.load(f)
             f.close()
             del f
-            # Convert RGB image to BGR image
-            img_data = cv2.cvtColor(img_data, cv2.COLOR_BGR2RGB)
-            # Convert numpy array to PIL image
-            frame = Image.fromarray(img_data)
-            #img_data = None
-            del img_data
-            self.imagem_video = CTkImage(light_image=frame, size=(840, 420))
-            self.video_widget.configure(image=self.imagem_video)
-            self.video_widget.pack(padx=10, pady=10, fill=BOTH, expand=True)
+            if(len(img_data.shape) == 1):
+                self.reset_diametro_gauge()
+            else:
+                # Convert RGB image to BGR image
+                img_data = cv2.cvtColor(img_data, cv2.COLOR_BGR2RGB)
 
+                img_data = Image.fromarray(img_data)
+
+                baseheight = 320
+
+                hpercent = (baseheight / float(img_data.size[1]))
+                wsize = int((float(img_data.size[0]) * float(hpercent)))
+                frame = img_data.resize((wsize, baseheight), Image.LANCZOS)
+
+                del img_data
+
+                new_imagem_video = CTkImage(light_image=frame, size=(wsize, 320))
+                self.video_widget.configure(image=new_imagem_video)
+                self.video_widget.image = new_imagem_video
+                self.video_widget.pack(padx=10, pady=10, fill=BOTH, expand=True)
+                self.after(30, self.update_image)
         except Exception as e:
             print(e)
-        self.after(30, self.update_image)
+            self.after(30, self.update_image)
+            
 
+    # Funcion to update the gauge graph
     def update_plot_gauge(self):
         try:
-            f = open('./dados_pickle/gaugeGraphPickle.pkl', 'rb')
+            f = open('./pickle_data/gaugeGraph_pickle.pkl', 'rb')
             img_data_gauge_graph = pickle.load(f)
             f.close()
             del f
-            frameGaugeGraph = Image.fromarray(img_data_gauge_graph)
-            self.GaugeGraphImage = CTkImage(light_image=frameGaugeGraph, size=(750 * 0.7, 500 * 0.7))
-            self.GaugeGraphLabel.configure(image=self.GaugeGraphImage)
-            self.GaugeGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
+            gaugeGraph_frame = Image.fromarray(img_data_gauge_graph)
+            new_gaugeGraph_image = CTkImage(light_image=gaugeGraph_frame, size=(750 * 0.7, 500 * 0.7))
+            self.gaugeGraph_label.configure(image=new_gaugeGraph_image)
+            self.gaugeGraph_label.image = new_gaugeGraph_image
+            self.gaugeGraph_label.pack(fill=BOTH, expand=True, padx=10, pady=10)
+
         except Exception as e:
             print(e)
-        self.after(1000, self.update_plot_gauge)
 
+        finally:
+            self.after(1000, self.update_plot_gauge)
+
+    # Function to update the line graph
     def update_plot_line(self):
         try:
-            f = open('./dados_pickle/lineGraphPickle.pkl', 'rb')
+
+            f = open('./pickle_data/lineGraph_pickle.pkl', 'rb')
             img_data_line_graph = pickle.load(f)
             f.close()
             del f
-            frameLineGraph = Image.fromarray(img_data_line_graph)
-            self.LineGraphImage = CTkImage(light_image=frameLineGraph, size=(1300, 350))
-            self.LineGraphLabel.configure(image=self.LineGraphImage)
-            self.LineGraphLabel.pack(fill=BOTH, expand=True, padx=10, pady=10)
+            lineGraph_frame = Image.fromarray(img_data_line_graph)
+            self.lineGraph_image = CTkImage(light_image=lineGraph_frame, size=(1300, 350))
+            self.lineGraph_label.configure(image=self.lineGraph_image)
+            self.lineGraph_label.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
         except Exception as e:
             print(e)
-        self.after(1000, self.update_plot_line)
-    
+
+        finally:
+            self.after(1000, self.update_plot_line)
+    def DeletePickleData(self):
+        try:
+            os.remove(os.path.join(os.path.dirname(__file__), 'pickle_data/diameter_pickle.pkl'))
+        except Exception as e:
+            print(e)
+
+        try:
+            os.remove(os.path.join(os.path.dirname(__file__), 'pickle_data/date_pickle.pkl'))
+        except Exception as e:
+            print(e)
+
+        try:
+            os.remove(os.path.join(os.path.dirname(__file__), 'pickle_data/time_pickle.pkl'))
+        except Exception as e:
+            print(e)
+
+        try:
+            os.remove(os.path.join(os.path.dirname(__file__), 'pickle_data/frame_pickle.pkl'))
+        except Exception as e:
+            print(e)
+        try:
+            os.remove(os.path.join(os.path.dirname(__file__), 'pickle_data/gaugeGraph_pickle.pkl'))
+        except Exception as e:
+            print(e)   
+          
+        try:
+            os.remove(os.path.join(os.path.dirname(__file__), 'pickle_data/lineGraph_pickle.pkl'))
+        except Exception as e:
+            print(e)   
+
 if __name__ == "__main__":
+    global app
+
     ### Variables
     # Defining original DPI being used
     ORIGINAL_DPI = 96.09458128078816
@@ -191,29 +249,24 @@ if __name__ == "__main__":
     APP_HEIGHT = 720
     w_img, h_img = 30, 30
 
+    # Starting the app
     app = App()
-    processSalvarImageGraphs = subprocess.Popen(['python', 'saveImageGraphs.py'], stdout=None, stderr=None)
-    processSalvarImageSegmentado = subprocess.Popen(['python', 'saveImageSegmentado.py'], stdout=None, stderr=None)
-    processDataBase = subprocess.Popen(['python', 'database.py'], stdout=None, stderr=None)
-    
+    # Setting up all subprocesses
+    app.thisSubprocessManager.StartSubprocess_All()   
     ctypes.windll.shcore.SetProcessDpiAwareness(2)
+    
+    # Function that stops the subprocesses when closing the app
+    def on_closing():
+        try:
+           app.thisSubprocessManager.KillSubprocess_All()  
+        except Exception as e:
+            print(e)
 
-    def on_closing():# Parando o subprocess de imagens ao fechar o app
-        os.kill(processSalvarImageGraphs.pid, signal.SIGTERM)
-        os.kill(processSalvarImageSegmentado.pid, signal.SIGTERM)
-        os.kill(processDataBase.pid, signal.SIGTERM)
+        app.DeletePickleData()
 
-        # Deletando os arquivos pickle ao fechar o app
-        os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/dadosPickle.pkl'))
-        os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/dataPickle.pkl'))
-        os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/horaPickle.pkl'))
-        os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/framePickle.pkl'))
-        os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/gaugeGraphPickle.pkl'))
-        os.remove(os.path.join(os.path.dirname(__file__), 'dados_pickle/lineGraphPickle.pkl'))
-
-        # Deletando a janela do app
+        # Deleting app window
         app.destroy()
 
-    # Protocolo para executar funcao on_closing ao clickar no X do app
-    app.protocol("WM_DELETE_WINDOW", on_closing)
+    # Protocol to execute on_closing function when the X is clicked on the app
+    app.protocol("WM_DELETE_WINDOW", on_closing)    
     app.mainloop()
