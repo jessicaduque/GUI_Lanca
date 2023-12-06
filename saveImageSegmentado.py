@@ -10,8 +10,7 @@ import warnings
 import time
 import gc
 
-import mainFullScreen
-
+import main
 warnings.filterwarnings("ignore")
 
 gc.enable()
