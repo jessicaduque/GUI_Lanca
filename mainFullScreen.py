@@ -116,14 +116,16 @@ class App(CTk):
     def reset_diametro_gauge(self):
         self.thisSubprocessManager.KillSubprocess_All()
 
-        #self.gaugeGraph_label.configure(image=gaugeGraph_image) 
-        #self.gaugeGraph_label.image = gaugeGraph_image
+        new_ifes_logo = CTkImage(light_image=Image.open('./imagens/IFES_logo.png'), size=(400 * 0.7, 400 * 0.7))
 
-        #self.lineGraph_label.configure(image=lineGraph_image) 
-        #self.lineGraph_image.image = self.lineGraph_image
+        self.video_widget.configure(image=new_ifes_logo)
+        self.video_widget.image = new_ifes_logo
 
-        #self.video_widget.configure(image=self.image_video) 
-        #self.video_widget.image = image_video
+        self.lineGraph_label.configure(image=new_ifes_logo) 
+        self.lineGraph_image.image = new_ifes_logo
+
+        self.gaugeGraph_label.configure(image=new_ifes_logo) 
+        self.gaugeGraph_label.image = new_ifes_logo
 
         processDone = self.thisSubprocessManager.ChecarSubprocessesDone()
         while(not processDone):
@@ -131,10 +133,9 @@ class App(CTk):
             time.sleep(1)
 
         self.thisSubprocessManager.StartSubprocess_All()
-        try:
-            os.remove(os.path.join(os.path.dirname(__file__), 'pickle_data/frame_pickle.pkl'))
-        except Exception as e:
-            print(e)
+
+        self.DeletePickleData()
+
         self.update_image()
 
     # Function to update the segmented video
@@ -157,12 +158,13 @@ class App(CTk):
 
                 hpercent = (baseheight / float(img_data.size[1]))
                 wsize = int((float(img_data.size[0]) * float(hpercent)))
-                frame = img_data.resize((wsize, baseheight), Image.ANTIALIAS)
+                frame = img_data.resize((wsize, baseheight), Image.LANCZOS)
 
                 del img_data
 
-                self.imagem_video = CTkImage(light_image=frame, size=(wsize, 320))
-                self.video_widget.configure(image=self.imagem_video)
+                new_imagem_video = CTkImage(light_image=frame, size=(wsize, 320))
+                self.video_widget.configure(image=new_imagem_video)
+                self.video_widget.image = new_imagem_video
                 self.video_widget.pack(padx=10, pady=10, fill=BOTH, expand=True)
                 self.after(30, self.update_image)
         except Exception as e:
@@ -173,14 +175,14 @@ class App(CTk):
     # Funcion to update the gauge graph
     def update_plot_gauge(self):
         try:
-
             f = open('./pickle_data/gaugeGraph_pickle.pkl', 'rb')
             img_data_gauge_graph = pickle.load(f)
             f.close()
             del f
             gaugeGraph_frame = Image.fromarray(img_data_gauge_graph)
-            self.gaugeGraph_image = CTkImage(light_image=gaugeGraph_frame, size=(750 * 0.7, 500 * 0.7))
-            self.gaugeGraph_label.configure(image=self.gaugeGraph_image)
+            new_gaugeGraph_image = CTkImage(light_image=gaugeGraph_frame, size=(750 * 0.7, 500 * 0.7))
+            self.gaugeGraph_label.configure(image=new_gaugeGraph_image)
+            self.gaugeGraph_label.image = new_gaugeGraph_image
             self.gaugeGraph_label.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
         except Exception as e:
@@ -207,30 +209,7 @@ class App(CTk):
 
         finally:
             self.after(1000, self.update_plot_line)
-    
-if __name__ == "__main__":
-    global app
-
-    ### Variables
-    # Defining original DPI being used
-    ORIGINAL_DPI = 96.09458128078816
-    APP_WIDTH = 1000
-    APP_HEIGHT = 720
-    w_img, h_img = 30, 30
-
-    # Starting the app
-    app = App()
-    # Setting up all subprocesses
-    app.thisSubprocessManager.StartSubprocess_All()   
-    ctypes.windll.shcore.SetProcessDpiAwareness(2)
-    
-    # Function that stops the subprocesses when closing the app
-    def on_closing():
-        try:
-           app.thisSubprocessManager.KillSubprocess_All()  
-        except Exception as e:
-            print(e)
-
+    def DeletePickleData(self):
         try:
             os.remove(os.path.join(os.path.dirname(__file__), 'pickle_data/diameter_pickle.pkl'))
         except Exception as e:
@@ -259,6 +238,31 @@ if __name__ == "__main__":
             os.remove(os.path.join(os.path.dirname(__file__), 'pickle_data/lineGraph_pickle.pkl'))
         except Exception as e:
             print(e)   
+
+if __name__ == "__main__":
+    global app
+
+    ### Variables
+    # Defining original DPI being used
+    ORIGINAL_DPI = 96.09458128078816
+    APP_WIDTH = 1000
+    APP_HEIGHT = 720
+    w_img, h_img = 30, 30
+
+    # Starting the app
+    app = App()
+    # Setting up all subprocesses
+    app.thisSubprocessManager.StartSubprocess_All()   
+    ctypes.windll.shcore.SetProcessDpiAwareness(2)
+    
+    # Function that stops the subprocesses when closing the app
+    def on_closing():
+        try:
+           app.thisSubprocessManager.KillSubprocess_All()  
+        except Exception as e:
+            print(e)
+
+        app.DeletePickleData()
 
         # Deleting app window
         app.destroy()

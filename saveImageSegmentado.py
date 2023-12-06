@@ -187,7 +187,6 @@ def ImageProcess():
             
             # Only executes if the matrix isnt empty
             if len(timeData_matrix) > 0:
-
                 # If the last time on the matrix is different from current it starts the update of the queues
                 if timeData_matrix[-1][0] != current_time:
 

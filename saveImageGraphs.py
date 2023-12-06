@@ -191,10 +191,11 @@ def graph_process():
 
             ## UPDATES
 
-            arr_gaugeimg = gauge_graph(diameter[-1])
+            if(len(diameter) > 0):
+                arr_gaugeimg = gauge_graph(diameter[-1])
 
             # Plotting images
-            if(np.any(diameter)):
+            if(len(diameter) > 0):
                 if(diameter[-1] > max_diameter):
 
                     #print("data -1: " + str(diameter[-1]))
@@ -214,7 +215,7 @@ def graph_process():
             
         except Exception as e:
             print(e)
-            sleep(0.1)
+            sleep(1)
 
 if __name__ == '__main__':
     graph_process()
