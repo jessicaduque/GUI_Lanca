@@ -37,44 +37,75 @@ def storeData(data, path):
     pickle.dump(db, dbfile)         
     dbfile.close()
  
-def calibracao(result, frame):
+def calibracao(result):
     global tam
-    mask = result.masks.data
-    mask = mask.cpu()
+    mask = result.cpu().masks.data
     mask = np.squeeze(np.array(mask))[Y]
     diametro = int(np.count_nonzero(mask)*WX)
+    print(diametro)
     inicial = int(np.argmax(mask)*WX)
     tam = round(40 / (diametro), 2)
-    img = cv.line(frame, (inicial, YX), ((inicial + diametro), YX), (0, 0, 255), 4)
-    img = cv.putText(img, '40 cm', (560, (YX - 40)), cv.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 2, cv.LINE_AA)
-    return img
 
 def medicao(result, frame):
     global diametroCM
-
-    mask = result.masks.data
-    mask = mask.cpu()
-
-    if mask.shape[1] > 200:
-        mask = np.squeeze(np.array(mask))
-        boxes = result.boxes.xyxy.cpu()
-        dimen = np.array(boxes)
-        mask = mask[(int(dimen[0, 1]//HX)):(int(dimen[0, 3]//HX)), (int(dimen[0, 0]//WX)):(int(dimen[0, 2]//WX))]
-        n0 = np.count_nonzero(mask, axis=1, keepdims=True)
-        ind = (np.where(n0 == np.max(n0))[0])[-1]
+    mask = result.cpu().masks.data
+    mask = np.squeeze(np.array(mask))
+    boxes = result.boxes.xyxy.cpu()
+    dimen = np.array(boxes)
+    mask = mask[int(dimen[0, 1]//HX):int(dimen[0, 3]//HX), int(dimen[0, 0]//WX):int(dimen[0, 2]//WX)]
+    n0 = np.count_nonzero(mask, axis=1, keepdims=True)
+    ind = (np.unravel_index(np.argmax(n0, axis=0), n0.shape))[0]
+    if(len(ind) == 1):
+        ind = ind[0]
         tamanho = int((n0[ind])*WX)
+        #print("tamanho", tamanho)
         inicial = int(((np.argmax(mask[ind]))*WX)+dimen[0, 0])
+        #print("inicial", inicial)
+        y_vid = int(ind*HX)
+        #print("y_vid", y_vid)
         diametroCM = int(tamanho * tam)
+        #print("diam", diametroCM)
+        frame =  cv.putText(frame, "Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", (1, 1), cv.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 2, cv.LINE_AA)
+
+
         #tamanho2 = int(n0[Y]*WX)
         #inicial2 = int(((np.argmax(mask[Y]))*WX)+dimen[0, 0])
         #y_vid2 = int(Y*HX)
-        y_vid = int(ind*HX)
+        
         x_vid = int(dimen[0, 2] + 40)
-        #frame = cv.line(frmae, (inicial2, y_vid2), ((inicial2 + tamanho2), y_vid2), (0, 0, 255), 4)
+        #frame = cv.line(frame, (inicial2, y_vid2), ((inicial2 + tamanho2), y_vid2), (0, 0, 255), 4)
         #frame = cv.putText(frame, (str(int(tamanho2 * tam)) + ' cm'), (x_vid, (y_vid2 + 20)), cv.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 2, cv.LINE_AA)
         frame = cv.line(frame, (inicial, y_vid), ((inicial + tamanho), y_vid), (0, 0, 255), 4)
         frame = cv.putText(frame, (str(diametroCM) + ' cm'), (x_vid, (y_vid + 20)), cv.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 2, cv.LINE_AA)
-        return frame
+    
+    return frame
+
+#def medicao(result, frame):
+#    global diametroCM
+
+#    mask = result.masks.data
+#    mask = mask.cpu()
+
+#    if mask.shape[1] > 200:
+#        mask = np.squeeze(np.array(mask))
+#        boxes = result.boxes.xyxy.cpu()
+#        dimen = np.array(boxes)
+#        mask = mask[(int(dimen[0, 1]//HX)):(int(dimen[0, 3]//HX)), (int(dimen[0, 0]//WX)):(int(dimen[0, 2]//WX))]
+#        n0 = np.count_nonzero(mask, axis=1, keepdims=True)
+#        ind = (np.where(n0 == np.max(n0))[0])[-1]
+#        tamanho = int((n0[ind])*WX)
+#        inicial = int(((np.argmax(mask[ind]))*WX)+dimen[0, 0])
+#        diametroCM = int(tamanho * tam)
+#        #tamanho2 = int(n0[Y]*WX)
+#        #inicial2 = int(((np.argmax(mask[Y]))*WX)+dimen[0, 0])
+#        #y_vid2 = int(Y*HX)
+#        y_vid = int(ind*HX)
+#        x_vid = int(dimen[0, 2] + 40)
+#        #frame = cv.line(frmae, (inicial2, y_vid2), ((inicial2 + tamanho2), y_vid2), (0, 0, 255), 4)
+#        #frame = cv.putText(frame, (str(int(tamanho2 * tam)) + ' cm'), (x_vid, (y_vid2 + 20)), cv.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 2, cv.LINE_AA)
+#        frame = cv.line(frame, (inicial, y_vid), ((inicial + tamanho), y_vid), (0, 0, 255), 4)
+#        frame = cv.putText(frame, (str(diametroCM) + ' cm'), (x_vid, (y_vid + 20)), cv.FONT_HERSHEY_SIMPLEX, 1.5, (0, 0, 255), 2, cv.LINE_AA)
+#        return frame
 
 #def medicao(result, frame):
 #    global diametroCM
@@ -116,7 +147,6 @@ def ImageProcess():
 
     # Initializing matrix for all values obtained in one second
     timeData_matrix = []
-    diameter_list = []
 
     jaCalibrou = False
     
@@ -131,25 +161,22 @@ def ImageProcess():
             frameNovo = cv.resize(frame, (WIDTH, HEIGHT))
             
             # Captura do frame mais atual e transformação dela para imagem
-            captured_image = Image.fromarray(frameNovo)
+            captured_image = Image.fromarray(opencv_image)
 
-            results = model(captured_image, verbose=False, max_det = 1)[0]
+            results = model(captured_image, verbose=False, max_det = 1)
             
-            if(results != None):
-                #frameNovo = results.plot()
-                for result in results:
-                    if(result.masks != None and jaCalibrou):
-                        imagem = medicao(result, frameNovo)
-                    elif(result.masks != None and jaCalibrou == False):
+            img_array = frameNovo 
 
-                        imagem = calibracao(result, frameNovo)
-
-                        
-                        jaCalibrou = True
-            else:
-                imagem = frameNovo
-
-            img_array = imagem
+            if(results[0].cpu().masks != None):
+                frameNovo = results[0].plot()
+                if(results[0].masks != None and jaCalibrou):
+                    img_array = np.asarray(medicao(results[0], frameNovo))
+                elif(results[0].masks != None and jaCalibrou == False):
+                    calibracao(results[0])
+                    jaCalibrou = True
+            elif(jaCalibrou):
+                print("aqui")
+                img_array = np.array([0, 1, 2, 3])
 
 
             # Data
@@ -160,39 +187,40 @@ def ImageProcess():
             
             # Only executes if the matrix isnt empty
             if len(timeData_matrix) > 0:
-
                 # If the last time on the matrix is different from current it starts the update of the queues
                 if timeData_matrix[-1][0] != current_time:
 
+                    # Initializing variables before loop
+                    cont = int(0)
+                    avg_diameter = int(0)
+
                     # Loop for the index of every value on the matrix
+                    for i in range(0, len(timeData_matrix)):
 
-                    # Sum of all the values obtained in one second of the program
-                    avg_diameter = sum(diameter_list)
+                        # Sum of all the values obtained in one second of the program
+                        avg_diameter += timeData_matrix[i][1]
 
-                    # Amount of values obtained in one second of the program
-                    cont = len(diameter_list)
+                        # Amount of values obtained in one second of the program
+                        cont += 1
                     
                     # Calculating the average of the values obtained
                     avg = float(f"{avg_diameter/cont:.2f}")
 
                     #print(f"avg_diameter = {avg_diameter}")
                     #print(f"cont = {cont}")
-                    #print(f"avg = {avg}")s
-                   
+                    #print(f"avg = {avg}")
+
                     # Adds the updated values to the queue
                     queue_diameter.append(avg)
                     queue_time.append(timeData_matrix[1][0])
                     queue_date.append(current_date)
 
                     # Empties the matrix to be used on the next second
-                    cont = int(0)
-                    avg_diameter = int(0)
                     timeData_matrix.clear()
-                    diameter_list.clear()
 
             # Appends the diameter and time values obtained in the matrix
             timeData_matrix.append([current_time, diametroCM])
-            diameter_list.append(diametroCM)
+
 
             # Initializing numpy arrays with the queues to pickle the data
             outputArray_time = np.array([])
@@ -210,9 +238,7 @@ def ImageProcess():
 
         except Exception as e:
             print(e)
-            time.sleep(0.05)
-
-        time.sleep(0.2)
+            time.sleep(0.015)
 
 if __name__ == '__main__':
     ImageProcess()

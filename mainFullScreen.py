@@ -1,16 +1,18 @@
 from customtkinter import *
-import manageSubprocess
+from manageSubprocess import SubprocessManager
 from PIL import Image
+import numpy as np
 import _pickle as pickle
 import ctypes
 import cv2
 import os
-import time
 
 class App(CTk):
     def __init__(self):
         super().__init__()
         
+        self.thisSubprocessManager = SubprocessManager()
+
         screen_width = self.winfo_screenwidth()
         screen_height = self.winfo_screenheight()
 
@@ -73,18 +75,19 @@ class App(CTk):
         self.video_frame.grid(row=0, column=0, padx=(30, 10), pady=(10, 10), sticky='nsew')
         
         image_video = CTkImage(light_image=Image.open('./imagens/IFES_logo.png'), size=(400 * 0.7, 400 * 0.7))
-
         self.video_widget = CTkLabel(self.video_frame, image=image_video, text="")
         self.video_widget.pack(padx=10, pady=10, fill=BOTH, expand=True)
 
         self.gaugeGraph_frame = CTkFrame(self.primary_frame, fg_color="#a4a8ad", corner_radius=15)
         self.gaugeGraph_frame.grid(row=0, column=1, padx=(0, 30), pady=(10, 10), sticky='nsew')
 
+        gaugeGraph_image = CTkImage(Image.open('./imagens/IFES_logo.png'), size=(400 * 0.7, 400 * 0.7))
+
         self.button = CTkButton(self.gaugeGraph_frame, text="PARAR APITO", width=240, text_color="black", hover_color="#bdc3c9", 
-        border_width=2, border_color="black", fg_color='white', command=self.button_event_reset_diametro_gauge)
+        border_width=2, border_color="black", fg_color='white', command=self.button_event_parar_apito)
+
         self.button.pack(pady=(25,25), anchor='s')
 
-        gaugeGraph_image = CTkImage(Image.open('./imagens/IFES_logo.png'), size=(400 * 0.7, 400 * 0.7))
         self.gaugeGraph_label = CTkLabel(self.gaugeGraph_frame, image=gaugeGraph_image, text="")
         self.gaugeGraph_label.pack(padx=10, pady=0, anchor='n')
        
@@ -102,46 +105,39 @@ class App(CTk):
         self.update_plot_line()
 
         # Bind to resize the images if the screen size changes
-        self.gaugeGraph_label.bind("<Configure>", lambda event:self.resize_image(event, "Gauge"))
-        self.lineGraph_label.bind("<Configure>", lambda event:self.resize_image(event, "Line"))
-        self.video_widget.bind("<Configure>", lambda event:self.resize_image(event, "Video"))
+        #self.gaugeGraph_label.bind("<Configure>", lambda event:self.resize_image(event, "Gauge"))
+        #self.lineGraph_label.bind("<Configure>", lambda event:self.resize_image(event, "Line"))
+        #self.video_widget.bind("<Configure>", lambda event:self.resize_image(event, "Video"))
+    
+    def button_event_parar_apito(self):
+        # Código para parar o apito
+        print("Parar apito faltando implementação")
 
+    def reset_diametro_gauge(self):
+        self.thisSubprocessManager.KillSubprocess_All()
 
-    def button_event_reset_diametro_gauge(self):
+        new_ifes_logo = CTkImage(light_image=Image.open('./imagens/IFES_logo.png'), size=(400 * 0.7, 400 * 0.7))
 
-        manageSubprocess.KillSubprocess_All
-        processDone = manageSubprocess.ChecarSubprocessesDone()
+        self.video_widget.configure(image=new_ifes_logo)
+        self.video_widget.image = new_ifes_logo
 
-        gaugeGraph_image = CTkImage(Image.open('./imagens/IFES_logo.png'), size=(400 * 0.7, 400 * 0.7))
-        lineGraph_image = CTkImage(Image.open('./imagens/IFES_horizontal_logo.png'), size=(600 * 0.7, 250* 0.7))
-        image_video = CTkImage(light_image=Image.open('./imagens/IFES_logo.png'), size=(400 * 0.7, 400 * 0.7))
+        self.lineGraph_label.configure(image=new_ifes_logo) 
+        self.lineGraph_image.image = new_ifes_logo
 
-        self.gaugeGraph_label.configure(image=gaugeGraph_image) 
-        self.gaugeGraph_label.image = gaugeGraph_image
+        self.gaugeGraph_label.configure(image=new_ifes_logo) 
+        self.gaugeGraph_label.image = new_ifes_logo
 
-        self.lineGraph_label.configure(image=lineGraph_image) 
-        self.lineGraph_image.image = lineGraph_image
-        
-        self.video_widget.configure(image=self.image_video) 
-        self.video_widget.image = image_video
-
+        processDone = self.thisSubprocessManager.ChecarSubprocessesDone()
         while(not processDone):
-
-            processDone = manageSubprocess.ChecarSubprocessesDone()
+            processDone = self.thisSubprocessManager.ChecarSubprocessesDone()
             time.sleep(1)
 
-        manageSubprocess.StartSubprocess_All()
+        self.thisSubprocessManager.StartSubprocess_All()
 
-    # Resize function
-    def resize_image(self, event, extra):
-        newSize = (event.width, event.height)
-        #if(extra == "Gauge"):
-        #    gaugeGraph_image = CTkImage(Image.open('./imagens/gaugeDiametro.png'),
-        #        size=newSize
-        #        )
-        #    self.gaugeGraph_label = CTkLabel(self.gaugeGraph_frame, image=gaugeGraph_image, text="")
-        #    self.gaugeGraph_label.pack(fill=BOTH, expand=True, padx=10, pady=10)
-    
+        self.DeletePickleData()
+
+        self.update_image()
+
     # Function to update the segmented video
     def update_image(self):
         try:
@@ -150,31 +146,43 @@ class App(CTk):
             img_data = pickle.load(f)
             f.close()
             del f
-            img_data = cv2.cvtColor(img_data, cv2.COLOR_BGR2RGB)
-            # Convert numpy array to PIL image
-            frame = Image.fromarray(img_data)
-            #img_data = None
-            del img_data
-            self.image_video = CTkImage(light_image=frame, size=(840, 420))
-            self.video_widget.configure(image=self.image_video)
-            self.video_widget.pack(padx=10, pady=10, fill=BOTH, expand=True)
+            if(len(img_data.shape) == 1):
+                self.reset_diametro_gauge()
+            else:
+                # Convert RGB image to BGR image
+                img_data = cv2.cvtColor(img_data, cv2.COLOR_BGR2RGB)
 
+                img_data = Image.fromarray(img_data)
+
+                baseheight = 320
+
+                hpercent = (baseheight / float(img_data.size[1]))
+                wsize = int((float(img_data.size[0]) * float(hpercent)))
+                frame = img_data.resize((wsize, baseheight), Image.LANCZOS)
+
+                del img_data
+
+                new_imagem_video = CTkImage(light_image=frame, size=(wsize, 320))
+                self.video_widget.configure(image=new_imagem_video)
+                self.video_widget.image = new_imagem_video
+                self.video_widget.pack(padx=10, pady=10, fill=BOTH, expand=True)
+                self.after(30, self.update_image)
         except Exception as e:
             print(e)
-        finally:
             self.after(30, self.update_image)
+            
 
     # Funcion to update the gauge graph
     def update_plot_gauge(self):
         try:
-
             f = open('./pickle_data/gaugeGraph_pickle.pkl', 'rb')
             img_data_gauge_graph = pickle.load(f)
             f.close()
             del f
             gaugeGraph_frame = Image.fromarray(img_data_gauge_graph)
-            self.gaugeGraph_image = CTkImage(light_image=gaugeGraph_frame, size=(750 * 0.7, 500 * 0.7))
-            self.gaugeGraph_label.configure(image=self.gaugeGraph_image)
+            new_gaugeGraph_image = CTkImage(light_image=gaugeGraph_frame, size=(750 * 0.7, 500 * 0.7))
+            self.gaugeGraph_label.configure(image=new_gaugeGraph_image)
+            self.gaugeGraph_label.image = new_gaugeGraph_image
             self.gaugeGraph_label.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
         except Exception as e:
@@ -201,30 +209,7 @@ class App(CTk):
 
         finally:
             self.after(1000, self.update_plot_line)
-    
-if __name__ == "__main__":
-    ### Variables
-    # Defining original DPI being used
-    ORIGINAL_DPI = 96.09458128078816
-    APP_WIDTH = 1000
-    APP_HEIGHT = 720
-    w_img, h_img = 30, 30
-
-    #manageSubprocess.StartSubprocess_All()   
-    
-    # Starting the app
-    app = App()
-    # Setting up all subprocesses
-    manageSubprocess.StartSubprocess_All()   
-    ctypes.windll.shcore.SetProcessDpiAwareness(2)
-    
-    # Function that stops the subprocesses when closing the app
-    def on_closing():
-        try:
-            manageSubprocess.KillSubprocess_All()  
-        except Exception as e:
-            print(e)
-
+    def DeletePickleData(self):
         try:
             os.remove(os.path.join(os.path.dirname(__file__), 'pickle_data/diameter_pickle.pkl'))
         except Exception as e:
@@ -253,6 +238,31 @@ if __name__ == "__main__":
             os.remove(os.path.join(os.path.dirname(__file__), 'pickle_data/lineGraph_pickle.pkl'))
         except Exception as e:
             print(e)   
+
+if __name__ == "__main__":
+    global app
+
+    ### Variables
+    # Defining original DPI being used
+    ORIGINAL_DPI = 96.09458128078816
+    APP_WIDTH = 1000
+    APP_HEIGHT = 720
+    w_img, h_img = 30, 30
+
+    # Starting the app
+    app = App()
+    # Setting up all subprocesses
+    app.thisSubprocessManager.StartSubprocess_All()   
+    ctypes.windll.shcore.SetProcessDpiAwareness(2)
+    
+    # Function that stops the subprocesses when closing the app
+    def on_closing():
+        try:
+           app.thisSubprocessManager.KillSubprocess_All()  
+        except Exception as e:
+            print(e)
+
+        app.DeletePickleData()
 
         # Deleting app window
         app.destroy()
