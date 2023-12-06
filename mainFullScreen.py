@@ -1,11 +1,11 @@
 from customtkinter import *
 from manageSubprocess import SubprocessManager
 from PIL import Image
+import numpy as np
 import _pickle as pickle
 import ctypes
 import cv2
 import os
-import imutils
 
 class App(CTk):
     def __init__(self):
@@ -84,7 +84,7 @@ class App(CTk):
         gaugeGraph_image = CTkImage(Image.open('./imagens/IFES_logo.png'), size=(400 * 0.7, 400 * 0.7))
 
         self.button = CTkButton(self.gaugeGraph_frame, text="PARAR APITO", width=240, text_color="black", hover_color="#bdc3c9", 
-        border_width=2, border_color="black", fg_color='white', command=self.button_event_reset_diametro_gauge)
+        border_width=2, border_color="black", fg_color='white', command=self.button_event_parar_apito)
 
         self.button.pack(pady=(25,25), anchor='s')
 
@@ -108,9 +108,12 @@ class App(CTk):
         #self.gaugeGraph_label.bind("<Configure>", lambda event:self.resize_image(event, "Gauge"))
         #self.lineGraph_label.bind("<Configure>", lambda event:self.resize_image(event, "Line"))
         #self.video_widget.bind("<Configure>", lambda event:self.resize_image(event, "Video"))
+    
+    def button_event_parar_apito(self):
+        # Código para parar o apito
+        print("Parar apito faltando implementação")
 
-
-    def button_event_reset_diametro_gauge(self):
+    def reset_diametro_gauge(self):
         self.thisSubprocessManager.KillSubprocess_All()
 
         #self.gaugeGraph_label.configure(image=gaugeGraph_image) 
@@ -122,13 +125,17 @@ class App(CTk):
         #self.video_widget.configure(image=self.image_video) 
         #self.video_widget.image = image_video
 
-
         processDone = self.thisSubprocessManager.ChecarSubprocessesDone()
         while(not processDone):
             processDone = self.thisSubprocessManager.ChecarSubprocessesDone()
             time.sleep(1)
 
         self.thisSubprocessManager.StartSubprocess_All()
+        try:
+            os.remove(os.path.join(os.path.dirname(__file__), 'pickle_data/frame_pickle.pkl'))
+        except Exception as e:
+            print(e)
+        self.update_image()
 
     # Function to update the segmented video
     def update_image(self):
@@ -138,20 +145,30 @@ class App(CTk):
             img_data = pickle.load(f)
             f.close()
             del f
-            #img_data = cv2.cvtColor(img_data, cv2.COLOR_BGR2RGB)
-            # Convert numpy array to PIL image
-            frame = Image.fromarray(img_data)
-            #img_data = None
-            del img_data
-            #resized = imutils.resize(frame, 840);
-            self.image_video = CTkImage(light_image=frame, size=(840, 420))
-            self.video_widget.configure(image=self.image_video)
-            self.video_widget.pack(padx=10, pady=10, fill=BOTH, expand=True)
+            if(len(img_data.shape) == 1):
+                self.reset_diametro_gauge()
+            else:
+                # Convert RGB image to BGR image
+                img_data = cv2.cvtColor(img_data, cv2.COLOR_BGR2RGB)
 
+                img_data = Image.fromarray(img_data)
+
+                baseheight = 320
+
+                hpercent = (baseheight / float(img_data.size[1]))
+                wsize = int((float(img_data.size[0]) * float(hpercent)))
+                frame = img_data.resize((wsize, baseheight), Image.ANTIALIAS)
+
+                del img_data
+
+                self.imagem_video = CTkImage(light_image=frame, size=(wsize, 320))
+                self.video_widget.configure(image=self.imagem_video)
+                self.video_widget.pack(padx=10, pady=10, fill=BOTH, expand=True)
+                self.after(30, self.update_image)
         except Exception as e:
             print(e)
-        finally:
             self.after(30, self.update_image)
+            
 
     # Funcion to update the gauge graph
     def update_plot_gauge(self):
