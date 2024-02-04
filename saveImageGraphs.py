@@ -44,7 +44,7 @@ def line_graph(queue_time, queue_data):
 
     # PLotting the figure of the graph
     fig = px.line(df, x="x_axis", y="y_axis", text="y_axis", markers=True, template="seaborn", 
-                  labels = dict(x = "", y = "Diâmetro (mm)"))
+                  labels = dict(x_axis = "", y_axis = "Diâmetro (cm)"))
 
     # Updating layout background to be the same as the frame and font style
     fig.update_layout(
@@ -191,9 +191,6 @@ def graph_process():
 
             ## UPDATES
 
-            if(len(diameter) > 0):
-                arr_gaugeimg = gauge_graph(diameter[-1])
-
             # Plotting images
             if(len(diameter) > 0):
                 if(diameter[-1] > max_diameter):
@@ -202,9 +199,8 @@ def graph_process():
                     max_diameter = diameter[-1] 
                     arr_gaugeimg = gauge_graph(max_diameter)
 
-                    #while max_diameter >= 75:
-
-                    #    Beep(4000, 1000)
+                    if(max_diameter >= 70):
+                        Beep(4000, 30000)
 
 
             arr_lineimg = line_graph(time, diameter)

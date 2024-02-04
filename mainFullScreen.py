@@ -83,10 +83,10 @@ class App(CTk):
 
         gaugeGraph_image = CTkImage(Image.open('./imagens/IFES_logo.png'), size=(400 * 0.7, 400 * 0.7))
 
-        self.button = CTkButton(self.gaugeGraph_frame, text="PARAR APITO", width=240, text_color="black", hover_color="#bdc3c9", 
-        border_width=2, border_color="black", fg_color='white', command=self.button_event_parar_apito)
+        #self.button = CTkButton(self.gaugeGraph_frame, text="PARAR APITO", width=240, text_color="black", hover_color="#bdc3c9", 
+        #border_width=2, border_color="black", fg_color='white', command=self.button_event_parar_apito)
 
-        self.button.pack(pady=(25,25), anchor='s')
+        #self.button.pack(pady=(25,25), anchor='s')
 
         self.gaugeGraph_label = CTkLabel(self.gaugeGraph_frame, image=gaugeGraph_image, text="")
         self.gaugeGraph_label.pack(padx=10, pady=0, anchor='n')
@@ -114,7 +114,7 @@ class App(CTk):
         print("Parar apito faltando implementação")
 
     def reset_diametro_gauge(self):
-        self.thisSubprocessManager.KillSubprocess_All()
+        self.thisSubprocessManager.KillSubprocess_Graphs()
 
         new_ifes_logo = CTkImage(light_image=Image.open('./imagens/IFES_logo.png'), size=(400 * 0.7, 400 * 0.7))
 
@@ -132,7 +132,7 @@ class App(CTk):
             processDone = self.thisSubprocessManager.ChecarSubprocessesDone()
             time.sleep(1)
 
-        self.thisSubprocessManager.StartSubprocess_All()
+        self.thisSubprocessManager.StartSubprocess_Graphs()
 
         self.DeletePickleData()
 

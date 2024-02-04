@@ -24,8 +24,6 @@ WIDTH, HEIGHT = (1280, 720)
 Y, YX, HX, WX = 300, int(300*(HEIGHT/384)), round((HEIGHT/384), 3), round((WIDTH/640), 3)
 
 
-#HX, WX = round((HEIGHT/384), 3), round((WIDTH/640), 3)
-
 #SAVE IMAGE DATA IN PICKLE FILE TO BE USED BY THE DASH PROGRAM.
 def storeData(data, path):
 
@@ -42,9 +40,10 @@ def storeData(data, path):
 def calibracao(result):
     global tam
 
-    #tam = round(40 / 420, 2)
-    mask = np.squeeze(np.array(result.cpu().masks.data))[Y]
+    mask = np.squeeze(np.array(result.cpu().masks.data))[300]
+    print("mask:", mask)
     diametro = int(np.count_nonzero(mask)*WX)
+    print("diametro:", diametro)
     inicial = int(np.argmax(mask)*WX)
     tam = round(40 / (diametro), 2)
     img = result.plot(boxes = False, conf = False, probs= False)
@@ -53,6 +52,7 @@ def calibracao(result):
 
 def medicao(result, frame):
     global diametroCM
+    print("tam:", tam)
     mask = result.cpu().masks.data
     mask = np.squeeze(np.array(mask))
     boxes = result.cpu().boxes.xyxy
@@ -72,19 +72,21 @@ def medicao(result, frame):
     return frame
 
 def ImageProcess():
-    #model = YOLO("best.pt")
-    model = YOLO("yolov8n-seg.pt")
+    model = YOLO("best.pt")
+    #model = YOLO("yolov8n-seg.pt")
     model.conf = 0.45  # NMS confidence threshold
     model.iou = 0.65  # NMS IoU threshold
     model.agnostic = True  # NMS class-agnostic
     
+    video_path = 'DSC_0007.mov'
+
     # Configure camera
-    # Define a video capture object
-    vid = cv.VideoCapture(0, cv.CAP_DSHOW)
-  
     # Set the width and height
-    vid.set(cv.CAP_PROP_FRAME_WIDTH, WIDTH)
-    vid.set(cv.CAP_PROP_FRAME_HEIGHT, HEIGHT)
+    #vid.set(cv.CAP_PROP_FRAME_WIDTH, WIDTH)
+    #vid.set(cv.CAP_PROP_FRAME_HEIGHT, HEIGHT)
+
+    # Define a video capture object
+    vid = cv.VideoCapture(video_path)
 
     # Initializing the queue variables
     queue_time = deque([], maxlen = 20)
@@ -95,7 +97,7 @@ def ImageProcess():
     timeData_matrix = []
 
     jaCalibrou = False
-    
+
     while True:
         try:
             # Captura do vídeo frame por frame
@@ -103,25 +105,25 @@ def ImageProcess():
             frame = cv.resize(frame, (WIDTH, HEIGHT))
 
             # Conversão de imagem de uma espaço de cores para o outro
-            opencv_image = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
+            #opencv_image = cv.cvtColor(frame, cv.COLOR_BGR2RGB)
+            opencv_image = frame
 
             # Captura do frame mais atual e transformação dela para imagem
             captured_image = Image.fromarray(opencv_image)
 
-            results = model(captured_image, verbose=False, max_det = 1)
+            results = model(captured_image, verbose=True, max_det = 1)
             
-            img_array = opencv_image 
+            img_array = opencv_image
 
             if(results[0].cpu().masks is not None):
                 frameNovo = results[0].plot()
-                if(results[0].masks != None and jaCalibrou):
+                if(jaCalibrou):
                     img_array = np.asarray(medicao(results[0], frameNovo))
-                elif(results[0].masks != None and jaCalibrou == False):
+                else:
                     calibracao(results[0])
                     jaCalibrou = True
             elif(jaCalibrou):
                 img_array = np.array([0, 1, 2, 3])
-
 
             # Data
             # Getting the time of each measurement of the program
